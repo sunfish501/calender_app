@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>시간표</title>
+<link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    background: #f5f5f7;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6em; font-weight: 600; margin-bottom: 16px; color: #222; }
+  .toolbar {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+  }
+  button {
+    font-family: inherit; font-size: 0.95em; font-weight: 500;
+    padding: 7px 14px; border: 1px solid #d0d0d5;
+    background: #fff; color: #333; border-radius: 6px; cursor: pointer;
+  }
+  button:hover { background: #f0f0f3; }
+  button.primary { background: #2874e0; color: #fff; border-color: #2874e0; }
+  button.primary:hover { background: #1d5cb8; }
+  input, select {
+    font-family: inherit; font-size: 0.95em;
+    padding: 6px 10px; border: 1px solid #d0d0d5; border-radius: 6px;
+  }
+  input:focus, select:focus { outline: none; border-color: #2874e0; }
+  .grid {
+    display: grid;
+    grid-template-columns: 60px repeat(5, 1fr);
+    gap: 1px;
+    background: #e5e5ea;
+    border: 1px solid #e5e5ea;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .grid-header {
+    background: #f0f0f5;
+    text-align: center;
+    padding: 10px 0;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #333;
+  }
+  .grid-time {
+    background: #f8f8fb;
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 0.85em;
+    color: #666;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .grid-cell {
+    background: #fff;
+    min-height: 50px;
+    padding: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .grid-cell:hover { background: #f7f7fa; }
+  .grid-cell input {
+    width: 100%; border: none; background: transparent;
+    font-family: 'Gamja Flower', cursive;
+    font-size: 1.1em;
+    text-align: center;
+    padding: 4px 2px;
+    color: #333;
+  }
+  .grid-cell input:focus { background: #eef5ff; border-radius: 4px; }
+  .grid-cell input::placeholder { color: #ccc; }
+  .status { font-size: 0.85em; color: #888; margin-top: 12px; }
+  .help { font-size: 0.8em; color: #999; margin-top: 8px; }
+  .name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .name-row input { flex: 1; font-size: 1.1em; padding: 8px 12px; }
+
+  .btn-save {
+    font-family: inherit;
+    font-size: 16px;
+    background: #212121;
+    color: white;
+    fill: rgb(155, 153, 153);
+    padding: 0.6em 1em 0.6em 0.9em;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    font-weight: 800;
+  }
+  .btn-save span {
+    display: block;
+    margin-left: 0.3em;
+    transition: all 0.3s ease-in-out;
+  }
+  .btn-save svg {
+    display: block;
+    transform-origin: center center;
+    transition: transform 0.3s ease-in-out;
+  }
+  .btn-save:hover { background: #000; }
+  .btn-save:hover .svg-wrapper { transform: scale(1.25); transition: 0.5s linear; }
+  .btn-save:hover svg { transform: translateX(1.2em) scale(1.1); fill: #fff; }
+  .btn-save:hover span { opacity: 0; transition: 0.5s linear; }
+  .btn-save:active { transform: scale(0.95); }
+
+  .toast-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .toast-overlay.show { opacity: 1; }
+  .toast-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px 50px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    text-align: center;
+    transform: scale(0.8);
+    transition: transform 0.3s ease-out;
+  }
+  .toast-overlay.show .toast-card { transform: scale(1); }
+  .toast-icon { font-size: 3em; margin-bottom: 8px; }
+  .toast-text { font-size: 1.2em; font-weight: 600; color: #333; }
+  .toast-sub { font-size: 0.9em; color: #888; margin-top: 4px; }
+
+  /* NEIS 모달 */
+  .neis-backdrop {
+    display: none; position: fixed;
+    top:0;left:0;right:0;bottom:0;
+    background: rgba(0,0,0,0.4);
+    justify-content: center; align-items: center; z-index: 600;
+  }
+  .neis-backdrop.open { display: flex; }
+  .neis-modal {
+    background: #fff; border-radius: 14px; padding: 24px 28px;
+    width: 420px; max-width: 95vw; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .neis-modal h3 { font-size: 1.2em; margin-bottom: 14px; }
+  .neis-modal label { display: block; font-size: 0.9em; color: #555; margin: 10px 0 4px; font-weight: 500; }
+  .neis-modal input, .neis-modal select {
+    width: 100%; padding: 8px 12px; font-size: 1em;
+    border: 1px solid #d0d0d5; border-radius: 6px;
+  }
+  .neis-modal input:focus, .neis-modal select:focus { outline: none; border-color: #2874e0; }
+  .neis-row { display: flex; gap: 8px; }
+  .neis-row > * { flex: 1; }
+  .neis-results {
+    max-height: 150px; overflow-y: auto; margin: 8px 0;
+    border: 1px solid #e5e5ea; border-radius: 6px;
+  }
+  .neis-school-item {
+    padding: 8px 12px; cursor: pointer; font-size: 0.9em;
+    border-bottom: 1px solid #f0f0f3;
+  }
+  .neis-school-item:last-child { border-bottom: none; }
+  .neis-school-item:hover { background: #f0f0f3; }
+  .neis-school-item.selected { background: #eef5ff; font-weight: 600; }
+  .neis-school-item small { color: #888; margin-left: 6px; }
+  .neis-status { font-size: 0.85em; color: #888; margin: 8px 0; }
+  .neis-status.error { color: #d33; }
+  .neis-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .neis-spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid #ddd; border-top-color: #2874e0;
+    border-radius: 50%; animation: neis-spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes neis-spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>시간표 만들기</h1>
+
+  <div class="name-row">
+    <label>시간표 이름:</label>
+    <input type="text" id="tt-name" placeholder="예) 1학기 시간표">
+  </div>
+
+  <div class="toolbar">
+    <label>교시 수:</label>
+    <select id="period-count">
+      <option value="6">6교시</option>
+      <option value="7" selected>7교시</option>
+      <option value="8">8교시</option>
+      <option value="9">9교시</option>
+    </select>
+    <button onclick="buildGrid()">적용</button>
+    <button onclick="openNeis()" style="background:#4CAF84;color:#fff;border-color:#4CAF84;">🏫 NEIS에서 불러오기</button>
+    <span style="flex:1;"></span>
+    <button class="btn-save" onclick="saveTimetable()">
+      <div class="svg-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg></div>
+      <span>저장</span>
+    </button>
+    <button class="btn-save" onclick="applyToCalendar()" style="background:#2874e0;">
+      <div class="svg-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zM9 14h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/></svg></div>
+      <span>달력에 적용</span>
+    </button>
+    <button onclick="window.location.href='/calendar.html'">달력으로 돌아가기</button>
+  </div>
+
+  <div id="grid-container"></div>
+  <div class="status" id="status"></div>
+  <div class="toast-overlay" id="toast-overlay">
+    <div class="toast-card">
+      <div class="toast-icon" id="toast-icon"></div>
+      <div class="toast-text" id="toast-text"></div>
+      <div class="toast-sub" id="toast-sub"></div>
+    </div>
+  </div>
+  <!-- NEIS 모달 -->
+  <div class="neis-backdrop" id="neis-backdrop">
+    <div class="neis-modal">
+      <h3>🏫 NEIS 시간표 불러오기</h3>
+
+      <label>학교 검색</label>
+      <input type="text" id="neis-school-input" placeholder="학교명 입력 (예: 디미고)">
+      <div class="neis-results" id="neis-school-results" style="display:none;"></div>
+      <div class="neis-status" id="neis-school-status"></div>
+
+      <div class="neis-row">
+        <div>
+          <label>학년</label>
+          <select id="neis-grade">
+            <option value="1">1학년</option>
+            <option value="2">2학년</option>
+            <option value="3">3학년</option>
+          </select>
+        </div>
+        <div>
+          <label>반</label>
+          <input type="number" id="neis-class" value="1" min="1" max="20">
+        </div>
+      </div>
+
+      <label>조회 주간 (월요일 기준)</label>
+      <input type="date" id="neis-date">
+
+      <div class="neis-status" id="neis-fetch-status"></div>
+
+      <div class="neis-btns">
+        <button onclick="closeNeis()">취소</button>
+        <button class="primary" onclick="fetchNeisTimetable()">불러오기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="help">
+    각 칸에 과목명 입력 후 "저장". "달력에 적용"을 누르면 달력에 반복 일정으로 등록됩니다.<br>
+    시간표는 여러 개 저장할 수 있습니다. 달력에서 "시간표" 버튼으로 이 페이지에 올 수 있습니다.
+  </div>
+</div>
+
+<script>
+  const TIMETABLE_KEY = 'calendar-timetables-v1';
+  const EVENTS_KEY = 'handwriting-calendar-events-v1';
+  const DAYS = ['월', '화', '수', '목', '금'];
+  let periods = 7;
+
+  function loadTimetables() {
+    try { return JSON.parse(localStorage.getItem(TIMETABLE_KEY) || '[]'); } catch { return []; }
+  }
+  function saveTimetables(list) { localStorage.setItem(TIMETABLE_KEY, JSON.stringify(list)); }
+
+  function buildGrid() {
+    periods = parseInt(document.getElementById('period-count').value) || 7;
+    const container = document.getElementById('grid-container');
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.id = 'timetable-grid';
+
+    // Header
+    const corner = document.createElement('div');
+    corner.className = 'grid-header';
+    corner.textContent = '';
+    grid.appendChild(corner);
+    DAYS.forEach(d => {
+      const h = document.createElement('div');
+      h.className = 'grid-header';
+      h.textContent = d;
+      grid.appendChild(h);
+    });
+
+    // Rows
+    for (let p = 1; p <= periods; p++) {
+      const timeEl = document.createElement('div');
+      timeEl.className = 'grid-time';
+      timeEl.textContent = p + '교시';
+      grid.appendChild(timeEl);
+      for (let di = 0; di < 5; di++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.placeholder = '과목';
+        inp.dataset.period = p;
+        inp.dataset.day = di;
+        cell.appendChild(inp);
+        grid.appendChild(cell);
+      }
+    }
+    container.appendChild(grid);
+  }
+
+  function getGridData() {
+    const data = {};
+    document.querySelectorAll('#timetable-grid input[data-period]').forEach(inp => {
+      const v = inp.value.trim();
+      if (!v) return;
+      const day = parseInt(inp.dataset.day);
+      const period = parseInt(inp.dataset.period);
+      if (!data[day]) data[day] = {};
+      data[day][period] = v;
+    });
+    return data;
+  }
+
+  function setGridData(data) {
+    document.querySelectorAll('#timetable-grid input[data-period]').forEach(inp => {
+      const day = parseInt(inp.dataset.day);
+      const period = parseInt(inp.dataset.period);
+      if (data[day] && data[day][period]) {
+        inp.value = data[day][period];
+      }
+    });
+  }
+
+  function showToast(icon, text, sub) {
+    const overlay = document.getElementById('toast-overlay');
+    document.getElementById('toast-icon').textContent = icon;
+    document.getElementById('toast-text').textContent = text;
+    document.getElementById('toast-sub').textContent = sub || '';
+    overlay.classList.add('show');
+    setTimeout(() => overlay.classList.remove('show'), 1800);
+  }
+
+  function saveTimetable() {
+    const name = document.getElementById('tt-name').value.trim() || '시간표';
+    const data = getGridData();
+    const list = loadTimetables();
+    const existing = list.findIndex(t => t.name === name);
+    const entry = { name, periods, data, saved: new Date().toISOString() };
+    if (existing >= 0) { list[existing] = entry; }
+    else { list.push(entry); }
+    saveTimetables(list);
+    showToast('💾', `"${name}" 저장 완료`);
+  }
+
+  function applyToCalendar() {
+    const name = document.getElementById('tt-name').value.trim() || '시간표';
+    const data = getGridData();
+    if (Object.keys(data).length === 0) {
+      alert('시간표에 과목을 입력해주세요.');
+      return;
+    }
+
+    // 앞으로 12주 동안 반복 일정 생성
+    const events = {};
+    try {
+      const stored = JSON.parse(localStorage.getItem(EVENTS_KEY) || '{}');
+      Object.assign(events, stored);
+    } catch {}
+
+    const today = new Date();
+    const weeksBehind = 4;
+    const weeksAhead = 12;
+    let count = 0;
+
+    for (let w = -weeksBehind; w < weeksAhead; w++) {
+      for (let di = 0; di < 5; di++) {
+        if (!data[di]) continue;
+        const date = new Date(today);
+        // 이번 주 월요일 기준
+        const currentDay = today.getDay(); // 0=일 ~ 6=토
+        const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+        date.setDate(today.getDate() + mondayOffset + di + w * 7);
+
+        const key = date.getFullYear() + '-' +
+          String(date.getMonth() + 1).padStart(2, '0') + '-' +
+          String(date.getDate()).padStart(2, '0');
+
+        if (!events[key]) events[key] = [];
+
+        // 이미 같은 시간표 일정이 있으면 건너뛰기
+        const subjects = Object.entries(data[di]).sort((a, b) => a[0] - b[0]);
+        const lines = subjects.map(([p, s]) => `${p}교시: ${s}`);
+        const marker = `[${name}]`;
+        const fullText = marker + '\n' + lines.join('\n');
+
+        // 같은 마커가 이미 있으면 교체
+        const existingIdx = events[key].findIndex(e => {
+          const t = typeof e === 'string' ? e : e.t;
+          return t && t.startsWith(marker);
+        });
+        if (existingIdx >= 0) {
+          events[key][existingIdx] = fullText;
+        } else {
+          events[key].push(fullText);
+        }
+        count++;
+      }
+    }
+
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+
+    // server sync
+    fetch('/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(events)
+    }).catch(() => {});
+
+    showToast('📅', `"${name}" 달력에 적용 완료!`, `앞으로 ${weeksAhead}주 (${count}일)`);
+  }
+
+  // ─── NEIS API 연동 ──────────────────────────────────────
+  const API_KEY = "21e74fc6a71d49d38adda2f572fdde85";
+  const NEIS_BASE = "https://open.neis.go.kr/hub";
+  let selectedSchool = null;
+
+  function openNeis() {
+    document.getElementById('neis-backdrop').classList.add('open');
+    document.getElementById('neis-school-input').value = '';
+    document.getElementById('neis-school-results').style.display = 'none';
+    document.getElementById('neis-school-status').textContent = '';
+    document.getElementById('neis-fetch-status').textContent = '';
+    selectedSchool = null;
+    // 이번 주 월요일로 기본 날짜 설정
+    const today = new Date();
+    const dow = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+    document.getElementById('neis-date').value = monday.toISOString().slice(0, 10);
+    setTimeout(() => document.getElementById('neis-school-input').focus(), 100);
+  }
+
+  function closeNeis() {
+    document.getElementById('neis-backdrop').classList.remove('open');
+  }
+
+  document.getElementById('neis-backdrop').onclick = (e) => {
+    if (e.target.id === 'neis-backdrop') closeNeis();
+  };
+
+  // 학교 검색 (입력 후 300ms 디바운스)
+  let searchTimer = null;
+  document.getElementById('neis-school-input').oninput = (e) => {
+    clearTimeout(searchTimer);
+    const q = e.target.value.trim();
+    if (q.length < 2) {
+      document.getElementById('neis-school-results').style.display = 'none';
+      return;
+    }
+    searchTimer = setTimeout(() => searchSchool(q), 300);
+  };
+
+  async function searchSchool(name) {
+    const statusEl = document.getElementById('neis-school-status');
+    const resultsEl = document.getElementById('neis-school-results');
+    statusEl.innerHTML = '<span class="neis-spinner"></span>검색 중...';
+    statusEl.className = 'neis-status';
+    console.log('[NEIS] 1단계: 학교 검색 →', name);
+
+    try {
+      const url = `${NEIS_BASE}/schoolInfo?KEY=${API_KEY}&Type=json&pSize=10&SCHUL_NM=${encodeURIComponent(name)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (json.RESULT) {
+        statusEl.textContent = json.RESULT.MESSAGE || '검색 결과 없음';
+        statusEl.className = 'neis-status error';
+        resultsEl.style.display = 'none';
+        console.log('[NEIS] 학교 검색 실패:', json.RESULT.MESSAGE);
+        return;
+      }
+
+      const schools = json.schoolInfo[1].row;
+      console.log(`[NEIS] 학교 ${schools.length}건 검색됨`);
+      statusEl.textContent = `${schools.length}건 검색됨`;
+      statusEl.className = 'neis-status';
+
+      resultsEl.innerHTML = '';
+      resultsEl.style.display = 'block';
+      schools.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'neis-school-item';
+        div.innerHTML = `${s.SCHUL_NM}<small>${s.ORG_RDNMA || s.LCTN_SC_NM || ''}</small>`;
+        div.onclick = () => {
+          selectedSchool = {
+            code: s.SD_SCHUL_CODE,
+            officeCode: s.ATPT_OFCDC_SC_CODE,
+            name: s.SCHUL_NM,
+            kind: s.SCHUL_KND_SC_NM
+          };
+          resultsEl.querySelectorAll('.neis-school-item').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          statusEl.textContent = `선택: ${s.SCHUL_NM} (${s.SCHUL_KND_SC_NM})`;
+          console.log('[NEIS] 2단계: 학교 선택 →', selectedSchool);
+        };
+        resultsEl.appendChild(div);
+      });
+    } catch (err) {
+      statusEl.textContent = 'API 요청 실패: ' + err.message;
+      statusEl.className = 'neis-status error';
+      console.error('[NEIS] 학교 검색 에러:', err);
+    }
+  }
+
+  async function fetchNeisTimetable() {
+    if (!selectedSchool) {
+      alert('학교를 먼저 검색하고 선택해주세요.');
+      return;
+    }
+    const grade = document.getElementById('neis-grade').value;
+    const cls = document.getElementById('neis-class').value;
+    const dateStr = document.getElementById('neis-date').value.replace(/-/g, '');
+    const statusEl = document.getElementById('neis-fetch-status');
+
+    // 학교 종류에 따라 API 분기
+    let apiName;
+    switch (selectedSchool.kind) {
+      case '초등학교': apiName = 'elsTimetable'; break;
+      case '중학교': apiName = 'misTimetable'; break;
+      case '고등학교': default: apiName = 'hisTimetable'; break;
+    }
+
+    // 월~금 5일치 조회 (선택한 날짜부터)
+    const monday = new Date(document.getElementById('neis-date').value);
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    const fromDate = monday.toISOString().slice(0, 10).replace(/-/g, '');
+    const toDate = friday.toISOString().slice(0, 10).replace(/-/g, '');
+
+    statusEl.innerHTML = '<span class="neis-spinner"></span>시간표 불러오는 중...';
+    statusEl.className = 'neis-status';
+    console.log(`[NEIS] 3단계: 시간표 API 호출 → ${apiName}, ${selectedSchool.name}, ${grade}학년 ${cls}반, ${fromDate}~${toDate}`);
+
+    try {
+      const url = `${NEIS_BASE}/${apiName}?KEY=${API_KEY}&Type=json&pSize=100` +
+        `&ATPT_OFCDC_SC_CODE=${selectedSchool.officeCode}` +
+        `&SD_SCHUL_CODE=${selectedSchool.code}` +
+        `&TI_FROM_YMD=${fromDate}&TI_TO_YMD=${toDate}` +
+        `&GRADE=${grade}&CLASS_NM=${cls}`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (json.RESULT) {
+        statusEl.textContent = json.RESULT.MESSAGE || '시간표를 찾을 수 없습니다';
+        statusEl.className = 'neis-status error';
+        console.log('[NEIS] 시간표 조회 실패:', json.RESULT.MESSAGE);
+        return;
+      }
+
+      const rows = json[apiName][1].row;
+      console.log(`[NEIS] 4단계: 시간표 ${rows.length}건 수신`);
+
+      // 요일별로 분류 (월=0 ~ 금=4)
+      const dayMap = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 };
+      const gridData = {};
+      let maxPeriod = 0;
+
+      rows.forEach(r => {
+        const ymd = r.ALL_TI_YMD;
+        const dt = new Date(ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8));
+        const dow = dt.getDay(); // 1=월 ~ 5=금
+        if (dow < 1 || dow > 5) return;
+        const dayIdx = dow - 1;
+        const period = parseInt(r.PERIO);
+        const subject = r.ITRT_CNTNT || '';
+        if (!gridData[dayIdx]) gridData[dayIdx] = {};
+        gridData[dayIdx][period] = subject;
+        if (period > maxPeriod) maxPeriod = period;
+      });
+
+      // 교시 수 조정 + 그리드 재구성
+      if (maxPeriod > 0) {
+        document.getElementById('period-count').value = Math.max(maxPeriod, 6);
+        buildGrid();
+        setGridData(gridData);
+      }
+
+      statusEl.textContent = `${selectedSchool.name} ${grade}학년 ${cls}반 시간표 불러오기 완료!`;
+      statusEl.className = 'neis-status';
+      console.log('[NEIS] 5단계: 그리드 채우기 완료', gridData);
+
+      showToast('🏫', '시간표 불러오기 완료!', `${selectedSchool.name} ${grade}학년 ${cls}반`);
+      closeNeis();
+
+    } catch (err) {
+      statusEl.textContent = 'API 요청 실패: ' + err.message;
+      statusEl.className = 'neis-status error';
+      console.error('[NEIS] 시간표 조회 에러:', err);
+    }
+  }
+
+  // 초기 로드: 마지막 저장된 시간표 불러오기
+  buildGrid();
+  const savedList = loadTimetables();
+  if (savedList.length > 0) {
+    const last = savedList[savedList.length - 1];
+    document.getElementById('tt-name').value = last.name;
+    if (last.periods) {
+      document.getElementById('period-count').value = last.periods;
+      periods = last.periods;
+      buildGrid();
+    }
+    if (last.data) setGridData(last.data);
+  }
+</script>
+</body>
+</html>

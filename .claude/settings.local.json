@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"c:\\\\Users\\\\euiky\\\\OneDrive\\\\Desktop\\\\���翡 ���� �� ����\\\\install-app.ps1\")"
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+   "checksum": "34b395f8ccdc00c9e695ff02ae6b3a19",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ {
+            "date_added": "13410668136254061",
+            "date_last_used": "0",
+            "guid": "5ad2d422-6163-475c-b75d-a7e479e2fd80",
+            "id": "5",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "메일",
+            "type": "url",
+            "url": "https://mail.google.com/mail/u/0/#inbox"
+         }, {
+            "date_added": "13410796547487639",
+            "date_last_used": "0",
+            "guid": "96a3da0f-1d26-431e-95fa-386d257e034e",
+            "id": "6",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "학습목록 | BENEDU V3",
+            "type": "url",
+            "url": "https://benedu.co.kr/Learn/ExamPapersList"
+         }, {
+            "date_added": "13410882003609289",
+            "date_last_used": "0",
+            "guid": "7c7c69f2-ffb3-4858-bab0-96bb4ab3009c",
+            "id": "7",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "디미고 - 구름EDU",
+            "type": "url",
+            "url": "https://dimigo.goorm.io/"
+         }, {
+            "date_added": "13410882013754610",
+            "date_last_used": "13416116648720611",
+            "guid": "c81bdfcd-46dd-4097-9aef-cc262ace7641",
+            "id": "8",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "2026 신입생 IT 과제",
+            "type": "url",
+            "url": "https://dimigo.goorm.io/learn/lecture/61983/2026-%EC%8B%A0%EC%9E%85%EC%83%9D-it-%EA%B3%BC%EC%A0%9C"
+         }, {
+            "date_added": "13411270385576169",
+            "date_last_used": "0",
+            "guid": "5fbf377c-cb95-4e34-ba61-6a96f7b8606b",
+            "id": "9",
+            "meta_info": {
+               "power_bookmark_meta": ""
+            },
+            "name": "네이버 국어사전",
+            "type": "url",
+            "url": "https://ko.dict.naver.com/#/main"
+         } ],
+         "date_added": "13423900037788350",
+         "date_last_used": "0",
+         "date_modified": "13411270385576169",
+         "guid": "0bc5d13f-2cba-5d74-951f-3f233fe6c908",
+         "id": "1",
+         "name": "북마크바",
+         "type": "folder"
+      },
+      "other": {
+         "children": [  ],
+         "date_added": "13423900037788350",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "82b081ec-3dd3-529c-8475-ab6c344590dd",
+         "id": "2",
+         "name": "기타 북마크",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [  ],
+         "date_added": "13423900037788350",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "4cf2e351-0e85-532b-bb37-df045d8f8d0f",
+         "id": "3",
+         "name": "모바일 북마크",
+         "type": "folder"
+      }
+   },
+   "sync_metadata": "CqYBCoUBCIiBAhJ/IACSAWwKagoOY2hyb21lX3N5bmNfYm0SBTUxIWJtGhIJ3YwvAmFSBgAR3YwvAmFSBgAiNAlboxECYVIGABADGbdh86AirlrsIAEqHDUxIWJtL2ZkOjkxNjM3MjM1NTk0Njg4OTMxNjEpkwk0AmFSBgDqAQsInsm/0AYQ8L23aRIAKhhDWm1sSEt2KzlndzVWSWt3dS9VS0xBPT1IAxLsAQgJEucBChxUdjl0Q2dBSGtVbUNRSGxwMWhQZS93THNFek09EmZaOkFEcXRBWngwbi9uTEhKNEl2TWdzdk1lVElqbDBDK0FQNFpDL0FqVkIzdlpBQXRBdmdVcnFtVnpQREw3N3FzbWg4WmRieUJpbDY1R2RBTEp0cGFhSSs0QWpxRGQzeTRJUW9RPT0YACAAKAAw2viq98bckQM4qO+t6rUzQKjvreq1M0ocWFZXNGlITktpUWNqYzhwQ3ZYbU9xYkxDR2JzPVofIh3tdjc5UWxhNUNQUHptbmYyWTg0dHlkbnY4b2hNPWW9Di1LEusBCAYS5gEKHFdGVXBNWjB5R0xYWldBaklQeDNKNmdxVlVvbz0SZlo6QURxdEFaeDBuL25MSEo0SXZNZ3N2TWVUSWpsMGxsREsvd0tLVEEybUV0SU8wc3Y5ejc4TnJDZFVkT2NzNFVybzIrS2NmdlJCakQyWk5TdjE0K213SDVuUHhSQ0JtTVplSVE9PRgAIAAoADD77rzf4c6RAzifi7WItDNAn4u1iLQzShxRNTBRcHNPR2F3b2U5bHV3cmhhNldvN2hHVHc9Wh4iHGw2aHlRdDBzUjdJeDBRbCt6WlhSbE5LYUNscz1lYv7pKhLrAQgFEuYBChxuY3BhdzNOVjhkbForYk1jeEVBOE5SdHpHbm89EmZaOkFEcXRBWngwbi9uTEhKNEl2TWdzdk1lVElqbDBxcktyc3lYNHRTU1l6dHM4dFlVNEdibERMNXVuaVNsbjNFeE90YXdpQStqZUQ3Z1NGbkp6S1Z6VzBReHJXcWtBMTFXaWp3PT0YACAAKAAwlriB2IPLkQM4v76Xy7MzQL++l8uzM0ocOEJrQzBnWWhkR1FsT2NLWFpSbXA3T2FWTTdnPVoeIhxaM3pzQlREeWN6Y0paZkgzTGhPenVleklOc2M9ZSI5mDYSqwEIARKmAQoceXhKLzZmdmtlY3I3a3A1RVF6QjR0V0xwZGJFPRJOWjpBRHF0QVp6UTRCKzZkQW1QR1VpeER4OTNCbGw1UkhxZkM5U3JLU0xXSnBEN3ZLS3JaWW5mMGkxNTlBSEx0bG02cGRZME9HelY3bjBuGAAgACgAMP/rgpOfv5QDOABAAEocYVJDV0xnaEY5YjVJbnFLSUR2dUovanZRa0ZjPVoAZQAAAAAS7AEICBLnAQocWUFVdGlvRFRNTHVITUpWcGk1UnV5RTQ1akJJPRJmWjpBRHF0QVp4MG4vbkxISjRJdk1nc3ZNZVRJamwwMEhtaCtEaUkrYmVJZjhCTjVTamVIdlNyemZVeGhXQUFCRnFENS9WMjlRR09TZ3RzVTd0RkJRUXJiOGZ6d1cxdkhOdTkxUT09GAAgACgAMKKj39XM6ZIDOLrElbG0M0C6xJWxtDNKHGtZRUhsYlhFaWhlcEo5d05jMXM2eVpGV3RPWT1aHyId20RoY2ZwNEdON0RLSVR4K09iRjlkbmpVczJwdz1lOBtEuRLDAQgDEr4BChxuamdEdTg4ZUNydlhwODZwRDdmSEdjcUZwODg9EmZaOkFEcXRBWnkwOVJPUnh6dGpMclplbzI5ZGNnU0ZhaS95eTk1SXJXSXpwdW1adjRwaGFNTDc0RlhQRmdsNDFySVRKRS9YajdrN0lpSGdyRE1CY2t6TUR5RTNiSjd6VzlZR1B3PT0YACAAKAAw/+uCk5+/lAM4AEAAShx5ek5CMDFjbjU0QTdjUlUwdVQrL1BnbVR0VW89WgBlAAAAABLsAQgHEucBChx4eVZoblhlV0o5V0xHdHZuV0xqK0c0ekNuU009EmZaOkFEcXRBWngwbi9uTEhKNEl2TWdzdk1lVElqbDBnY1hIVy84QjQzSzBoYzFwL1JUclFNMUdpb2hmd0diWk94VWp3TnFOOCtJeXVEakU5RXNqTG8vK2dXVlNGb0NKRjluVFNnPT0YACAAKAAw7umyjKDRkQM4mfWUsbQzQJn1lLG0M0ocZ2p1ZVdNMkw4Z3dmcHl0L2VOOS9tUWZLMDBvPVofIh22WFZ6OG9ldGdZK3VBWlArSXBFaEtWS0NqYmRBPWVM2zYWEsMBCAISvgEKHFljU1RvbnZFU1B3cUNzNEwyY3JWaHY2OEw5OD0SZlo6QURxdEFaelNlb29MSkFQVTFnWGdJRkVjVHNodi9rdko0ZmF3WlplbHNUU05UdEFCd041dkJ3anhnSXFSd3gwQ3M3eUYweG9MbFNIMDJLQ0JXbmYzbVd5Y0tLY3ZVSkdKcVE9PRgAIAAoADD/64KTn7+UAzgAQABKHG9QVmtod0JSYlY2NUtDV1IyK0lPTkhXb091OD1aAGUAAAAAMAE4AA==",
+   "version": 1
+}

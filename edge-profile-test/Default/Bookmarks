@@ -1,0 +1,181 @@
+{
+   "checksum": "bf6cfcf7e7ca7342e183b471c2d32903",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ {
+            "date_added": "13410668136254061",
+            "date_last_used": "0",
+            "guid": "6f558b2f-7ef3-4cc4-a84f-34a0ec9ad91d",
+            "id": "11",
+            "name": "메일",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://mail.google.com/mail/u/0/#inbox",
+            "visit_count": 0
+         }, {
+            "date_added": "13410796547487639",
+            "date_last_used": "13421750382964249",
+            "guid": "f98a85fd-1c5e-4fa4-b24a-0477bad0ac54",
+            "id": "12",
+            "name": "학습목록 | BENEDU V3",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://benedu.co.kr/Learn/ExamPapersList",
+            "visit_count": 12
+         }, {
+            "date_added": "13410882003609289",
+            "date_last_used": "13420004592771073",
+            "guid": "6aa422c6-5bd6-493e-a116-8b03d51cef03",
+            "id": "13",
+            "name": "디미고 - 구름EDU",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://dimigo.goorm.io/",
+            "visit_count": 5
+         }, {
+            "date_added": "13410882013754610",
+            "date_last_used": "13417586409123532",
+            "guid": "25e5020f-17da-499d-93df-631fc4452e1c",
+            "id": "14",
+            "name": "2026 신입생 IT 과제",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://dimigo.goorm.io/learn/lecture/61983/2026-%EC%8B%A0%EC%9E%85%EC%83%9D-it-%EA%B3%BC%EC%A0%9C",
+            "visit_count": 6
+         }, {
+            "date_added": "13413382213998097",
+            "date_last_used": "13419084825031115",
+            "guid": "42bc5333-4149-48d6-ad30-53926b43a37c",
+            "id": "15",
+            "name": "메가스터디 :: 합격 불변의 법칙",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://www.megastudy.net/",
+            "visit_count": 17
+         }, {
+            "date_added": "13417090009241810",
+            "date_last_used": "13418142255430529",
+            "guid": "cfc12e19-975d-4382-a776-7938b9efd296",
+            "id": "16",
+            "name": "2026학년도 1학년 3반 학급방",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://classroom.google.com/c/ODQ3NTUwODcwOTk2",
+            "visit_count": 2
+         }, {
+            "children": [  ],
+            "date_added": "13417245954165527",
+            "date_last_used": "0",
+            "date_modified": "13417245954165527",
+            "guid": "d1662679-10c7-4aef-ae07-6678fe5d1b6d",
+            "id": "17",
+            "name": "새 폴더",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [  ],
+            "date_added": "13417245959984148",
+            "date_last_used": "0",
+            "date_modified": "13417245959984148",
+            "guid": "6e5837a0-fa0d-4b55-8d00-944e673768b0",
+            "id": "18",
+            "name": "…",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "date_added": "13423900862115270",
+            "date_last_used": "0",
+            "guid": "6871d116-a69e-4a31-9b47-7daf2edeadea",
+            "id": "10",
+            "name": "Adobe Acrobat Pro DC for Samsung",
+            "show_icon": false,
+            "source": "oem_preload",
+            "type": "url",
+            "url": "http://www.adobe.com/go/samsung_apdc",
+            "visit_count": 0
+         }, {
+            "date_added": "13423900862114922",
+            "date_last_used": "0",
+            "guid": "68f6483a-5b33-4b6d-93cc-6990bbbcc93a",
+            "id": "9",
+            "name": "Adobe Creative Cloud All Apps for Samsung",
+            "show_icon": false,
+            "source": "oem_preload",
+            "type": "url",
+            "url": "http://www.adobe.com/go/samsung_cci",
+            "visit_count": 0
+         }, {
+            "date_added": "13423900862114596",
+            "date_last_used": "0",
+            "guid": "ed40b6df-b89a-4ca3-a4ff-346d0e78518d",
+            "id": "8",
+            "name": "Adobe Premiere Pro CC for Samsung",
+            "show_icon": false,
+            "source": "oem_preload",
+            "type": "url",
+            "url": "http://www.adobe.com/go/samsung_ppcc",
+            "visit_count": 0
+         }, {
+            "date_added": "13423900862114117",
+            "date_last_used": "0",
+            "guid": "170a5800-c94b-4d8c-a2ac-ead54c90c6bc",
+            "id": "7",
+            "name": "McAfee Online Protection – Benefits for Samsung PCs",
+            "show_icon": false,
+            "source": "oem_preload",
+            "type": "url",
+            "url": "https://consroute.mcafee.com/app?csrc=browserfav&affid=1348&clicksrc=browserfav",
+            "visit_count": 0
+         } ],
+         "date_added": "13423900861966316",
+         "date_last_used": "0",
+         "date_modified": "13423900862115270",
+         "guid": "0bc5d13f-2cba-5d74-951f-3f233fe6c908",
+         "id": "1",
+         "name": "즐겨찾기 모음",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "other": {
+         "children": [  ],
+         "date_added": "13423900861966316",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "82b081ec-3dd3-529c-8475-ab6c344590dd",
+         "id": "2",
+         "name": "다른 즐겨찾기",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [  ],
+         "date_added": "13423900861966316",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "4cf2e351-0e85-532b-bb37-df045d8f8d0f",
+         "id": "3",
+         "name": "모바일 즐겨찾기",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "workspaces_v2": {
+         "children": [  ],
+         "date_added": "13423900861966316",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "75aa6670-344f-549d-b742-660f029506ab",
+         "id": "5",
+         "name": "작업 영역",
+         "source": "unknown",
+         "type": "folder"
+      }
+   },
+   "sync_metadata": "CjEKDgiIgQISCHyR882dAQAAEgAqGGxnMmlMTXhLUEs3K1JzYWVCeGxyYXc9PUgDoAYHEo4BCAUSiQEKHHdSQnJaTCs2UEE5YXZLZ2pOUDdKWERMY2Z2cz0SJDhmNWMwMjJkLWVkOWEtNTU3MC1iNDZmLWQ2OGY3YzQxNDQ4NhgAIAAoADDw3sG2szM42ebBtrMzQNnmwbazM0ocbm14NjVzUUR2eEk4VGdFZXYrQStudHRvU240PVoAZQAAAADCPgJgABKsAQgLEqcBChwrbHJXVStjYnB4OFNLczRyUXRQcjhzckZ5a1U9EiQ2ZjU1OGIyZi03ZWYzLTRjYzQtYTg0Zi0zNGEwZWM5YWQ5MWQYACAAKAAwwdTDrLozOJvdw6y6M0Cb3cOsujNKHHZRbGN6NENZSXk4TTdmYXVEdUcyazd0VXVjMD1aHiIcSzlxdC9iZkVWOXRSVDJPT3Q4dnZubHBsSWZnPWUiOZg2wj4CYAUSjgEIAxKJAQocbmpnRHU4OGVDcnZYcDg2cEQ3ZkhHY3FGcDg4PRIkYmU2NWJiNDUtMzc4My01NmIwLTkyMWEtMjBiOTIxMTMwZGNmGAAgACgAMPHewbazMziY58G2szNAmOfBtrMzShx5ek5CMDFjbjU0QTdjUlUwdVQrL1BnbVR0VW89WgBlAAAAAMI+AmAAEq0BCBISqAEKHEpnT2NvN3JjeXRMUm9BZXpLZStaYWlCbW9Jdz0SJDZlNTgzN2EwLWZhMGQtNGI1NS04ZDAwLTk0NGU2NzM3NjhiMBgAIAAoADDxrt6LzDM4uo/ei8wzQLqP3ovMM0oca0pKSy8veGx2SnFZUEhXUEN6ZlM2aGcwUitBPVofIh3+Sk5PdUdLSDZtYllnMW8wTlFLa1hFWU1Sc0NVPWUAAAAAwj4CYAASrQEIERKoAQocOXpTVmlTU1d3bXJ2aUkrMHZTeDczWWlzejg4PRIkZDE2NjI2NzktMTBjNy00YWVmLWFlMDctNjY3OGZlNWQxYjZkGAAgACgAMKbi3YvMMzjs4t2LzDNA7OLdi8wzShxrcTRuMFJVL3p3Vnh5eUtWVDdkQVBPZ3JtVWM9Wh8iHf0rQlYwWTU5NmZ0ZVdad1k2TGNJNkd4eEFocUE9ZQAAAADCPgJgABKtAQgPEqgBChxhMzlvczd5N1haSnprVzRiNmRRa2VHcVZiYVU9EiQ0MmJjNTMzMy00MTQ5LTQ4ZDYtYWQzMC01MzkyNmI0M2EzN2MYACAAKAAwgrrJ+NIzOL3ordm9M0C96K3ZvTNKHElUNEZ6YnZKbE01VXNuQjJieUxRaU9leWlKTT1aHyId9FJyTVppYWFPVjdMZXNncGVMQkw1L0ltT1JXQT1lRjgKMsI+AmAFEq0BCA4SqAEKHERqOHA1RXovYStsT0JWSlpaYkpvRGFRZ2JpWT0SJDI1ZTUwMjBmLTE3ZGEtNDk5ZC05M2RmLTYzMWZjNDQ1MmUxYxgAIAAoADDsrImuzTM49dzDrLozQPXcw6y6M0ocQ0pIaGY1bGg2dFB6dXNZU1F6d1JRc2tTVVhrPVofIh3paEdmd3hzSi9kNmM2OWNnazlNd3ZuakNzUmFnPWVM2zYWwj4CYAUSrQEIDRKoAQocQ0JxcGdZTzc2Tkt1Y3JXeHZNWXRwRFZQTVFNPRIkNmFhNDIyYzYtNWJkNi00OTNlLWExMTYtOGIwM2Q1MWNlZjAzGAAgACgAMPHGk6/WMzi/3cOsujNAv93DrLozShxTalJ4dXNEcWFYd3ZEVisyYWhhcjZJYk42U2c9Wh8iHdJxZHJFdUI5eGpJeWhEOFVhdXhFdXAxdXdZQ0E9ZUzbNhbCPgJgBRKtAQgQEqgBChxwZEdHZ3MxUjV3RmtUOFJWOHJvMFJvOG5SZjQ9EiRjZmMxMmUxOS05NzVkLTQzODItYTc3Ni03OTM4YjllZmQyOTYYACAAKAAwvPmd/tgzONzTr8HLM0Dc06/ByzNKHCs2N2tJWTIvNEU0NTJmdEFjSnh3cTVGSVJKUT1aHyId+kk5QjZjemdrcmR3YzFhcTNtV2NRb2FMdi9PWT1lsny+FsI+AmAFEo4BCAESiQEKHHl4Si82ZnZrZWNyN2twNUVRekI0dFdMcGRiRT0SJDZjZDgwYjNhLWY4NmMtNTYxZS04MzFmLWUxMTgyOTFkOWNhORgAIAAoADDq3sG2szM4o+XBtrMzQKPlwbazM0ocYVJDV0xnaEY5YjVJbnFLSUR2dUovanZRa0ZjPVoAZQAAAADCPgJgABKtAQgMEqgBChxHRlhwVlA4bHYzdXY0YitoYnJqcG9yTmZpSWM9EiRmOThhODVmZC0xYzVlLTRmYTQtYjI0YS0wNDc3YmFkMGFjNTQYACAAKAAw+6LO79wzOOLdw6y6M0Di3cOsujNKHC9CZ3ZURjdqQXI2RkFnZzF2NlFrb20xaW16az1aHyIdpUE3eEFaY3E4bnBrWitYY0V0cEtXbUZnVGZOcz1lYv7pKsI+AmAFEo4BCAISiQEKHFljU1RvbnZFU1B3cUNzNEwyY3JWaHY2OEw5OD0SJDY3YTk1MDM4LWU4YzYtNWZmOS1iMmY1LTJkMjUxNzNjNTI1ZRgAIAAoADDr3sG2szM45OXBtrMzQOTlwbazM0ocb1BWa2h3QlJiVjY1S0NXUjIrSU9OSFdvT3U4PVoAZQAAAADCPgJgADAAOAA=",
+   "version": 1
+}
