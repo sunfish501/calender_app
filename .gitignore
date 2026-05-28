@@ -10,3 +10,7 @@ js/supabase-config.js
 notified-time.json
 notify-check.log
 notify-time.log
+
+browser-profile/
+edge-profile/
+.claude/settings.local.json
