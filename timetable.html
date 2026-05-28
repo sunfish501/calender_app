@@ -417,12 +417,14 @@
 
     localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
 
-    // server sync
-    fetch('/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(events)
-    }).catch(() => {});
+    // server sync (local server.ps1 only; skip on static hosts like GitHub Pages)
+    if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) {
+      fetch('/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(events)
+      }).catch(() => {});
+    }
 
     showToast('📅', `"${name}" 달력에 적용 완료!`, `앞으로 ${weeksAhead}주 (${count}일)`);
   }

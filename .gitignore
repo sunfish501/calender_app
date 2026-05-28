@@ -4,7 +4,6 @@ edge-profile/
 # Supabase
 .env
 .env.local
-js/supabase-config.js
 
 # Notification state
 notified-time.json

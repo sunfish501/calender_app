@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>달력</title>
-<link id="favicon" rel="icon" type="image/x-icon" href="/calendar.ico">
+<link id="favicon" rel="icon" type="image/x-icon" href="calendar.ico">
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Gamja+Flower&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1493,7 +1493,9 @@
     const payload = {};
     Object.keys(events).forEach(k => { if (!k.startsWith('__')) payload[k] = events[k]; });
     payload['__notify_enabled__'] = notifyEnabled;
-    fetch('/events', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(() => {});
+    if (window.__hasLocalEventsServer) {
+      fetch('/events', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(() => {});
+    }
   }
 
   // ─── 동그라미 (마우스 3바퀴 돌리면 그려짐) ──────────────────
@@ -1528,17 +1530,31 @@
   });
 
   // 서버 → 로컬 merge (import된 데이터 가져오기)
-  fetch('/events').then(r => r.json()).then(serverEv => {
-    let changed = false;
-    Object.keys(serverEv).forEach(k => {
-      if (k.startsWith('__')) return;
-      if (!events[k]) { events[k] = serverEv[k]; changed = true; }
-    });
-    if (changed) { saveEvents(); render(); }
-  }).catch(() => {})
-    .finally(() => {
+  // 로컬 server.ps1 이 8765 포트에서만 /events 를 제공. 정적 호스트(GitHub Pages 등)에서는
+  // 해당 호출이 항상 실패하므로, 한 번 ping 해보고 성공할 때만 이후 sync 에 사용.
+  (function probeLocalEventsServer() {
+    const isLoopback = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+    if (!isLoopback) {
+      window.__hasLocalEventsServer = false;
       window.SupabaseSync?.pull(events, () => { saveEvents(); render(); });
-    });
+      return;
+    }
+    fetch('/events').then(r => {
+      if (!r.ok) throw new Error('events endpoint missing');
+      return r.json();
+    }).then(serverEv => {
+      window.__hasLocalEventsServer = true;
+      let changed = false;
+      Object.keys(serverEv).forEach(k => {
+        if (k.startsWith('__')) return;
+        if (!events[k]) { events[k] = serverEv[k]; changed = true; }
+      });
+      if (changed) { saveEvents(); render(); }
+    }).catch(() => { window.__hasLocalEventsServer = false; })
+      .finally(() => {
+        window.SupabaseSync?.pull(events, () => { saveEvents(); render(); });
+      });
+  })();
 
   function isTimetableEvent(item) {
     if (typeof item === 'object' && item && item.tt) return true;
@@ -1617,11 +1633,13 @@
   function saveEvents() {
     const json = JSON.stringify(events);
     localStorage.setItem(STORAGE_KEY, json);
-    fetch('/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: json
-    }).catch(() => {});
+    if (window.__hasLocalEventsServer) {
+      fetch('/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: json
+      }).catch(() => {});
+    }
     window.SupabaseSync?.pushAll(events);
   }
 
@@ -3155,7 +3173,7 @@
 
   // favicon cache-busting (매일 calendar.ico가 갱신되므로)
   const favEl = document.getElementById('favicon');
-  if (favEl) favEl.href = '/calendar.ico?t=' + Date.now();
+  if (favEl) favEl.href = 'calendar.ico?t=' + Date.now();
 
   // Initial render + checks
   render();
