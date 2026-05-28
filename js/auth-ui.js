@@ -4,6 +4,9 @@
   if (!window.SupabaseAuth?.enabled) return;
 
   const CLAIM_FLAG_KEY = 'calendar-supabase-claimed-v1';
+  // Set right before calling signIn/signUp/signInGoogle so onSignedIn can tell
+  // a fresh user-triggered login from a SIGNED_IN that fires on session restore.
+  const PENDING_SIGNIN_KEY = 'sb-fresh-signin-pending';
   let modal = null;
   let logoutBtn = null;
 
@@ -64,8 +67,10 @@
       if (!email.value.trim() || !pw.value) { setMsg('이메일/비밀번호 입력'); return; }
       setMsg(''); setBusy(allBtns, true);
       try {
+        sessionStorage.setItem(PENDING_SIGNIN_KEY, '1');
         await window.SupabaseAuth.signIn(email.value.trim(), pw.value);
       } catch (e) {
+        sessionStorage.removeItem(PENDING_SIGNIN_KEY);
         setMsg(e.message || '로그인 실패');
       } finally { setBusy(allBtns, false); }
     }
@@ -74,19 +79,24 @@
       if (pw.value.length < 6) { setMsg('비밀번호는 6자 이상'); return; }
       setMsg(''); setBusy(allBtns, true);
       try {
+        sessionStorage.setItem(PENDING_SIGNIN_KEY, '1');
         const result = await window.SupabaseAuth.signUp(email.value.trim(), pw.value);
         if (!result?.session) {
+          sessionStorage.removeItem(PENDING_SIGNIN_KEY);
           setMsg('확인 이메일을 보냈습니다. 인증 후 다시 로그인하세요.', '#2874e0');
         }
       } catch (e) {
+        sessionStorage.removeItem(PENDING_SIGNIN_KEY);
         setMsg(e.message || '회원가입 실패');
       } finally { setBusy(allBtns, false); }
     }
     async function doGoogle() {
       setMsg(''); setBusy(allBtns, true);
       try {
+        sessionStorage.setItem(PENDING_SIGNIN_KEY, '1');
         await window.SupabaseAuth.signInGoogle();
       } catch (e) {
+        sessionStorage.removeItem(PENDING_SIGNIN_KEY);
         setMsg(e.message || 'Google 로그인 실패');
         setBusy(allBtns, false);
       }
@@ -166,10 +176,11 @@
 
     window.SupabaseSync?.forceReady();
 
-    // On a fresh sign-in (not page-load with existing session), reload so the
-    // inline calendar script re-initialises with the new session: pulls cloud
-    // events via RLS and uses the freshly-restored user_data in localStorage.
-    if (!fromInitial) {
+    // SIGNED_IN fires on every page-load when a session is restored from
+    // localStorage — using fromInitial alone would cause an infinite reload
+    // loop. Only reload when the user just triggered a sign-in in this tab.
+    if (sessionStorage.getItem(PENDING_SIGNIN_KEY)) {
+      sessionStorage.removeItem(PENDING_SIGNIN_KEY);
       setTimeout(() => window.location.reload(), 150);
     }
   }
