@@ -14,3 +14,4 @@ notify-time.log
 browser-profile/
 edge-profile/
 .claude/settings.local.json
+chrome-profile/
