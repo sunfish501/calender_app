@@ -15,7 +15,7 @@
     try { localStorage.setItem(HASH_KEY, JSON.stringify(hashes)); } catch (_) {}
   }
 
-  function itemToRow(date, item, idx) {
+  function itemToRow(date, item, idx, userId) {
     const isObj = typeof item === 'object' && item !== null;
     const title = isObj ? String(item.t ?? '') : String(item);
     const isTT = isObj
@@ -26,7 +26,8 @@
       title,
       is_timetable: isTT,
       theme_id: isObj && item.th ? String(item.th) : null,
-      position: idx
+      position: idx,
+      user_id: userId
     };
   }
 
@@ -42,6 +43,7 @@
 
   async function pull(localEvents, onChange) {
     if (!window.sb) { pullAttempted = true; return { ok: false, reason: 'no-client' }; }
+    if (!window.SupabaseAuth?.getUser()) { pullAttempted = true; return { ok: true, skipped: 'not-authed' }; }
     try {
       const { data, error } = await window.sb
         .from('events')
@@ -80,14 +82,18 @@
 
   async function pushDate(date, items) {
     if (!window.sb) return { ok: false, reason: 'no-client' };
+    const uid = window.SupabaseAuth?.getUser()?.id;
+    if (!uid) return { ok: false, reason: 'not-authed' };
     const list = Array.isArray(items) ? items : [];
     const hash = JSON.stringify(list);
     if (hashes[date] === hash) return { ok: true, skipped: true };
     try {
-      const del = await window.sb.from('events').delete().eq('date', date);
+      const del = await window.sb.from('events').delete()
+        .eq('date', date)
+        .eq('user_id', uid);
       if (del.error) return { ok: false, reason: 'delete-failed', error: del.error };
       if (list.length) {
-        const rows = list.map((it, i) => itemToRow(date, it, i));
+        const rows = list.map((it, i) => itemToRow(date, it, i, uid));
         const ins = await window.sb.from('events').insert(rows);
         if (ins.error) return { ok: false, reason: 'insert-failed', error: ins.error };
       }
@@ -101,6 +107,7 @@
 
   async function pushAll(localEvents) {
     if (!window.sb) return { ok: false, reason: 'no-client' };
+    if (!window.SupabaseAuth?.getUser()) return { ok: true, skipped: 'not-authed' };
     // Until the first pull settles, suppress mass upload so bulk migration
     // (step B) can run intentionally instead of being triggered by init.
     if (!pullAttempted) return { ok: true, skipped: 'awaiting-pull' };

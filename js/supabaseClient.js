@@ -50,7 +50,7 @@
 
   try {
     window.sb = window.supabase.createClient(cfg.url, cfg.key, {
-      auth: { persistSession: false, autoRefreshToken: false }
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
     window.SUPABASE_BANNER = showBanner;
   } catch (e) {
