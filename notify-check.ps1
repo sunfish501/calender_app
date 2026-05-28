@@ -30,34 +30,92 @@ try {
     exit 1
 }
 
+# 알림 끔/켬 확인
+if ($obj.__notify_enabled__ -eq $false) {
+    Write-Log "알림 꺼짐. 종료."
+    exit 0
+}
+
 # PSCustomObject → Hashtable
 $events = @{}
 foreach ($prop in $obj.PSObject.Properties) {
+    if ($prop.Name -like '__*') { continue }
     $events[$prop.Name] = @($prop.Value)
 }
 
 function Get-EventText {
     param($Item)
     if ($Item -is [string]) { return $Item }
-    if ($Item -is [PSCustomObject] -and $Item.t) { return "$($Item.t)" }
+    if ($Item -is [PSCustomObject] -and $Item.t) {
+        # 시간표 항목(tt:true)은 알림 제외
+        if ($Item.PSObject.Properties.Name -contains 'tt' -and $Item.tt) { return $null }
+        return "$($Item.t)"
+    }
     return "$Item"
 }
 
 $today    = (Get-Date).ToString('yyyy-MM-dd')
 $tomorrow = (Get-Date).AddDays(1).ToString('yyyy-MM-dd')
 
+function Is-Timetable {
+    param([string]$Text)
+    return $Text -match '^\['
+}
+
+function Group-HourlyEvents {
+    param([string]$DateKey, [string]$TypeLabel)
+    $dayItems = @($events[$DateKey])
+    $hourly = @{}
+    $others = @()
+    foreach ($e in $dayItems) {
+        $txt = Get-EventText $e
+        if ([string]::IsNullOrWhiteSpace($txt)) { continue }
+        if (Is-Timetable $txt) { continue }
+        if ($txt -match '\((\d{1,2}):(\d{2})\)') {
+            $h = [int]$Matches[1]
+            $name = $txt -replace '\(\d{1,2}:\d{2}\)', '' | ForEach-Object { $_.Trim() }
+            $hourly[$h] = $name
+        } else {
+            $others += $txt
+        }
+    }
+    $result = New-Object System.Collections.ArrayList
+    foreach ($t in $others) {
+        [void]$result.Add([PSCustomObject]@{ Type = $TypeLabel; Text = $t })
+    }
+    $sortedHours = $hourly.Keys | Sort-Object
+    $used = @{}
+    foreach ($h in $sortedHours) {
+        if ($used[$h]) { continue }
+        $name = $hourly[$h]
+        $endH = $h
+        while ($hourly.ContainsKey($endH + 1) -and $hourly[$endH + 1] -eq $name) {
+            $endH++
+            $used[$endH] = $true
+        }
+        if ($endH -gt $h) {
+            [void]$result.Add([PSCustomObject]@{
+                Type = $TypeLabel
+                Text = "$($h.ToString('00')):00부터 $(($endH+1).ToString('00')):00까지 ${name}"
+            })
+        } else {
+            [void]$result.Add([PSCustomObject]@{
+                Type = $TypeLabel
+                Text = "$($h.ToString('00')):00 $name"
+            })
+        }
+    }
+    return $result
+}
+
 $messages = New-Object System.Collections.ArrayList
 if ($events.ContainsKey($today)) {
-    foreach ($e in $events[$today]) {
-        $txt = Get-EventText $e
-        [void]$messages.Add([PSCustomObject]@{ Type = '오늘'; Text = $txt })
-    }
+    $grouped = Group-HourlyEvents -DateKey $today -TypeLabel '오늘'
+    foreach ($m in $grouped) { [void]$messages.Add($m) }
 }
 if ($events.ContainsKey($tomorrow)) {
-    foreach ($e in $events[$tomorrow]) {
-        $txt = Get-EventText $e
-        [void]$messages.Add([PSCustomObject]@{ Type = '내일'; Text = $txt })
-    }
+    $grouped = Group-HourlyEvents -DateKey $tomorrow -TypeLabel '내일'
+    foreach ($m in $grouped) { [void]$messages.Add($m) }
 }
 
 if ($messages.Count -eq 0) {

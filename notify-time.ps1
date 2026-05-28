@@ -17,6 +17,11 @@ if ([string]::IsNullOrWhiteSpace($content) -or $content.Trim() -eq '{}') { exit 
 
 try { $obj = ConvertFrom-Json $content } catch { Write-Log "JSON 파싱 실패: $_"; exit 1 }
 
+if ($obj.__notify_enabled__ -eq $false) {
+    Write-Log "알림 꺼짐. 종료."
+    exit 0
+}
+
 # 이미 발송한 알림 (오늘분만 유지)
 $notified = @{}
 $today = (Get-Date).ToString('yyyy-MM-dd')
@@ -52,7 +57,9 @@ function Test-Time {
 }
 
 # events 순회 (문자열 또는 {t:"텍스트", th:"테마"} 객체)
+# 시간표 항목(tt:true)은 알림 대상에서 제외
 foreach ($prop in $obj.PSObject.Properties) {
+    if ($prop.Name -like '__*') { continue }
     $dKey = $prop.Name
     $list = @($prop.Value)
     foreach ($item in $list) {
@@ -60,6 +67,7 @@ foreach ($prop in $obj.PSObject.Properties) {
         if ($item -is [string]) {
             $txt = $item
         } elseif ($item -is [PSCustomObject] -and $item.t) {
+            if ($item.PSObject.Properties.Name -contains 'tt' -and $item.tt) { continue }
             $txt = "$($item.t)"
         }
         if ($txt) { Test-Time -DateKey $dKey -Text $txt }

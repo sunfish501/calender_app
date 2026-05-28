@@ -1,7 +1,25 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(& \"c:\\\\Users\\\\euiky\\\\OneDrive\\\\Desktop\\\\���翡 ���� �� ����\\\\install-app.ps1\")"
+      "PowerShell(& \"c:\\\\Users\\\\euiky\\\\OneDrive\\\\Desktop\\\\���翡 ���� �� ����\\\\install-app.ps1\")",
+      "Bash(claude mcp *)",
+      "PowerShell(claude mcp add --scope project --transport http supabase \"https://mcp.supabase.com/mcp\")",
+      "Bash(xxd \".gitignore\")",
+      "Bash(git ls-remote *)",
+      "Bash(git fetch *)",
+      "mcp__supabase__list_organizations",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_publishable_keys",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__get_advisors",
+      "Bash(git config *)",
+      "Bash(gh repo *)",
+      "Bash(git check-ignore *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
