@@ -16,7 +16,15 @@
       "mcp__supabase__get_advisors",
       "Bash(git config *)",
       "Bash(gh repo *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(git ls-tree *)",
+      "Bash(grep -iE \"^\\(index|calendar\\)\\\\.html$|\\\\.nojekyll|CNAME\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git branch *)",
+      "Bash(git reset *)",
+      "Bash(findstr backup *)"
     ]
   },
   "enabledMcpjsonServers": [
