@@ -1879,6 +1879,147 @@
     font-size: 0.85em; cursor: pointer; font-family: inherit;
   }
   .login-back:hover { color: #2874e0; }
+
+  /* ── 프로필 설정 모달 ── */
+  .ps-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 10000;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  }
+  .ps-backdrop.active { display: flex; }
+  .ps-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 380px; max-width: 92vw;
+    overflow: hidden;
+  }
+  .ps-header {
+    padding: 28px 28px 0;
+    text-align: center;
+  }
+  .ps-header .ps-emoji { font-size: 2.4em; margin-bottom: 8px; display: block; }
+  .ps-header h2 { font-size: 1.25em; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .ps-header p  { font-size: 0.88em; color: #666; line-height: 1.5; }
+  .ps-body { padding: 18px 28px 24px; }
+  .ps-step { display: none; }
+  .ps-step.active { display: block; }
+  /* 유저 타입 카드 그리드 */
+  .ps-type-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 14px;
+  }
+  .ps-type-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 5px; padding: 14px 8px;
+    border: 1.5px solid var(--border, #e5e5ea);
+    border-radius: 10px; cursor: pointer;
+    background: #fff; transition: all 0.14s;
+    font-family: inherit;
+  }
+  .ps-type-btn:hover {
+    border-color: #2874e0; background: #eef5ff;
+  }
+  .ps-type-btn .ps-ti { font-size: 1.7em; }
+  .ps-type-btn .ps-tl { font-size: 0.9em; font-weight: 600; color: #222; }
+  .ps-type-btn .ps-ts { font-size: 0.72em; color: #888; }
+  /* 학교 검색 */
+  .ps-search-input {
+    width: 100%; padding: 10px 12px; margin-top: 14px;
+    border: 1px solid #d0d0d5; border-radius: 8px;
+    font-size: 0.95em; font-family: inherit; box-sizing: border-box;
+  }
+  .ps-search-input:focus { outline: none; border-color: #2874e0; }
+  .ps-school-list {
+    margin-top: 8px; max-height: 220px; overflow-y: auto;
+    border: 1px solid #e5e5ea; border-radius: 8px;
+  }
+  .ps-school-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; cursor: pointer;
+    border-bottom: 0.5px solid #f0f0f3; transition: background 0.1s;
+  }
+  .ps-school-item:last-child { border-bottom: none; }
+  .ps-school-item:hover { background: #f3f6fc; }
+  .ps-school-avatar {
+    width: 30px; height: 30px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7em; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .ps-school-info { flex: 1; min-width: 0; }
+  .ps-school-info .pssi-name  { font-size: 0.88em; font-weight: 600; color: #222; }
+  .ps-school-info .pssi-sub   { font-size: 0.74em; color: #888; margin-top: 1px; }
+  /* 교훈 표시 스텝 */
+  .ps-motto-card {
+    text-align: center; padding: 8px 0 14px;
+  }
+  .ps-motto-avatar {
+    width: 60px; height: 60px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2em; font-weight: 800; color: #fff;
+    margin: 0 auto 12px;
+  }
+  .ps-motto-school { font-size: 1.05em; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .ps-motto-text   { font-size: 0.9em; font-weight: 600; color: #2874e0; margin-bottom: 10px; }
+  .ps-motto-quote  {
+    font-family: 'Gamja Flower', cursive;
+    font-size: 1em; color: #555; line-height: 1.6;
+    background: #f5f7fa; border-radius: 8px; padding: 10px 14px;
+    border-left: 3px solid #2874e0; text-align: left;
+    word-break: keep-all;
+  }
+  .ps-finish-btn {
+    width: 100%; padding: 12px; margin-top: 18px;
+    background: #2874e0; color: #fff; border: none; border-radius: 8px;
+    font-size: 1em; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .ps-finish-btn:hover { background: #1f5fbb; }
+  .ps-skip { display: block; text-align: center; margin-top: 10px;
+    font-size: 0.82em; color: #888; cursor: pointer; background: none; border: none; font-family: inherit; }
+  .ps-skip:hover { color: #2874e0; }
+  .ps-back-btn {
+    background: none; border: none; color: #888; cursor: pointer;
+    font-size: 0.85em; font-family: inherit; padding: 0;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 4px;
+  }
+  .ps-back-btn:hover { color: #2874e0; }
+  /* 학교 교훈 배너 (달력 위) */
+  .school-quote-bar {
+    text-align: center; font-size: 0.8em; color: var(--text-light);
+    padding: 4px 18px 0; font-family: 'Gamja Flower', cursive;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    opacity: 0.75; cursor: default;
+    display: none;
+  }
+  /* 사이드바 학교 정보 */
+  .sb-school-sec {
+    border-top: 0.5px solid var(--border); padding-top: 10px; margin-top: 4px;
+  }
+  .sb-school-row {
+    display: flex; align-items: center; gap: 7px; padding: 3px 2px 1px;
+  }
+  .sb-school-av {
+    width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65em; font-weight: 800; color: #fff;
+  }
+  .sb-school-nm {
+    flex: 1; min-width: 0; font-size: 0.8em; font-weight: 600;
+    color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sb-school-ch {
+    font-size: 0.68em; color: var(--today-accent); cursor: pointer;
+    background: none; border: none; padding: 0; font-family: inherit; flex-shrink: 0;
+  }
+  .sb-school-ch:hover { text-decoration: underline; }
+  .sb-school-mot {
+    font-size: 0.72em; color: var(--text-light);
+    padding: 2px 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -2016,6 +2157,7 @@
                placeholder="이달의 교훈 / 나의 모토 — 클릭해서 적어보세요"
                maxlength="120">
       </div>
+      <div class="school-quote-bar" id="school-quote-bar"></div>
       <div class="nav-controls">
         <button class="nav-btn" id="prev-year" title="이전 년">≪</button>
         <button class="nav-btn" id="prev-month" title="이전 월">＜</button>
@@ -2032,6 +2174,18 @@
       <div class="calendar" id="calendar"></div>
       <div class="shortcut-help" id="shortcut-help"></div>
     </div>
+    <!-- 사이드바 하단: 학교 정보 -->
+    <template id="sb-school-tpl">
+      <div id="sb-school-sec" class="sb-school-sec">
+        <div class="sb-section-label">내 학교</div>
+        <div class="sb-school-row">
+          <div class="sb-school-av" id="sb-sch-av"></div>
+          <span class="sb-school-nm" id="sb-sch-nm"></span>
+          <button class="sb-school-ch" id="sb-sch-ch">변경</button>
+        </div>
+        <div class="sb-school-mot" id="sb-sch-mot"></div>
+      </div>
+    </template>
   </div>
 </div>
 
@@ -2168,6 +2322,58 @@
 </div>
 
 <div class="notifications" id="notifications"></div>
+
+<!-- 프로필 설정 모달 -->
+<div class="ps-backdrop" id="ps-backdrop">
+  <div class="ps-card">
+    <div class="ps-header">
+      <span class="ps-emoji" id="ps-emoji">👋</span>
+      <h2 id="ps-title">어떤 사용자이신가요?</h2>
+      <p id="ps-desc">달력을 더 잘 맞춰드리기 위해 한 가지만 여쭤볼게요.</p>
+    </div>
+    <div class="ps-body">
+      <!-- Step 1: 유저 타입 선택 -->
+      <div class="ps-step active" id="ps-step1">
+        <div class="ps-type-grid">
+          <button class="ps-type-btn" data-type="middle">
+            <span class="ps-ti">📚</span>
+            <span class="ps-tl">중학생</span>
+          </button>
+          <button class="ps-type-btn" data-type="high">
+            <span class="ps-ti">🏫</span>
+            <span class="ps-tl">고등학생</span>
+          </button>
+          <button class="ps-type-btn" data-type="university">
+            <span class="ps-ti">🎓</span>
+            <span class="ps-tl">대학(원)생</span>
+          </button>
+          <button class="ps-type-btn" data-type="none">
+            <span class="ps-ti">📅</span>
+            <span class="ps-tl">해당 없음</span>
+            <span class="ps-ts">직장인·기타</span>
+          </button>
+        </div>
+      </div>
+      <!-- Step 2: 학교 검색 -->
+      <div class="ps-step" id="ps-step2">
+        <button class="ps-back-btn" id="ps-back2">← 뒤로</button>
+        <input type="text" class="ps-search-input" id="ps-school-input" placeholder="학교 이름으로 검색…" autocomplete="off">
+        <div class="ps-school-list" id="ps-school-list"></div>
+        <button class="ps-skip" id="ps-skip-school">학교 검색을 건너뛰기</button>
+      </div>
+      <!-- Step 3: 교훈 표시 -->
+      <div class="ps-step" id="ps-step3">
+        <div class="ps-motto-card">
+          <div class="ps-motto-avatar" id="ps-m-avatar"></div>
+          <div class="ps-motto-school" id="ps-m-school"></div>
+          <div class="ps-motto-text"  id="ps-m-motto"></div>
+          <div class="ps-motto-quote" id="ps-m-quote"></div>
+        </div>
+        <button class="ps-finish-btn" id="ps-finish">달력 시작하기 →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Supabase: CDN → config → client → auth → events → userDataSync → auth-ui (순서 중요) -->
 <!-- 로컬 JS 는 매 페이지 로드마다 cache-bust 쿼리스트링 (?v=ts) 을 붙여 새로 가져온다.
@@ -2904,6 +3110,7 @@
     pencilMode = false;
     monthLabel.textContent = `${viewYear}년 ${viewMonth + 1}월`;
     calendarEl.innerHTML = '';
+    calendarEl.style.display = '';
     calendarEl.classList.remove('continuous-horizontal');
     _appendDayNamesHeader();
     _renderMonthSection(viewYear, viewMonth);
@@ -2917,9 +3124,9 @@
     const endM = ((viewMonth + CONTINUOUS_MONTHS - 1) % 12 + 12) % 12;
     monthLabel.textContent = `${viewYear}년 ${viewMonth + 1}월 ~ ${endY}년 ${endM + 1}월`;
     calendarEl.innerHTML = '';
-    // 가로 배치: grid를 풀고 flex로 월별 컬럼을 나란히
-    calendarEl.classList.add('continuous-horizontal');
+    calendarEl.style.display = '';
     calendarEl.style.gridTemplateColumns = '';
+    calendarEl.classList.add('continuous-horizontal');
 
     for (let i = 0; i < CONTINUOUS_MONTHS; i++) {
       let y = viewYear, m = viewMonth + i;
@@ -3288,14 +3495,14 @@
       cancel.onclick = () => { pencilMode = false; render(); };
       toolbar.appendChild(cancel);
     }
-    // 학교 설정 버튼
-    if (!neisSchool) {
+    // 학교 설정 버튼 (중·고등학생만 표시)
+    if (window.__neisEnabled !== false && !neisSchool) {
       const schoolBtn = document.createElement('button');
       schoolBtn.textContent = '🏫 학교 연결';
       schoolBtn.style.marginLeft = 'auto';
       schoolBtn.onclick = openNeisSetup;
       toolbar.appendChild(schoolBtn);
-    } else {
+    } else if (neisSchool) {
       const info = document.createElement('span');
       info.textContent = `🏫 ${neisSchool.name} ${neisSchool.grade}학년 ${neisSchool.classNm}반`;
       info.style.cssText = 'margin-left:auto;font-size:0.85em;color:var(--text-light);';
@@ -6450,6 +6657,403 @@ create policy "sub_delete" on public.theme_subscribers
     // 인증 상태가 확정될 때까지 잠깐 대기
     setTimeout(doAutoImport, 900);
   })();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// 유저 프로필 & 학교 교훈 시스템
+// ═══════════════════════════════════════════════════════════════════════════
+(function () {
+  const USER_PROFILE_KEY = 'calendar-user-profile-v2';
+
+  // ── 학교 데이터 (교훈/명언) ───────────────────────────────────────────────
+  const SCHOOL_DATA = {
+    university: [
+      { name: '서울대학교',       color: '#003478', motto: '진리는 나의 빛',         quote: '누가 한국의 미래를 묻거든 고개를 들어 관악을 보게하라' },
+      { name: '연세대학교',       color: '#00205B', motto: '진리가 너희를 자유케 하리라', quote: '인류와 함께 미래를 열어가는 연세' },
+      { name: '고려대학교',       color: '#8B0000', motto: '자유·정의·진리',         quote: '민족과 함께, 세계와 함께' },
+      { name: '한국과학기술원',   color: '#0055A2', motto: '우리의 미래, 인류의 미래', quote: '지식의 경계를 넘어 인류에 기여하는 KAIST', abbr: 'KAIST' },
+      { name: '포항공과대학교',   color: '#003A7D', motto: '도전과 창조',             quote: '작지만 강한 대학, POSTECH', abbr: 'POSTECH' },
+      { name: '성균관대학교',     color: '#003087', motto: '인·의·예·지',            quote: '학문과 덕행을 아울러 겸비한 인재' },
+      { name: '한양대학교',       color: '#D8263C', motto: '사랑의 실천',             quote: '사랑의 실천으로 세상을 밝히는 인재' },
+      { name: '이화여자대학교',   color: '#006837', motto: '진·선·미',               quote: '이화는 세상을 변화시킵니다' },
+      { name: '서강대학교',       color: '#003DA5', motto: '진리·자유·사랑',          quote: '세상을 바꾸는 진리 탐구' },
+      { name: '중앙대학교',       color: '#CE1126', motto: '의와 참',                quote: '의와 참으로 미래를 열어갑니다' },
+      { name: '경희대학교',       color: '#003087', motto: '문화세계의 창조',          quote: '미래를 향해 인류 문명에 기여하는 대학' },
+      { name: '한국외국어대학교', color: '#00457C', motto: '진리·자유·창조',           quote: '세계를 향한 지식의 창', abbr: '한외대' },
+      { name: '부산대학교',       color: '#004B87', motto: '진리·자유·봉사',           quote: '창의와 도전으로 세계를 선도하는 대학' },
+      { name: '인하대학교',       color: '#0066B3', motto: '성실·창의·협동',           quote: '미래를 만들어가는 인하대학교' },
+      { name: '홍익대학교',       color: '#003366', motto: '홍익인간',                quote: '홍익인간의 이념으로 세상을 넓힙니다' },
+      { name: '숙명여자대학교',   color: '#660033', motto: '진리·정의·사랑',           quote: '세상에 빛을 더하는 숙명인' },
+      { name: '동국대학교',       color: '#00539F', motto: '지혜와 자비',              quote: '불교의 지혜로 세계에 봉사하는 인재' },
+      { name: '건국대학교',       color: '#00539F', motto: '성·신·의',               quote: '성·신·의로 미래를 개척합니다' },
+      { name: '울산과학기술원',   color: '#0033A0', motto: '도전과 창조',              quote: '세계를 바꾸는 창의적 과학기술', abbr: 'UNIST' },
+      { name: '광운대학교',       color: '#004EA2', motto: '진리·성실·봉사',           quote: 'ICT 특성화 명문 광운대학교' },
+      { name: '국민대학교',       color: '#003366', motto: '창의·성실·협동',           quote: '창의적 인재 양성의 산실' },
+      { name: '세종대학교',       color: '#003087', motto: '창의·도전·봉사',           quote: '세종대왕의 정신을 이어가는 대학' },
+      { name: '한국항공대학교',   color: '#003087', motto: '창의·도전·협동',           quote: '하늘을 향한 꿈, 세계로 향한 도전' },
+      { name: '서울시립대학교',   color: '#003087', motto: '자유·정의·진리',           quote: '수도 서울의 중심 대학' },
+      { name: '아주대학교',       color: '#003087', motto: '실사구시',                quote: '미래를 위한 실용적 가치 창조' },
+      { name: '대구경북과학기술원', color: '#003087', motto: '창의와 소통',             quote: '미래 산업을 이끄는 과학기술 인재', abbr: 'DGIST' },
+      { name: '광주과학기술원',   color: '#003087', motto: '창의와 도전',              quote: '세계 최고의 연구중심 대학', abbr: 'GIST' },
+    ],
+    high: [
+      { name: '한국디지털미디어고등학교', color: '#003087', motto: 'VPS',         quote: 'Vision · Passion · Service', abbr: 'KDMH' },
+      { name: '하나고등학교',             color: '#1B4F8A', motto: '새로운 가치 창조', quote: '세상을 변화시키는 글로벌 인재 양성' },
+      { name: '경기과학고등학교',         color: '#003087', motto: '지·인·용',     quote: '창의와 도전으로 미래를 이끄는 과학영재' },
+      { name: '서울과학고등학교',         color: '#003087', motto: '진리 탐구',    quote: '자연과 인간을 위한 과학기술 선도' },
+      { name: '민족사관고등학교',         color: '#8B0000', motto: '弘益人間',      quote: '홍익인간의 이념으로 민족을 이끌 인재' },
+      { name: '상산고등학교',             color: '#003366', motto: '성실·창의·봉사', quote: '진리를 탐구하고 국가와 인류에 봉사하는 인재' },
+      { name: '현대청운고등학교',         color: '#003087', motto: '굳세게 올바르게 아름답게', quote: '굳세게, 올바르게, 아름답게' },
+      { name: '대원외국어고등학교',       color: '#8B0000', motto: '성실·창조·봉사', quote: '세계를 향한 창의적 글로벌 인재' },
+      { name: '용인외국어고등학교',       color: '#003087', motto: '성실·협동·창조', quote: '세계를 향해 열린 글로벌 인재' },
+      { name: '청심국제고등학교',         color: '#003087', motto: 'Love, Service, Excellence', quote: '사랑·봉사·탁월함으로 세계를' },
+      { name: '한국과학영재학교',         color: '#003087', motto: '창의·도전·배려', quote: '과학과 인류 문명 발전에 공헌하는 영재' },
+      { name: '외대부속외국어고등학교',   color: '#003087', motto: '진리·자유·창조', quote: '세계를 이끄는 글로벌 인재' },
+    ],
+  };
+
+  // ── 프로필 조회 / 저장 ─────────────────────────────────────────────────────
+  function getProfile() {
+    try { return JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || 'null'); }
+    catch { return null; }
+  }
+  function saveProfile(p) {
+    try { localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(p)); }
+    catch {}
+  }
+
+  // ── 기능 게이팅 적용 ────────────────────────────────────────────────────────
+  function applyFeatureGating(p) {
+    const type = p?.userType;
+    // NEIS 기능은 중·고등학생만
+    window.__neisEnabled = (type === 'middle' || type === 'high');
+    // 시간표 탭은 모든 학생에게 표시
+    const segTT = document.getElementById('seg-timetable');
+    if (segTT) segTT.style.display = (type === 'university' || type === 'none') ? 'none' : '';
+  }
+
+  // ── 사이드바 학교 정보 표시 ────────────────────────────────────────────────
+  function renderSidebarSchool(p) {
+    // 기존 섹션 제거 후 재생성
+    let sec = document.getElementById('sb-school-sec');
+    if (sec) sec.remove();
+    if (!p?.school?.name) return;
+
+    const sbMain = document.getElementById('sb-main');
+    if (!sbMain) return;
+
+    const s = p.school;
+    sec = document.createElement('div');
+    sec.id = 'sb-school-sec';
+    sec.className = 'sb-school-sec';
+
+    const label = document.createElement('div');
+    label.className = 'sb-section-label';
+    label.textContent = '내 학교';
+    sec.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'sb-school-row';
+
+    const av = document.createElement('div');
+    av.className = 'sb-school-av';
+    av.style.background = s.color || '#003087';
+    av.textContent = (s.abbr || s.name).slice(0, 2);
+    row.appendChild(av);
+
+    const nm = document.createElement('span');
+    nm.className = 'sb-school-nm';
+    nm.textContent = s.name;
+    nm.title = s.name;
+    row.appendChild(nm);
+
+    const ch = document.createElement('button');
+    ch.className = 'sb-school-ch';
+    ch.textContent = '변경';
+    ch.onclick = () => showProfileSetup(true);
+    row.appendChild(ch);
+
+    sec.appendChild(row);
+
+    if (s.motto) {
+      const mot = document.createElement('div');
+      mot.className = 'sb-school-mot';
+      mot.textContent = s.motto;
+      sec.appendChild(mot);
+    }
+
+    sbMain.appendChild(sec);
+  }
+
+  // ── 교훈 배너 표시 ──────────────────────────────────────────────────────────
+  function renderSchoolQuoteBar(p) {
+    const bar = document.getElementById('school-quote-bar');
+    if (!bar) return;
+    if (!p?.school?.quote) { bar.style.display = 'none'; return; }
+    bar.textContent = p.school.quote;
+    bar.style.display = '';
+  }
+
+  // ── 프로필 전체 적용 ────────────────────────────────────────────────────────
+  function applyProfile(p) {
+    if (!p) return;
+    applyFeatureGating(p);
+    renderSidebarSchool(p);
+    renderSchoolQuoteBar(p);
+  }
+
+  // ── 학교 검색 (NEIS + 로컬 DB) ─────────────────────────────────────────────
+  async function searchSchools(query, userType) {
+    const q = query.trim();
+    if (!q) return [];
+
+    // 대학: 로컬 DB 필터
+    if (userType === 'university') {
+      return SCHOOL_DATA.university
+        .filter(s => s.name.includes(q) || (s.abbr || '').toUpperCase().includes(q.toUpperCase()))
+        .slice(0, 12)
+        .map(s => ({ ...s, type: 'university' }));
+    }
+
+    // 중·고등학교: NEIS API
+    const neisKey = '21e74fc6a71d49d38adda2f572fdde85';
+    const schType = userType === 'middle' ? '중학교' : '고등학교';
+    try {
+      const res = await fetch(
+        `https://open.neis.go.kr/hub/schoolInfo?KEY=${neisKey}&Type=json&pIndex=1&pSize=15&SCHUL_NM=${encodeURIComponent(q)}&SCHUL_KND_SC_NM=${encodeURIComponent(schType)}`
+      );
+      const json = await res.json();
+      const rows = json?.schoolInfo?.[1]?.row || [];
+      return rows.map(r => {
+        const local = (userType === 'high' ? SCHOOL_DATA.high : [])
+          .find(s => r.SCHUL_NM.includes(s.name.replace('고등학교', '').trim()) || s.name === r.SCHUL_NM);
+        return {
+          name: r.SCHUL_NM,
+          type: userType,
+          neisCode: r.SD_SCHUL_CODE,
+          color: local?.color || '#003087',
+          motto: local?.motto || '',
+          quote: local?.quote || '',
+          abbr: local?.abbr || r.SCHUL_NM.slice(0, 2),
+          address: r.ORG_RDNMA || '',
+        };
+      });
+    } catch {
+      // NEIS 실패 시 로컬 DB 폴백
+      return (userType === 'high' ? SCHOOL_DATA.high : [])
+        .filter(s => s.name.includes(q))
+        .map(s => ({ ...s, type: userType }));
+    }
+  }
+
+  // ── 프로필 설정 모달 ────────────────────────────────────────────────────────
+  let _pendingProfile = {};
+
+  function showProfileSetup(force = false) {
+    const p = getProfile();
+    if (p?.setupDone && !force) { applyProfile(p); return; }
+    _pendingProfile = p ? { ...p } : {};
+    const bd = document.getElementById('ps-backdrop');
+    if (!bd) return;
+    bd.classList.add('active');
+    goStep(1);
+  }
+
+  function hideProfileSetup() {
+    const bd = document.getElementById('ps-backdrop');
+    if (bd) bd.classList.remove('active');
+  }
+
+  function goStep(n) {
+    [1, 2, 3].forEach(i => {
+      const el = document.getElementById('ps-step' + i);
+      if (el) el.classList.toggle('active', i === n);
+    });
+    const hdr = { title: document.getElementById('ps-title'), desc: document.getElementById('ps-desc'), emoji: document.getElementById('ps-emoji') };
+    if (n === 1) {
+      if (hdr.emoji) hdr.emoji.textContent = '👋';
+      if (hdr.title) hdr.title.textContent = '어떤 사용자이신가요?';
+      if (hdr.desc)  hdr.desc.textContent  = '달력을 더 잘 맞춰드리기 위해 한 가지만 여쭤볼게요.';
+    } else if (n === 2) {
+      const typeLabel = { middle: '중학교', high: '고등학교', university: '대학교' }[_pendingProfile.userType] || '학교';
+      if (hdr.emoji) hdr.emoji.textContent = '🏫';
+      if (hdr.title) hdr.title.textContent = `${typeLabel}를 선택해주세요`;
+      if (hdr.desc)  hdr.desc.textContent  = '학교 이름으로 검색하거나 목록에서 선택하세요.';
+      setupSchoolSearch();
+    } else if (n === 3) {
+      if (hdr.emoji) hdr.emoji.textContent = '🎉';
+      if (hdr.title) hdr.title.textContent = '설정 완료!';
+      if (hdr.desc)  hdr.desc.textContent  = '';
+      renderMottoStep();
+    }
+  }
+
+  // 학교 검색 UI
+  function setupSchoolSearch() {
+    const inp  = document.getElementById('ps-school-input');
+    const list = document.getElementById('ps-school-list');
+    if (!inp || !list) return;
+    inp.value = '';
+    list.innerHTML = '';
+
+    // 대학: 기본 인기 목록 표시
+    if (_pendingProfile.userType === 'university') {
+      renderSchoolItems(SCHOOL_DATA.university.slice(0, 8).map(s => ({ ...s, type: 'university' })));
+    }
+
+    let timer = null;
+    inp.oninput = () => {
+      clearTimeout(timer);
+      const q = inp.value.trim();
+      if (!q) {
+        if (_pendingProfile.userType === 'university') {
+          renderSchoolItems(SCHOOL_DATA.university.slice(0, 8).map(s => ({ ...s, type: 'university' })));
+        } else {
+          list.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:0.85em;">학교 이름을 입력하세요</div>';
+        }
+        return;
+      }
+      list.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:0.85em;">검색 중…</div>';
+      timer = setTimeout(async () => {
+        const results = await searchSchools(q, _pendingProfile.userType);
+        renderSchoolItems(results);
+      }, 350);
+    };
+
+    function renderSchoolItems(schools) {
+      list.innerHTML = '';
+      if (!schools.length) {
+        list.innerHTML = '<div style="padding:12px;text-align:center;color:#aaa;font-size:0.85em;">검색 결과가 없어요</div>';
+        return;
+      }
+      schools.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'ps-school-item';
+        const av = document.createElement('div');
+        av.className = 'ps-school-avatar';
+        av.style.background = s.color || '#003087';
+        av.textContent = (s.abbr || s.name).slice(0, 2);
+        const info = document.createElement('div');
+        info.className = 'ps-school-info';
+        info.innerHTML = `<div class="pssi-name">${s.name}</div>` +
+          (s.motto ? `<div class="pssi-sub">${s.motto}</div>` :
+           s.address ? `<div class="pssi-sub">${s.address.slice(0, 20)}</div>` : '');
+        item.appendChild(av);
+        item.appendChild(info);
+        item.onclick = () => selectSchool(s);
+        list.appendChild(item);
+      });
+    }
+  }
+
+  function selectSchool(s) {
+    _pendingProfile.school = {
+      name: s.name, type: s.type, color: s.color || '#003087',
+      motto: s.motto || '', quote: s.quote || '',
+      abbr: s.abbr || s.name.slice(0, 2),
+      neisCode: s.neisCode || null,
+    };
+    // neisSchool 연동 (중·고등학생)
+    if (s.neisCode && (s.type === 'middle' || s.type === 'high')) {
+      try {
+        const stored = { sdCode: s.neisCode, name: s.name, grade: '1', classNm: '1' };
+        localStorage.setItem('calendar-neis-school-v1', JSON.stringify(stored));
+      } catch {}
+    }
+    goStep(3);
+  }
+
+  // 교훈 표시 스텝
+  function renderMottoStep() {
+    const s = _pendingProfile.school;
+    const av = document.getElementById('ps-m-avatar');
+    const nm = document.getElementById('ps-m-school');
+    const mo = document.getElementById('ps-m-motto');
+    const qt = document.getElementById('ps-m-quote');
+    if (!av) return;
+    if (s) {
+      av.style.background = s.color || '#003087';
+      av.textContent = (s.abbr || s.name).slice(0, 2);
+      if (nm) nm.textContent = s.name;
+      if (mo) mo.textContent = s.motto || '';
+      if (qt) qt.textContent = s.quote || (s.motto ? '' : '달력 앱과 함께 멋진 하루를 시작해요!');
+    } else {
+      av.style.background = '#2874e0';
+      av.textContent = '📅';
+      if (nm) nm.textContent = '달력 앱';
+      if (mo) mo.textContent = '';
+      if (qt) qt.textContent = '달력 앱과 함께 멋진 하루를 시작해요!';
+    }
+  }
+
+  // 이벤트 바인딩
+  function bindProfileEvents() {
+    // 유저 타입 버튼
+    document.querySelectorAll('.ps-type-btn').forEach(btn => {
+      btn.onclick = () => {
+        const type = btn.dataset.type;
+        _pendingProfile.userType = type;
+        if (type === 'none') {
+          finishProfile();
+        } else {
+          goStep(2);
+        }
+      };
+    });
+    // 뒤로가기
+    const back2 = document.getElementById('ps-back2');
+    if (back2) back2.onclick = () => goStep(1);
+    // 학교 건너뛰기
+    const skip = document.getElementById('ps-skip-school');
+    if (skip) skip.onclick = () => {
+      _pendingProfile.school = null;
+      goStep(3);
+    };
+    // 완료 버튼
+    const fin = document.getElementById('ps-finish');
+    if (fin) fin.onclick = finishProfile;
+  }
+
+  function finishProfile() {
+    _pendingProfile.setupDone = true;
+    saveProfile(_pendingProfile);
+    hideProfileSetup();
+    applyProfile(_pendingProfile);
+    // 모토 입력란이 비어 있으면 학교 교훈으로 채우기
+    const mottoIn = document.getElementById('motto-input');
+    if (mottoIn && !mottoIn.value && _pendingProfile.school?.motto) {
+      mottoIn.value = _pendingProfile.school.motto;
+      try { localStorage.setItem('calendar-motto-v1', _pendingProfile.school.motto); } catch {}
+    }
+  }
+
+  // ── 초기화 ─────────────────────────────────────────────────────────────────
+  bindProfileEvents();
+
+  // loginGate의 hideOverlay 이후 트리거 (MutationObserver로 overlay 제거 감지)
+  const loginOverlay = document.getElementById('login-overlay');
+  if (loginOverlay) {
+    const obs = new MutationObserver(() => {
+      if (!loginOverlay.classList.contains('active')) {
+        obs.disconnect();
+        const p = getProfile();
+        if (p?.setupDone) {
+          applyProfile(p);
+        } else {
+          setTimeout(() => showProfileSetup(), 300);
+        }
+      }
+    });
+    obs.observe(loginOverlay, { attributes: true, attributeFilter: ['class'] });
+    // 이미 비활성 상태라면 즉시 실행
+    if (!loginOverlay.classList.contains('active')) {
+      const p = getProfile();
+      if (p?.setupDone) applyProfile(p);
+      else setTimeout(() => showProfileSetup(), 300);
+    }
+  }
+})();
 </script>
 </body>
 </html>
