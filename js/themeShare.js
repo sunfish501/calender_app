@@ -20,6 +20,20 @@
     return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   }
 
+  // Supabase / PostgREST reports a missing table several different ways
+  // depending on whether the SQL layer or the REST schema cache caught it.
+  function isMissingTableError(err) {
+    if (!err) return false;
+    const m = (err.message || '') + ' ' + (err.details || '') + ' ' + (err.hint || '');
+    return /theme_shares/i.test(m) && (
+      /does not exist/i.test(m) ||
+      /schema cache/i.test(m) ||
+      /not found/i.test(m) ||
+      err.code === 'PGRST205' ||  // PostgREST: Could not find the table
+      err.code === '42P01'        // Postgres: undefined_table
+    );
+  }
+
   // payload shape: { theme: {name,color,image}, events: [{date, item}, ...], v: 1 }
   async function publishShare(payload) {
     if (!window.sb) throw new Error('Supabase 클라이언트가 없습니다');
@@ -44,7 +58,7 @@
       // Postgres unique_violation — retry with a different code.
       if (error.code !== '23505') break;
     }
-    if (lastErr && /relation.*theme_shares.*does not exist/i.test(lastErr.message || '')) {
+    if (lastErr && isMissingTableError(lastErr)) {
       throw new Error('theme_shares 테이블이 없습니다. 관리자에게 SQL 설정을 요청하세요.');
     }
     throw lastErr || new Error('공유 코드 생성에 실패했습니다');
@@ -66,7 +80,7 @@
       .eq('code', code)
       .maybeSingle();
     if (error) {
-      if (/relation.*theme_shares.*does not exist/i.test(error.message || '')) {
+      if (isMissingTableError(error)) {
         throw new Error('theme_shares 테이블이 없습니다. 관리자에게 SQL 설정을 요청하세요.');
       }
       throw error;
