@@ -1012,6 +1012,7 @@
     <div class="theme-modal-body" id="theme-modal-body"></div>
     <div class="modal-buttons">
       <button id="theme-add-btn">+ 테마 추가</button>
+      <button id="theme-import-btn">📥 코드로 가져오기</button>
       <button id="theme-close-btn">닫기</button>
     </div>
   </div>
@@ -1069,6 +1070,7 @@
 <script src="js/auth.js"></script>
 <script src="js/events.js"></script>
 <script src="js/userDataSync.js"></script>
+<script src="js/themeShare.js"></script>
 <script src="js/auth-ui.js"></script>
 
 <script>
@@ -2869,6 +2871,12 @@
         rmImg.onclick = () => { th.image = null; saveThemes(); renderThemeModal(); };
         row.appendChild(rmImg);
       }
+      const share = document.createElement('button');
+      share.className = 'theme-del-btn';
+      share.textContent = '📤';
+      share.title = '테마 공유 코드 만들기';
+      share.onclick = () => shareThemeFlow(th);
+      row.appendChild(share);
       const del = document.createElement('button');
       del.className = 'theme-del-btn';
       del.textContent = '✕';
@@ -2891,7 +2899,175 @@
     renderThemeModal();
     updateShortcutHelp();
   };
+  document.getElementById('theme-import-btn').onclick = () => importThemeFlow();
   themeModal.onclick = (e) => { if (e.target === themeModal) { closeThemeModal(); renderSidebar(); render(); } };
+
+  // ─── 테마 공유: 코드 만들기 / 코드로 가져오기 ──────────────────────────
+  function collectEventsForTheme(themeId) {
+    const out = [];
+    Object.keys(events).forEach(dk => {
+      if (dk.startsWith('__')) return;
+      (events[dk] || []).forEach(item => {
+        if (typeof item !== 'object' || !item) return;
+        if (item.th === themeId) out.push({ date: dk, item: { ...item } });
+      });
+    });
+    return out;
+  }
+
+  async function shareThemeFlow(theme) {
+    if (!window.SupabaseAuth?.getUser()) {
+      alert('로그인 후 공유할 수 있습니다.');
+      return;
+    }
+    const evs = collectEventsForTheme(theme.id);
+    const proceed = confirm(
+      `"${theme.name}" 테마를 공유 코드로 만듭니다.\n\n` +
+      `테마 정보 + 일정 ${evs.length}개가 포함됩니다.\n\n` +
+      `생성된 코드를 받은 사람은 자기 계정에 같은 테마와 일정을 추가할 수 있습니다.\n계속할까요?`
+    );
+    if (!proceed) return;
+
+    const payload = {
+      v: 1,
+      theme: { name: theme.name, color: theme.color, image: theme.image || null },
+      events: evs
+    };
+
+    try {
+      const code = await window.ThemeShare.publishShare(payload);
+      showCodeDialog(theme.name, code, evs.length);
+    } catch (e) {
+      alert('공유 실패: ' + (e.message || e));
+    }
+  }
+
+  function showCodeDialog(themeName, code, eventCount) {
+    const back = document.createElement('div');
+    back.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100001;display:flex;align-items:center;justify-content:center;';
+    back.innerHTML = `
+      <div style="background:#fff;padding:24px 26px;border-radius:14px;width:340px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.25);">
+        <h3 style="margin:0 0 14px;font-size:17px;">📤 공유 코드 생성됨</h3>
+        <div style="color:#555;font-size:13px;margin-bottom:14px;line-height:1.5;">
+          <strong>${themeName}</strong> + 일정 ${eventCount}개<br>
+          아래 코드를 받는 사람이 "코드로 가져오기" 에 입력하면 됩니다.
+        </div>
+        <div style="background:#f5f5f7;border:1px solid #e0e0e3;border-radius:8px;padding:14px;text-align:center;font:600 22px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:3px;color:#2874e0;user-select:all;cursor:text;">${code}</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button id="sc-copy" style="flex:1;padding:9px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font:600 13px system-ui;">복사</button>
+          <button id="sc-close" style="flex:1;padding:9px;background:#fff;color:#444;border:1px solid #d8d8dc;border-radius:8px;cursor:pointer;font:13px system-ui;">닫기</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(back);
+    back.querySelector('#sc-copy').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+        back.querySelector('#sc-copy').textContent = '복사됨 ✓';
+      } catch {
+        // fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = code; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); back.querySelector('#sc-copy').textContent = '복사됨 ✓'; }
+        catch { alert('복사 실패. 수동으로 복사해주세요.'); }
+        ta.remove();
+      }
+    };
+    const close = () => back.remove();
+    back.querySelector('#sc-close').onclick = close;
+    back.onclick = (e) => { if (e.target === back) close(); };
+  }
+
+  function importThemeFlow() {
+    if (!window.SupabaseAuth?.getUser()) {
+      alert('로그인 후 가져올 수 있습니다.');
+      return;
+    }
+    if (themes.length >= 4) {
+      alert('테마는 최대 4개까지 만들 수 있습니다. 먼저 하나 삭제 후 시도하세요.');
+      return;
+    }
+
+    const back = document.createElement('div');
+    back.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100001;display:flex;align-items:center;justify-content:center;';
+    back.innerHTML = `
+      <div style="background:#fff;padding:24px 26px;border-radius:14px;width:340px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.25);">
+        <h3 style="margin:0 0 14px;font-size:17px;">📥 코드로 테마 가져오기</h3>
+        <input id="ic-code" type="text" placeholder="8자리 코드" maxlength="12" autocomplete="off"
+               style="width:100%;padding:11px;border:1px solid #d8d8dc;border-radius:8px;font:600 18px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:3px;text-align:center;text-transform:uppercase;box-sizing:border-box;">
+        <div id="ic-msg" style="color:#c33;font-size:12px;min-height:16px;margin-top:8px;line-height:1.4;"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button id="ic-go" style="flex:1;padding:10px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font:600 14px system-ui;">가져오기</button>
+          <button id="ic-cancel" style="flex:1;padding:10px;background:#fff;color:#444;border:1px solid #d8d8dc;border-radius:8px;cursor:pointer;font:14px system-ui;">취소</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(back);
+    const input  = back.querySelector('#ic-code');
+    const msg    = back.querySelector('#ic-msg');
+    const goBtn  = back.querySelector('#ic-go');
+    const close  = () => back.remove();
+    back.querySelector('#ic-cancel').onclick = close;
+    back.onclick = (e) => { if (e.target === back) close(); };
+    setTimeout(() => input.focus(), 50);
+
+    async function doImport() {
+      msg.textContent = '';
+      goBtn.disabled = true;
+      const original = goBtn.textContent;
+      goBtn.textContent = '가져오는 중…';
+      try {
+        const share = await window.ThemeShare.fetchShare(input.value);
+        const result = applyImportedShare(share.payload);
+        close();
+        alert(`✓ "${result.themeName}" 테마와 일정 ${result.eventsAdded}개를 가져왔습니다.` +
+              (result.eventsSkipped ? `\n(중복 ${result.eventsSkipped}개는 건너뜀)` : ''));
+        saveThemes();
+        saveEvents();
+        renderThemeModal();
+        updateShortcutHelp();
+        renderSidebar();
+        render();
+      } catch (e) {
+        msg.textContent = e.message || '가져오기 실패';
+        goBtn.disabled = false;
+        goBtn.textContent = original;
+      }
+    }
+    goBtn.onclick = doImport;
+    input.onkeydown = (e) => { if (e.key === 'Enter') doImport(); };
+  }
+
+  function applyImportedShare(payload) {
+    if (!payload || !payload.theme) throw new Error('공유 데이터 형식이 올바르지 않습니다');
+    if (themes.length >= 4) throw new Error('테마 4개 한도 초과');
+
+    const t = payload.theme;
+    const newId = 'th_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    const newTheme = {
+      id: newId,
+      name: (t.name || '가져온 테마') + ' (가져옴)',
+      color: t.color || '#5b9bd5',
+      image: t.image || null
+    };
+    themes.push(newTheme);
+
+    let added = 0, skipped = 0;
+    (payload.events || []).forEach(({ date, item }) => {
+      if (!date || typeof item !== 'object' || !item) return;
+      if (!events[date]) events[date] = [];
+      const newItem = { ...item, th: newId };
+      const dup = events[date].some(e => {
+        if (typeof e !== 'object' || !e) return false;
+        return e.t === newItem.t && e.th === newItem.th;
+      });
+      if (dup) { skipped++; return; }
+      events[date].push(newItem);
+      added++;
+    });
+
+    return { themeName: newTheme.name, eventsAdded: added, eventsSkipped: skipped };
+  }
 
   // ─── 테마 셀렉트 (일정 추가 모달) ─────────────────────────
   const themeSelect = document.getElementById('event-theme');
