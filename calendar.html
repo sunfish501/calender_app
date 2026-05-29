@@ -290,53 +290,40 @@
     overflow: hidden;
   }
 
-  /* 연속 보기 가로 배치: grid를 풀고 flex로 월 컬럼을 좌→우로 */
+  /* 연속 보기 가로 배치: 3개월이 화면 너비에 균등 분할되어 한 눈에 보임 (스크롤 없음).
+     컬럼은 flex:1 1 0 + min-width:0 으로 부모 너비를 강제하지 않고 자유 축소. */
   .calendar.continuous-horizontal {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 14px;
+    gap: 10px;
     background: transparent;
     border: none;
     border-radius: 0;
-    padding: 0 0 6px;
-    /* 부모(.main-col, flex:1, min-width:0) 안에서 가로 스크롤이 생기도록 */
+    padding: 0;
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
-    scroll-snap-type: x proximity;
-    scroll-behavior: smooth;
-    /* 휠을 굴려 가로 스크롤할 수 있도록 (시각적 보조) */
-  }
-  .calendar.continuous-horizontal::-webkit-scrollbar { height: 10px; }
-  .calendar.continuous-horizontal::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.18); border-radius: 5px;
-  }
-  .calendar.continuous-horizontal::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.32);
-  }
-  .calendar.continuous-horizontal::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.04); border-radius: 5px;
+    overflow: hidden;
   }
   .calendar.continuous-horizontal .month-col {
-    flex: 0 0 auto;
-    width: 520px;
-    min-width: 520px;
+    flex: 1 1 0;
+    min-width: 0;
     background: var(--cell-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
-    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
   }
   .calendar.continuous-horizontal .month-col-title {
-    padding: 10px 14px;
+    padding: 8px 12px;
     font-weight: 600;
-    font-size: 1.05em;
+    font-size: 0.95em;
     color: var(--text);
     background: var(--day-header-bg);
     border-bottom: 1px solid var(--border);
+    text-align: center;
   }
   .calendar.continuous-horizontal .month-grid {
     display: grid;
@@ -344,6 +331,39 @@
     gap: 1px;
     background: var(--border);
     padding: 1px;
+    flex: 1;
+  }
+  /* 좁아진 셀 대응: 글자/간격을 더 컴팩트하게 */
+  .calendar.continuous-horizontal .day-name {
+    font-size: 0.75em;
+    padding: 6px 0;
+  }
+  .calendar.continuous-horizontal .day-cell {
+    min-height: 78px;
+    padding: 3px 4px;
+  }
+  .calendar.continuous-horizontal .day-number {
+    font-size: 0.82em;
+  }
+  .calendar.continuous-horizontal .events {
+    font-size: 0.85em;
+  }
+  .calendar.continuous-horizontal .event {
+    padding: 1px 4px;
+    margin-bottom: 1px;
+    font-size: 0.95em;
+  }
+  .calendar.continuous-horizontal .lunar,
+  .calendar.continuous-horizontal .holiday-name {
+    font-size: 0.62em;
+  }
+  .calendar.continuous-horizontal .day-widget-box {
+    font-size: 0.7em;
+  }
+  .calendar.continuous-horizontal .memo-area {
+    min-height: 78px;
+    padding: 4px 6px;
+    background-size: 100% 100%;
   }
 
   .day-name {
@@ -2693,22 +2713,6 @@
       _renderMonthSection(y, m, grid);
       col.appendChild(grid);
       calendarEl.appendChild(col);
-    }
-
-    // 마우스 휠을 가로 스크롤로 (한 번만 등록)
-    if (!calendarEl.__horizontalWheelBound) {
-      calendarEl.__horizontalWheelBound = true;
-      calendarEl.addEventListener('wheel', (e) => {
-        if (!calendarEl.classList.contains('continuous-horizontal')) return;
-        // 셀 안 textarea 위에서는 기본 동작 유지
-        if (e.target.closest('textarea')) return;
-        // 가로 스크롤 가능 여백이 없으면 스킵
-        if (calendarEl.scrollWidth <= calendarEl.clientWidth) return;
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-          calendarEl.scrollLeft += e.deltaY;
-          e.preventDefault();
-        }
-      }, { passive: false });
     }
   }
 
