@@ -1012,7 +1012,7 @@
     <div class="theme-modal-body" id="theme-modal-body"></div>
     <div class="modal-buttons">
       <button id="theme-add-btn">+ 테마 추가</button>
-      <button id="theme-import-btn">📥 코드로 가져오기</button>
+      <button id="theme-import-btn">📥 초대 링크로 가져오기</button>
       <button id="theme-close-btn">닫기</button>
     </div>
   </div>
@@ -2913,11 +2913,11 @@
         const share = document.createElement('button');
         share.className = 'theme-del-btn';
         share.textContent = '📤';
-        share.title = isOwner ? '공유 코드 다시 보기' : '테마 공유 코드 만들기';
+        share.title = isOwner ? '초대 링크 다시 보기' : '초대 링크 만들기';
         share.onclick = () => {
           if (isOwner) {
             const count = collectEventsForTheme(th.id).length;
-            showCodeDialog(th.name, th.share_code, count);
+            showInviteLinkDialog(th.name, th.share_code, count);
           } else {
             shareThemeFlow(th);
           }
@@ -2997,17 +2997,13 @@
     }
     const evs = collectEventsForTheme(theme.id);
     const proceed = confirm(
-      `"${theme.name}" 테마를 공유 코드로 만듭니다.\n\n` +
+      `"${theme.name}" 테마의 초대 링크를 만듭니다.\n\n` +
       `테마 정보 + 일정 ${evs.length}개가 포함됩니다.\n\n` +
-      `생성된 코드를 받은 사람은 자기 계정에 같은 테마와 일정을 추가할 수 있습니다.\n계속할까요?`
+      `링크를 받은 사람이 클릭하면 초대 모달이 자동으로 뜹니다.\n수락 시 그 사람의 테마 목록에 추가되고, 앞으로의 수정이 실시간 반영됩니다.\n\n계속할까요?`
     );
     if (!proceed) return;
 
-    const payload = {
-      v: 1,
-      theme: { name: theme.name, color: theme.color, image: theme.image || null },
-      events: evs
-    };
+    const payload = buildSharePayload(theme, evs);
 
     try {
       const code = await window.ThemeShare.publishShare(payload);
@@ -3016,45 +3012,95 @@
       theme.share_role = 'owner';
       saveThemes();
       renderThemeModal();
-      showCodeDialog(theme.name, code, evs.length);
+      showInviteLinkDialog(theme.name, code, evs.length);
     } catch (e) {
       alert('공유 실패: ' + (e.message || e));
     }
   }
 
-  function showCodeDialog(themeName, code, eventCount) {
+  // Build the payload sent to theme_shares. The creator block lets the
+  // invite-accept modal say "OOO님이 초대했습니다" without the receiver
+  // having to query auth.users (anon clients can't).
+  function buildSharePayload(theme, evs) {
+    const u = window.SupabaseAuth?.getUser();
+    const creatorName = window.SupabaseAuth?.userDisplayName?.(u) || '사용자';
+    return {
+      v: 2,
+      theme: { name: theme.name, color: theme.color, image: theme.image || null },
+      events: evs,
+      creator: { name: creatorName }
+    };
+  }
+
+  // ─── 공유/초대 헬퍼 ──────────────────────────────────────
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => (
+      { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+    ));
+  }
+  function inviteUrlForCode(code) {
+    // Always link to calendar.html in the current deployment, regardless of
+    // which page the share was generated from.
+    const url = new URL('calendar.html', window.location.href);
+    url.searchParams.set('invite', code);
+    return url.toString();
+  }
+  // Accepts either a full invite URL or a bare 8-char code.
+  function extractInviteCode(input) {
+    const raw = String(input || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        const u = new URL(raw);
+        return window.ThemeShare.normaliseCode(u.searchParams.get('invite') || '');
+      } catch { return ''; }
+    }
+    return window.ThemeShare.normaliseCode(raw);
+  }
+
+  async function copyToClipboard(text, btnEl) {
+    const success = () => { if (btnEl) btnEl.textContent = '복사됨 ✓'; };
+    try { await navigator.clipboard.writeText(text); success(); return; }
+    catch {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); success(); }
+      catch { alert('복사 실패. 수동으로 복사해주세요.'); }
+      ta.remove();
+    }
+  }
+
+  function showInviteLinkDialog(themeName, code, eventCount) {
+    const url = inviteUrlForCode(code);
     const back = document.createElement('div');
     back.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100001;display:flex;align-items:center;justify-content:center;';
     back.innerHTML = `
-      <div style="background:#fff;padding:24px 26px;border-radius:14px;width:340px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.25);">
-        <h3 style="margin:0 0 14px;font-size:17px;">📤 공유 코드 생성됨</h3>
+      <div style="background:#fff;padding:24px 26px;border-radius:14px;width:380px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.25);">
+        <h3 style="margin:0 0 14px;font-size:17px;">📤 초대 링크 생성됨</h3>
         <div style="color:#555;font-size:13px;margin-bottom:14px;line-height:1.5;">
-          <strong>${themeName}</strong> + 일정 ${eventCount}개<br>
-          아래 코드를 받는 사람이 "코드로 가져오기" 에 입력하면 됩니다.
+          <strong>${escapeHtml(themeName)}</strong> + 일정 ${eventCount}개<br>
+          아래 링크를 받은 사람이 열기만 하면 초대 모달이 자동으로 뜹니다.
         </div>
-        <div style="background:#f5f5f7;border:1px solid #e0e0e3;border-radius:8px;padding:14px;text-align:center;font:600 22px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:3px;color:#2874e0;user-select:all;cursor:text;">${code}</div>
-        <div style="display:flex;gap:8px;margin-top:14px;">
-          <button id="sc-copy" style="flex:1;padding:9px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font:600 13px system-ui;">복사</button>
-          <button id="sc-close" style="flex:1;padding:9px;background:#fff;color:#444;border:1px solid #d8d8dc;border-radius:8px;cursor:pointer;font:13px system-ui;">닫기</button>
+        <input id="iv-url" readonly value="${escapeHtml(url)}"
+               style="width:100%;padding:10px 12px;border:1px solid #d8d8dc;border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:#fafafc;box-sizing:border-box;color:#2874e0;">
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="iv-copy" style="flex:1;padding:10px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font:600 13px system-ui;">링크 복사</button>
+          <button id="iv-close" style="flex:1;padding:10px;background:#fff;color:#444;border:1px solid #d8d8dc;border-radius:8px;cursor:pointer;font:13px system-ui;">닫기</button>
         </div>
+        <details style="margin-top:14px;">
+          <summary style="cursor:pointer;color:#888;font-size:12px;user-select:none;">링크 대신 코드로 보내기</summary>
+          <div style="background:#f5f5f7;border:1px solid #e0e0e3;border-radius:8px;padding:10px;text-align:center;font:600 18px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:3px;color:#2874e0;user-select:all;cursor:text;margin-top:8px;">${code}</div>
+        </details>
       </div>
     `;
     document.body.appendChild(back);
-    back.querySelector('#sc-copy').onclick = async () => {
-      try {
-        await navigator.clipboard.writeText(code);
-        back.querySelector('#sc-copy').textContent = '복사됨 ✓';
-      } catch {
-        // fallback for older browsers
-        const ta = document.createElement('textarea');
-        ta.value = code; document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); back.querySelector('#sc-copy').textContent = '복사됨 ✓'; }
-        catch { alert('복사 실패. 수동으로 복사해주세요.'); }
-        ta.remove();
-      }
-    };
+    const urlEl  = back.querySelector('#iv-url');
+    const copyBt = back.querySelector('#iv-copy');
+    urlEl.onclick = () => urlEl.select();
+    copyBt.onclick = () => copyToClipboard(url, copyBt);
     const close = () => back.remove();
-    back.querySelector('#sc-close').onclick = close;
+    back.querySelector('#iv-close').onclick = close;
     back.onclick = (e) => { if (e.target === back) close(); };
   }
 
@@ -3071,10 +3117,11 @@
     const back = document.createElement('div');
     back.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100001;display:flex;align-items:center;justify-content:center;';
     back.innerHTML = `
-      <div style="background:#fff;padding:24px 26px;border-radius:14px;width:340px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.25);">
-        <h3 style="margin:0 0 14px;font-size:17px;">📥 코드로 테마 가져오기</h3>
-        <input id="ic-code" type="text" placeholder="8자리 코드" maxlength="12" autocomplete="off"
-               style="width:100%;padding:11px;border:1px solid #d8d8dc;border-radius:8px;font:600 18px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:3px;text-align:center;text-transform:uppercase;box-sizing:border-box;">
+      <div style="background:#fff;padding:24px 26px;border-radius:14px;width:380px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;color:#222;box-shadow:0 12px 32px rgba(0,0,0,.25);">
+        <h3 style="margin:0 0 12px;font-size:17px;">📥 초대 링크 / 코드로 가져오기</h3>
+        <div style="color:#888;font-size:12px;margin-bottom:10px;line-height:1.4;">받은 초대 링크 전체 또는 8자리 코드를 붙여넣으세요.</div>
+        <input id="ic-code" type="text" placeholder="초대 링크 또는 8자리 코드" maxlength="500" autocomplete="off"
+               style="width:100%;padding:11px;border:1px solid #d8d8dc;border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,monospace;box-sizing:border-box;">
         <div id="ic-msg" style="color:#c33;font-size:12px;min-height:16px;margin-top:8px;line-height:1.4;"></div>
         <div style="display:flex;gap:8px;margin-top:8px;">
           <button id="ic-go" style="flex:1;padding:10px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font:600 14px system-ui;">가져오기</button>
@@ -3093,11 +3140,13 @@
 
     async function doImport() {
       msg.textContent = '';
+      const code = extractInviteCode(input.value);
+      if (!code) { msg.textContent = '초대 링크 또는 코드를 입력하세요'; return; }
       goBtn.disabled = true;
       const original = goBtn.textContent;
       goBtn.textContent = '가져오는 중…';
       try {
-        const share = await window.ThemeShare.fetchShare(input.value);
+        const share = await window.ThemeShare.fetchShare(code);
         const result = applyImportedShare(share.payload, share.code);
         close();
         alert(`✓ "${result.themeName}" 테마와 일정 ${result.eventsAdded}개를 가져왔습니다.` +
@@ -3168,11 +3217,7 @@
     const owned = themes.filter(t => t.share_code && t.share_role === 'owner');
     for (const theme of owned) {
       try {
-        const payload = {
-          v: 1,
-          theme: { name: theme.name, color: theme.color, image: theme.image || null },
-          events: collectEventsForTheme(theme.id)
-        };
+        const payload = buildSharePayload(theme, collectEventsForTheme(theme.id));
         await window.ThemeShare.updateShare(theme.share_code, payload);
       } catch (e) {
         console.warn('[share] republish failed for', theme.share_code, e);
@@ -3250,6 +3295,97 @@
     });
   }
 
+  // ─── 초대 링크 처리 (?invite=CODE) ──────────────────────
+  // Fires after the user is signed in. Fetches the share, then shows a modal
+  // saying "OOO님이 당신을 '...' 테마로 초대했습니다 / 수락 / 거절".
+  async function checkAndShowInvite() {
+    const params = new URLSearchParams(window.location.search);
+    const rawCode = params.get('invite');
+    if (!rawCode) return;
+    if (!window.SupabaseAuth?.getUser()) return;  // wait for sign-in; URL preserved
+
+    const code = window.ThemeShare.normaliseCode(rawCode);
+    // Strip the param so reloads don't re-prompt forever.
+    const url = new URL(window.location);
+    url.searchParams.delete('invite');
+    window.history.replaceState({}, '', url.toString());
+
+    if (!code) { alert('초대 링크가 올바르지 않습니다'); return; }
+    if (themes.some(t => t.share_code === code)) {
+      // Already subscribed — silent, just open theme manager so the user sees it
+      console.info('[invite] already subscribed to', code);
+      return;
+    }
+
+    let share;
+    try {
+      share = await window.ThemeShare.fetchShare(code);
+    } catch (e) {
+      alert('초대 링크 처리 실패: ' + (e.message || e));
+      return;
+    }
+    showInviteAcceptModal(share);
+  }
+
+  function showInviteAcceptModal(share) {
+    const inviter   = share?.payload?.creator?.name || '누군가';
+    const themeName = share?.payload?.theme?.name   || '테마';
+    const evCount   = (share?.payload?.events || []).length;
+    const color     = share?.payload?.theme?.color  || '#5b9bd5';
+
+    const back = document.createElement('div');
+    back.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100002;display:flex;align-items:center;justify-content:center;';
+    back.innerHTML = `
+      <div style="background:#fff;padding:28px;border-radius:14px;width:380px;max-width:92vw;font:14px system-ui,-apple-system,sans-serif;box-shadow:0 12px 32px rgba(0,0,0,.3);">
+        <div style="text-align:center;margin-bottom:18px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:${color}22;border:3px solid ${color};display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;">📩</div>
+          <h2 style="margin:0;font-size:18px;color:#222;font-weight:600;">테마 초대</h2>
+        </div>
+        <div style="text-align:center;color:#333;line-height:1.7;margin-bottom:18px;font-size:15px;">
+          <strong>${escapeHtml(inviter)}</strong>님이 당신을<br>
+          <strong style="color:${color};">"${escapeHtml(themeName)}"</strong> 테마로 초대했습니다.
+        </div>
+        <div style="background:#f5f5f7;border-radius:8px;padding:12px 14px;font-size:12px;color:#666;margin-bottom:18px;line-height:1.6;">
+          • 일정 ${evCount}개가 함께 추가됩니다<br>
+          • 원본 사용자의 수정이 실시간으로 반영됩니다<br>
+          • 언제든 테마 관리에서 구독 해지 가능합니다
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="inv-accept" style="flex:1;padding:12px;background:${color};color:#fff;border:none;border-radius:8px;cursor:pointer;font:600 14px system-ui;">수락</button>
+          <button id="inv-decline" style="flex:1;padding:12px;background:#fff;color:#666;border:1px solid #d8d8dc;border-radius:8px;cursor:pointer;font:14px system-ui;">거절</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(back);
+    const close = () => back.remove();
+    back.querySelector('#inv-decline').onclick = close;
+    back.querySelector('#inv-accept').onclick = () => {
+      try {
+        if (themes.length >= 4) throw new Error('테마 4개 한도 초과 (먼저 하나 삭제하세요)');
+        const result = applyImportedShare(share.payload, share.code);
+        saveThemes(); saveEvents();
+        renderSidebar(); render();
+        if (themeModal.classList.contains('active')) renderThemeModal();
+        setupShareRealtime();
+        close();
+        // Brief confirmation toast — keep it light so it doesn't block.
+        showToast(`✓ "${result.themeName}" 추가됨 (일정 ${result.eventsAdded}개)`);
+      } catch (e) {
+        alert('수락 실패: ' + (e.message || e));
+      }
+    };
+  }
+
+  // Tiny inline toast helper (no existing toast system in this file).
+  function showToast(msg) {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:8px;font:14px system-ui;z-index:100003;box-shadow:0 4px 12px rgba(0,0,0,.3);';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; }, 2500);
+    setTimeout(() => el.remove(), 3000);
+  }
+
   // Kick off subscriber sync once we have an auth session.
   let _sharesSyncedOnce = false;
   async function maybeSyncShares() {
@@ -3268,6 +3404,9 @@
     } catch (e) {
       console.warn('[share] initial sync failed:', e);
       _sharesSyncedOnce = false;
+    } finally {
+      // Run invite handling regardless of sync outcome.
+      checkAndShowInvite().catch(e => console.warn('[invite] failed:', e));
     }
   }
   window.SupabaseAuth?.onAuthChange((user) => {
