@@ -129,41 +129,178 @@
     gap: 12px;
     align-items: flex-start;
   }
+  /* ── 사이드바 ── */
   .sidebar {
-    width: 140px;
+    width: 162px;
     flex-shrink: 0;
     background: var(--cell-bg);
-    border: 1px solid var(--border);
+    border: 0.5px solid var(--border);
     border-radius: 8px;
-    padding: 10px;
+    padding: 10px 9px 12px;
     position: sticky;
     top: 20px;
+    display: flex;
+    flex-direction: column;
   }
-  .sidebar-title {
-    font-size: 0.8em;
-    font-weight: 600;
+  /* 탭 (세그먼트 컨트롤) */
+  .sb-seg {
+    display: flex;
+    background: var(--day-header-bg);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: 12px;
+  }
+  .sb-seg-btn {
+    flex: 1;
+    padding: 5px 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 0.82em;
+    font-weight: 500;
     color: var(--text-light);
-    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
   }
+  .sb-seg-btn.active {
+    background: var(--cell-bg);
+    color: var(--text);
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .sb-seg-btn:hover:not(.active) {
+    background: rgba(0,0,0,0.04);
+    color: var(--text);
+  }
+  /* 저장/불러오기 버튼 */
+  .sb-action-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .sb-action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 4px;
+    border: 0.5px solid var(--border);
+    background: var(--cell-bg);
+    border-radius: 7px;
+    font-size: 0.72em;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .sb-action-btn:hover {
+    background: var(--cell-hover);
+    border-color: #b8b8c0;
+    color: var(--text);
+  }
+  /* 섹션 헤더 */
+  .sb-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 3px;
+    padding: 0 2px;
+  }
+  /* 테마 필터 항목 */
   .sidebar-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 0;
-    font-size: 0.85em;
+    gap: 8px;
+    padding: 7px 2px;
+    font-size: 0.82em;
     cursor: pointer;
     user-select: none;
   }
   .sidebar-item input[type="checkbox"] {
     accent-color: var(--today-accent);
     cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
   }
   .sidebar-dot {
-    width: 10px; height: 10px;
+    width: 9px; height: 9px;
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .sidebar-label { color: var(--text); }
+  .sidebar-dot.none-dot {
+    background: transparent !important;
+    border: 1.5px solid #b8b8c4;
+  }
+  .sidebar-label {
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .sidebar-label .dim {
+    font-size: 0.82em;
+    color: #aaa;
+    margin-left: 1px;
+  }
+  /* 구분선 */
+  .sb-divider {
+    height: 0.5px;
+    background: var(--border);
+    margin: 10px 0 8px;
+  }
+  /* 보기 옵션 토글 행 */
+  .sb-option-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 2px;
+    gap: 6px;
+  }
+  .sb-opt-lhs {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82em;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+  }
+  .sb-opt-lhs svg { flex-shrink: 0; color: var(--text-light); }
+  /* 토글 스위치 */
+  .sb-toggle-wrap { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; }
+  .sb-toggle-cb   { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+  .sb-toggle-track {
+    display: block;
+    width: 34px; height: 20px;
+    border-radius: 10px;
+    background: #c8c8d2;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .sb-toggle-cb:checked + .sb-toggle-track { background: var(--today-accent); }
+  .sb-toggle-thumb {
+    position: absolute;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    top: 2px; left: 2px;
+    transition: left 0.18s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  }
+  .sb-toggle-cb:checked + .sb-toggle-track .sb-toggle-thumb { left: 16px; }
+  .sb-toggle-wrap:focus-within .sb-toggle-track {
+    outline: 2px solid var(--today-accent);
+    outline-offset: 1px;
+  }
   .main-col { flex: 1; min-width: 0; }
 
   header {
@@ -1208,29 +1345,6 @@
   }
   .context-menu-item:hover { background: #f0f0f3; }
 
-  .view-seg {
-    display: flex;
-    background: var(--border);
-    border-radius: 8px;
-    padding: 2px;
-  }
-  .seg-btn {
-    padding: 5px 14px !important;
-    border: none !important;
-    background: transparent !important;
-    border-radius: 6px !important;
-    font-size: 0.85em !important;
-    font-weight: 500 !important;
-    color: var(--text-light) !important;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .seg-btn.active {
-    background: var(--cell-bg) !important;
-    color: var(--text) !important;
-    font-weight: 700 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
 
   .day-cell.past {
     opacity: 0.5;
@@ -1804,10 +1918,6 @@
 <div class="container">
   <header>
     <div class="controls">
-      <div class="view-seg" id="view-seg">
-        <button class="seg-btn active" id="seg-events">일정</button>
-        <button class="seg-btn" id="seg-timetable">시간표</button>
-      </div>
       <div class="palette-bar" id="palette-bar"></div>
       <button id="theme-mgr-btn">테마 관리</button>
       <button id="day-tpl-mgr-btn">위젯 설정</button>
@@ -1817,25 +1927,86 @@
 
   <div class="page-layout">
     <div class="sidebar" id="theme-sidebar">
-      <div style="display:flex;gap:6px;margin-bottom:10px;">
-        <button id="export-btn" title="저장" style="flex:1;font-size:1.1em;padding:5px;">💾</button>
-        <button id="import-btn" title="불러오기" style="flex:1;font-size:1.1em;padding:5px;">📂</button>
+      <!-- 탭 — 항상 표시 -->
+      <div class="sb-seg" role="tablist">
+        <button class="sb-seg-btn active" id="seg-events">일정</button>
+        <button class="sb-seg-btn" id="seg-timetable">시간표</button>
       </div>
-      <div class="sidebar-title">테마 필터</div>
-      <div id="sidebar-items"></div>
-      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px;">
-        <label class="sidebar-item">
-          <input type="checkbox" id="toggle-past" checked>
-          <span class="sidebar-label">지난 날 표시</span>
-        </label>
-        <label class="sidebar-item">
-          <input type="checkbox" id="toggle-notify" checked>
-          <span class="sidebar-label">알림</span>
-        </label>
-        <label class="sidebar-item">
-          <input type="checkbox" id="toggle-continuous">
-          <span class="sidebar-label">연속 보기</span>
-        </label>
+
+      <!-- 일정 모드 전용 영역 -->
+      <div id="sb-main">
+        <!-- 저장 / 불러오기 -->
+        <div class="sb-action-row">
+          <button id="export-btn" class="sb-action-btn" title="현재 일정을 JSON으로 저장">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+              <path d="M14 4v4H8V4"/>
+              <circle cx="12" cy="15" r="2"/>
+            </svg>
+            저장
+          </button>
+          <button id="import-btn" class="sb-action-btn" title="JSON 파일에서 일정 불러오기">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+            </svg>
+            불러오기
+          </button>
+        </div>
+
+        <!-- 테마 필터 -->
+        <div class="sb-section-label">테마 필터</div>
+        <div id="sidebar-items"></div>
+
+        <!-- 구분선 -->
+        <div class="sb-divider"></div>
+
+        <!-- 보기 옵션 -->
+        <div class="sb-section-label">보기 옵션</div>
+
+        <div class="sb-option-row">
+          <span class="sb-opt-lhs">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 3"/>
+              <path d="M3.6 15.9A9 9 0 0 1 3.05 11"/>
+              <path d="M3.1 9.1A9 9 0 0 1 21 12"/>
+            </svg>
+            지난 날 표시
+          </span>
+          <label class="sb-toggle-wrap">
+            <input type="checkbox" id="toggle-past" class="sb-toggle-cb" checked>
+            <span class="sb-toggle-track"><span class="sb-toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="sb-option-row">
+          <span class="sb-opt-lhs">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 5a2 2 0 1 1 4 0 7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6"/>
+              <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+            </svg>
+            알림
+          </span>
+          <label class="sb-toggle-wrap">
+            <input type="checkbox" id="toggle-notify" class="sb-toggle-cb" checked>
+            <span class="sb-toggle-track"><span class="sb-toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="sb-option-row">
+          <span class="sb-opt-lhs">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="3" y1="9"  x2="21" y2="9"/>
+              <line x1="3" y1="15" x2="21" y2="15"/>
+            </svg>
+            연속 보기
+          </span>
+          <label class="sb-toggle-wrap">
+            <input type="checkbox" id="toggle-continuous" class="sb-toggle-cb">
+            <span class="sb-toggle-track"><span class="sb-toggle-thumb"></span></span>
+          </label>
+        </div>
       </div>
     </div>
     <div class="main-col">
@@ -2424,7 +2595,8 @@
     segEvents.classList.toggle('active', mode === 'events');
     segTimetable.classList.toggle('active', mode === 'timetable');
     // 테마 시스템(필터/팔레트/테마 관리/일별 위젯)은 일정 모드 전용
-    document.getElementById('theme-sidebar').style.display = mode === 'events' ? '' : 'none';
+    const sbMain = document.getElementById('sb-main');
+    if (sbMain) sbMain.style.display = mode === 'events' ? '' : 'none';
     const themeMgr = document.getElementById('theme-mgr-btn');
     if (themeMgr) themeMgr.style.display = mode === 'events' ? '' : 'none';
     const dayTplMgr = document.getElementById('day-tpl-mgr-btn');
@@ -2483,8 +2655,8 @@
   (function normalizeInitialViewMode() {
     segEvents.classList.add('active');
     segTimetable.classList.remove('active');
-    const sidebar = document.getElementById('theme-sidebar');
-    if (sidebar) sidebar.style.display = '';
+    const sbMain = document.getElementById('sb-main');
+    if (sbMain) sbMain.style.display = '';
     const themeMgr = document.getElementById('theme-mgr-btn');
     if (themeMgr) themeMgr.style.display = '';
     const dayTplMgr = document.getElementById('day-tpl-mgr-btn');
@@ -5844,9 +6016,19 @@ create policy "sub_delete" on public.theme_subscribers
       dot.className = 'sidebar-dot';
       dot.style.background = th.color;
       item.appendChild(dot);
+      // "(공유)" 같은 접미사는 dim 처리
       const label = document.createElement('span');
       label.className = 'sidebar-label';
-      label.textContent = th.name;
+      const suffixMatch = th.name.match(/^(.*?)(\s*\([^)]+\))$/);
+      if (suffixMatch) {
+        label.appendChild(document.createTextNode(suffixMatch[1]));
+        const dim = document.createElement('span');
+        dim.className = 'dim';
+        dim.textContent = suffixMatch[2];
+        label.appendChild(dim);
+      } else {
+        label.textContent = th.name;
+      }
       item.appendChild(label);
       sidebarItems.appendChild(item);
     });
@@ -5866,8 +6048,7 @@ create policy "sub_delete" on public.theme_subscribers
     };
     noneItem.appendChild(noneCb);
     const noneDot = document.createElement('span');
-    noneDot.className = 'sidebar-dot';
-    noneDot.style.background = '#ccc';
+    noneDot.className = 'sidebar-dot none-dot';
     noneItem.appendChild(noneDot);
     const noneLabel = document.createElement('span');
     noneLabel.className = 'sidebar-label';
