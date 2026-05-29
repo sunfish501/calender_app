@@ -406,6 +406,21 @@
     font-size: 0.85em;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
   }
+  .random-motto-btn {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.78em;
+    font-family: inherit;
+    color: var(--text-light);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.12s;
+    line-height: 1.4;
+  }
+  .random-motto-btn:hover { background: var(--cell-hover); color: var(--today-accent); border-color: var(--today-accent); }
   @media (max-width: 700px) {
     .motto-area { padding: 10px 14px 10px 42px; }
     .motto-quote-icon { left: 12px; font-size: 2em; }
@@ -2156,6 +2171,7 @@
         <input id="motto-input" type="text" class="motto-input"
                placeholder="이달의 교훈 / 나의 모토 — 클릭해서 적어보세요"
                maxlength="120">
+        <button id="random-motto-btn" class="random-motto-btn" title="랜덤 교훈 추천받기">🎲 추천</button>
       </div>
       <div class="school-quote-bar" id="school-quote-bar"></div>
       <div class="nav-controls">
@@ -2819,18 +2835,78 @@
     render();
   }
 
-  // ─── 모토/명언 ────────────────────────────────────────
+  // ─── 모토/명언 + 랜덤 교훈 추천 ─────────────────────────
   const MOTTO_KEY = 'calendar-motto-v1';
+  const RANDOM_MOTTOS = [
+    "시작이 반이다",
+    "천리길도 한걸음부터",
+    "실패는 성공의 어머니",
+    "아는 것이 힘이다",
+    "오늘 할 수 있는 일을 내일로 미루지 말라",
+    "자기 자신을 이기는 것이 최고의 승리다",
+    "작은 일에도 최선을 다하라",
+    "배우고 때때로 익히면 또한 기쁘지 아니한가",
+    "인내는 쓰고 그 열매는 달다",
+    "꿈꿀 수 있다면 이룰 수 있다",
+    "재능이 노력을 이기는 날은 없다",
+    "어제보다 나은 오늘이 되자",
+    "성공은 준비와 기회가 만나는 곳에 있다",
+    "넘어져도 다시 일어서는 것이 중요하다",
+    "책 읽는 사람이 세상을 바꾼다",
+    "가장 어두운 것은 촛불 바로 아래다",
+    "세 사람이 걸으면 반드시 내 스승이 있다",
+    "끝날 때까지 끝난 게 아니다",
+    "모든 위대한 것은 단순하다",
+    "지금 이 순간이 내 인생 최고의 순간이다",
+    "오늘 흘린 땀이 내일의 나를 만든다",
+    "하루하루를 최선을 다해 살아라",
+    "좋아하는 것을 하라, 그러면 일이 아니게 된다",
+    "한 번의 실패가 평생의 교훈이 된다",
+    "목표가 없는 노력은 방향 없는 항해다",
+    "나는 내가 할 수 있다고 생각하는 한 할 수 있다",
+    "작은 진보가 모여 큰 변화를 만든다",
+    "성실함은 천재를 이긴다",
+    "지금 당장 시작하라",
+    "포기하는 자에게 성공은 없다",
+    "어려울수록 기본으로 돌아가라",
+    "생각하는 대로 살지 않으면 사는 대로 생각한다",
+    "배는 항구에 있을 때 안전하지만, 그것이 배의 존재 이유는 아니다",
+    "돌다리도 두드려 보고 건너라",
+    "남이 할 수 있는 일은 나도 할 수 있고 남이 못하는 일도 나는 할 수 있다",
+    "고통 없이는 얻는 것도 없다 (No pain, no gain)",
+    "오늘의 나는 어제의 내가 만들었고 내일의 나는 오늘의 내가 만든다",
+    "지식은 힘이고 독서는 그 힘을 키우는 운동이다",
+    "꿈을 향해 나아가는 용기가 있는 자만이 꿈을 이룰 수 있다",
+    "최선을 다하고 나머지는 하늘에 맡겨라",
+    "자신을 믿는 자만이 다른 사람을 움직일 수 있다",
+    "빛나는 별도 어두운 밤을 견뎌야 한다",
+    "작게 생각하는 사람은 작은 것을 이루고 크게 생각하는 사람은 큰 것을 이룬다",
+    "오늘의 내 모습은 과거 내 선택의 결과다",
+    "실력은 배신하지 않는다",
+    "하루 한 걸음, 어제보다 1% 성장",
+    "나의 한계는 내가 정한다",
+    "좋은 습관은 좋은 미래를 만든다",
+    "어떤 상황에서도 배울 것이 있다",
+    "준비된 자에게 기회는 반드시 온다",
+  ];
+  let _lastMottoIdx = -1;
+  function getRandomMotto() {
+    let idx;
+    do { idx = Math.floor(Math.random() * RANDOM_MOTTOS.length); }
+    while (idx === _lastMottoIdx && RANDOM_MOTTOS.length > 1);
+    _lastMottoIdx = idx;
+    return RANDOM_MOTTOS[idx];
+  }
+
   (function initMotto() {
     const input = document.getElementById('motto-input');
     if (!input) return;
-    // 빌드 식별: 사용자가 옛 캐시를 보는지 한눈에 판별. 시간이 보이면 새 빌드.
+    // 빌드 식별
     const area = document.getElementById('motto-area');
     if (area) {
       const now = new Date();
       area.dataset.build = now.getHours().toString().padStart(2,'0') + ':' +
                             now.getMinutes().toString().padStart(2,'0');
-      // 보호: 다른 코드가 inline display:none 을 박더라도 강제로 풀어줌.
       area.style.removeProperty('display');
       area.style.removeProperty('visibility');
     }
@@ -2843,13 +2919,23 @@
       }, 250);
     });
     input.addEventListener('keydown', (e) => {
-      // Enter / Esc 로 포커스 해제 (저장)
       if (e.key === 'Enter' || e.key === 'Escape') {
         e.preventDefault();
         input.blur();
       }
       e.stopPropagation();
     });
+    // 랜덤 교훈 추천 버튼
+    const btn = document.getElementById('random-motto-btn');
+    if (btn) {
+      btn.onclick = () => {
+        const m = getRandomMotto();
+        input.value = m;
+        try { localStorage.setItem(MOTTO_KEY, m); } catch {}
+        input.focus();
+        input.select();
+      };
+    }
   })();
   segEvents.onclick = () => setViewMode('events');
   segTimetable.onclick = () => setViewMode('timetable');
@@ -6606,6 +6692,29 @@ create policy "sub_delete" on public.theme_subscribers
     });
   })();
 
+  // 다른 계정 로그인 감지 → 로컬 events 초기화 후 Supabase pull 재실행
+  (function watchAccountSwitch() {
+    const LAST_UID_KEY = 'calendar-last-uid-v1';
+    if (!window.SupabaseAuth?.onAuthChange) return;
+    window.SupabaseAuth.onAuthChange((user) => {
+      if (!user) return;
+      let prevId = null;
+      try { prevId = localStorage.getItem(LAST_UID_KEY); } catch {}
+      if (prevId && prevId !== user.id) {
+        // 이전과 다른 계정 → 로컬 캐시 전부 초기화
+        events = {};
+        saveEvents();
+        try { localStorage.removeItem('calendar_supabase_hashes_v1'); } catch {}
+        render();
+        // Supabase에서 이 계정의 데이터 다시 pull
+        setTimeout(() => {
+          window.SupabaseSync?.pull(events, () => { saveEvents(); render(); });
+        }, 300);
+      }
+      try { localStorage.setItem(LAST_UID_KEY, user.id); } catch {}
+    });
+  })();
+
   // Initial render + checks
   render();
   checkUpcomingEvents();
@@ -6995,15 +7104,20 @@ create policy "sub_delete" on public.theme_subscribers
         const type = btn.dataset.type;
         _pendingProfile.userType = type;
         if (type === 'none') {
+          _pendingProfile.school = null;  // 학교 정보 명시적으로 초기화
           finishProfile();
         } else {
+          _pendingProfile.school = null;  // 학교 타입 바뀌면 이전 학교 초기화
           goStep(2);
         }
       };
     });
     // 뒤로가기
     const back2 = document.getElementById('ps-back2');
-    if (back2) back2.onclick = () => goStep(1);
+    if (back2) back2.onclick = () => {
+      _pendingProfile.school = null;  // 학교 선택 취소 시 초기화
+      goStep(1);
+    };
     // 학교 건너뛰기
     const skip = document.getElementById('ps-skip-school');
     if (skip) skip.onclick = () => {
@@ -7020,12 +7134,6 @@ create policy "sub_delete" on public.theme_subscribers
     saveProfile(_pendingProfile);
     hideProfileSetup();
     applyProfile(_pendingProfile);
-    // 모토 입력란이 비어 있으면 학교 교훈으로 채우기
-    const mottoIn = document.getElementById('motto-input');
-    if (mottoIn && !mottoIn.value && _pendingProfile.school?.motto) {
-      mottoIn.value = _pendingProfile.school.motto;
-      try { localStorage.setItem('calendar-motto-v1', _pendingProfile.school.motto); } catch {}
-    }
   }
 
   // ── 초기화 ─────────────────────────────────────────────────────────────────
