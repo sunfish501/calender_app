@@ -10,6 +10,8 @@
       async signIn() { throw new Error('Supabase 클라이언트 없음'); },
       async signUp() { throw new Error('Supabase 클라이언트 없음'); },
       async signInGoogle() { throw new Error('Supabase 클라이언트 없음'); },
+      async sendPhoneOtp() { throw new Error('Supabase 클라이언트 없음'); },
+      async verifyPhoneOtp() { throw new Error('Supabase 클라이언트 없음'); },
       async signOut() { /* no-op */ },
       onAuthChange() { return () => {}; }
     };
@@ -62,6 +64,19 @@
         provider: 'google',
         options: { redirectTo: window.location.origin + window.location.pathname }
       });
+      if (error) throw error;
+      return data;
+    },
+    // SMS OTP step 1: ask Supabase to send the code. Phone must be E.164
+    // (e.g. "+821012345678"). Caller is responsible for normalising input.
+    async sendPhoneOtp(phone) {
+      const { data, error } = await window.sb.auth.signInWithOtp({ phone });
+      if (error) throw error;
+      return data;
+    },
+    // SMS OTP step 2: exchange the 6-digit code for a session.
+    async verifyPhoneOtp(phone, token) {
+      const { data, error } = await window.sb.auth.verifyOtp({ phone, token, type: 'sms' });
       if (error) throw error;
       return data;
     },
