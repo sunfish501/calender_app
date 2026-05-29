@@ -7138,6 +7138,8 @@ create policy "sub_delete" on public.theme_subscribers
 
   // ── 초기화 ─────────────────────────────────────────────────────────────────
   bindProfileEvents();
+  // auth-ui.js 프로필 메뉴에서 접근할 수 있도록 전역 노출
+  window.__showProfileSetup = showProfileSetup;
 
   // loginGate의 hideOverlay 이후 트리거 (MutationObserver로 overlay 제거 감지)
   const loginOverlay = document.getElementById('login-overlay');

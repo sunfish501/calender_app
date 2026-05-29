@@ -497,6 +497,16 @@
         <div style="font-weight:600;color:#222;font-size:14px;word-break:break-all;">${escapeHtml(name)}</div>
         ${subtitle ? `<div style="color:#888;font-size:12px;margin-top:3px;word-break:break-all;">${escapeHtml(subtitle)}</div>` : ''}
       </div>
+      <button id="sb-menu-profile" style="width:100%;padding:11px 16px;background:#fff;border:none;text-align:left;cursor:pointer;font:13px system-ui,-apple-system,sans-serif;color:#222;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        프로필 설정
+      </button>
+      <div style="height:0.5px;background:#f0f0f3;margin:2px 0;"></div>
       <button id="sb-menu-logout" style="width:100%;padding:11px 16px;background:#fff;border:none;text-align:left;cursor:pointer;font:13px system-ui,-apple-system,sans-serif;color:#c33;display:flex;align-items:center;gap:8px;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -506,6 +516,13 @@
         로그아웃
       </button>
     `;
+    const profileItem = profileMenu.querySelector('#sb-menu-profile');
+    profileItem.onmouseenter = () => { profileItem.style.background = '#f3f6fc'; };
+    profileItem.onmouseleave = () => { profileItem.style.background = '#fff'; };
+    profileItem.onclick = () => {
+      closeProfileMenu();
+      window.__showProfileSetup?.(true);
+    };
     const logoutItem = profileMenu.querySelector('#sb-menu-logout');
     logoutItem.onmouseenter = () => { logoutItem.style.background = '#fdf2f2'; };
     logoutItem.onmouseleave = () => { logoutItem.style.background = '#fff'; };
