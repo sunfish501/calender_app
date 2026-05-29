@@ -89,5 +89,66 @@
     return { code, ...data };
   }
 
-  window.ThemeShare = { generateCode, normaliseCode, publishShare, fetchShare, CODE_LEN };
+  // Owner-side: overwrite an existing share with a new payload. RLS only
+  // lets the original creator update; others will get an empty result.
+  async function updateShare(rawCode, payload) {
+    if (!window.sb) throw new Error('Supabase 클라이언트가 없습니다');
+    const user = window.SupabaseAuth?.getUser();
+    if (!user) throw new Error('업데이트하려면 먼저 로그인하세요');
+    const bytes = new Blob([JSON.stringify(payload)]).size;
+    if (bytes > MAX_PAYLOAD_BYTES) {
+      throw new Error(`공유 데이터가 너무 큽니다 (${Math.round(bytes/1024)}KB)`);
+    }
+    const code = normaliseCode(rawCode);
+    const { data, error } = await window.sb
+      .from('theme_shares')
+      .update({ payload })
+      .eq('code', code)
+      .select('code, updated_at')
+      .maybeSingle();
+    if (error) {
+      if (isMissingTableError(error)) {
+        throw new Error('theme_shares 테이블이 없습니다. SQL 설정을 적용하세요.');
+      }
+      throw error;
+    }
+    if (!data) throw new Error('공유를 찾을 수 없거나 수정 권한이 없습니다');
+    return data;
+  }
+
+  // Owner-side: remove a share row entirely.
+  async function deleteShare(rawCode) {
+    if (!window.sb) return;
+    const code = normaliseCode(rawCode);
+    const { error } = await window.sb.from('theme_shares').delete().eq('code', code);
+    if (error && !isMissingTableError(error)) throw error;
+  }
+
+  // Subscriber-side: listen for UPDATE events on theme_shares and invoke
+  // onChange(row) when one of `codes` is touched. Returns an unsubscribe
+  // function. Safe to call with an empty set (no-op).
+  function subscribeToShareUpdates(codes, onChange) {
+    if (!window.sb) return () => {};
+    const set = (codes instanceof Set) ? codes : new Set(codes || []);
+    if (set.size === 0) return () => {};
+    const ch = window.sb
+      .channel('theme_shares_updates_' + Date.now() + '_' + Math.random().toString(36).slice(2,6))
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'theme_shares' },
+        (msg) => { const row = msg.new; if (row && set.has(row.code)) onChange(row); }
+      )
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'theme_shares' },
+        (msg) => { const row = msg.old; if (row && set.has(row.code)) onChange({ code: row.code, _deleted: true }); }
+      )
+      .subscribe();
+    return () => { try { window.sb.removeChannel(ch); } catch (_) {} };
+  }
+
+  window.ThemeShare = {
+    CODE_LEN,
+    generateCode, normaliseCode,
+    publishShare, fetchShare, updateShare, deleteShare,
+    subscribeToShareUpdates
+  };
 })();

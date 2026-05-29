@@ -1662,6 +1662,7 @@
       }).catch(() => {});
     }
     window.SupabaseSync?.pushAll(events);
+    if (typeof scheduleOwnedSharesRepublish === 'function') scheduleOwnedSharesRepublish();
   }
 
   function getNotified() {
@@ -2718,7 +2719,10 @@
     localStorage.setItem(THEME_KEY, JSON.stringify(themes));
   }
   let activeFilter = null;
-  function saveThemes() { localStorage.setItem(THEME_KEY, JSON.stringify(themes)); }
+  function saveThemes() {
+    localStorage.setItem(THEME_KEY, JSON.stringify(themes));
+    if (typeof scheduleOwnedSharesRepublish === 'function') scheduleOwnedSharesRepublish();
+  }
 
   function openModal(dateStr) {
     eventDateInput.value = dateStr || todayKey();
@@ -2819,6 +2823,9 @@
   function renderThemeModal() {
     themeBody.innerHTML = '';
     themes.forEach((th, i) => {
+      const isOwner = th.share_role === 'owner' && !!th.share_code;
+      const isSub   = th.share_role === 'subscriber' && !!th.share_code;
+
       const row = document.createElement('div');
       row.className = 'theme-row';
       const key = document.createElement('div');
@@ -2834,18 +2841,31 @@
       const nameIn = document.createElement('input');
       nameIn.className = 'theme-name-input';
       nameIn.value = th.name;
-      nameIn.onchange = () => { th.name = nameIn.value; saveThemes(); updateShortcutHelp(); };
+      if (isSub) {
+        nameIn.readOnly = true;
+        nameIn.style.background = '#f5f5f7';
+        nameIn.style.color = '#888';
+        nameIn.title = '구독 테마는 원본 사용자가 수정해야 합니다';
+      } else {
+        nameIn.onchange = () => { th.name = nameIn.value; saveThemes(); updateShortcutHelp(); };
+      }
       row.appendChild(nameIn);
       const colorIn = document.createElement('input');
       colorIn.type = 'color';
       colorIn.className = 'theme-color-input';
       colorIn.value = th.color;
-      colorIn.oninput = () => { th.color = colorIn.value; saveThemes(); };
+      if (isSub) {
+        colorIn.disabled = true;
+        colorIn.title = '구독 테마는 원본 사용자가 수정해야 합니다';
+      } else {
+        colorIn.oninput = () => { th.color = colorIn.value; saveThemes(); };
+      }
       row.appendChild(colorIn);
       const imgBtn = document.createElement('button');
       imgBtn.textContent = '🖼';
-      imgBtn.title = '이미지 설정';
-      imgBtn.onclick = () => {
+      imgBtn.title = isSub ? '구독 테마는 원본 사용자가 수정해야 합니다' : '이미지 설정';
+      if (isSub) imgBtn.disabled = true;
+      else imgBtn.onclick = () => {
         const fi = document.createElement('input');
         fi.type = 'file';
         fi.accept = 'image/*';
@@ -2863,7 +2883,7 @@
         fi.click();
       };
       row.appendChild(imgBtn);
-      if (th.image) {
+      if (th.image && !isSub) {
         const rmImg = document.createElement('button');
         rmImg.className = 'theme-del-btn';
         rmImg.textContent = '🖼✕';
@@ -2871,17 +2891,72 @@
         rmImg.onclick = () => { th.image = null; saveThemes(); renderThemeModal(); };
         row.appendChild(rmImg);
       }
-      const share = document.createElement('button');
-      share.className = 'theme-del-btn';
-      share.textContent = '📤';
-      share.title = '테마 공유 코드 만들기';
-      share.onclick = () => shareThemeFlow(th);
-      row.appendChild(share);
+
+      // Share badge (visible on both owner and subscriber rows)
+      if (th.share_code) {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'font-size:11px;padding:3px 8px;border-radius:10px;margin-left:4px;white-space:nowrap;font-weight:500;';
+        if (isOwner) {
+          badge.style.background = '#eef5ff'; badge.style.color = '#2874e0';
+          badge.textContent = `🔗 ${th.share_code}`;
+          badge.title = `이 테마는 공유 중입니다.\n수정하면 구독자에게 자동 반영됩니다.`;
+        } else {
+          badge.style.background = '#f0f5ee'; badge.style.color = '#557a3a';
+          badge.textContent = `🔗 구독`;
+          badge.title = `원본 코드: ${th.share_code}\n원본 사용자의 수정이 자동 반영됩니다.`;
+        }
+        row.appendChild(badge);
+      }
+
+      // Share button: owner → show existing code, subscriber → hide, none → create
+      if (!isSub) {
+        const share = document.createElement('button');
+        share.className = 'theme-del-btn';
+        share.textContent = '📤';
+        share.title = isOwner ? '공유 코드 다시 보기' : '테마 공유 코드 만들기';
+        share.onclick = () => {
+          if (isOwner) {
+            const count = collectEventsForTheme(th.id).length;
+            showCodeDialog(th.name, th.share_code, count);
+          } else {
+            shareThemeFlow(th);
+          }
+        };
+        row.appendChild(share);
+      }
+
       const del = document.createElement('button');
       del.className = 'theme-del-btn';
       del.textContent = '✕';
-      del.title = '테마 삭제';
-      del.onclick = () => { themes.splice(i, 1); saveThemes(); renderThemeModal(); updateShortcutHelp(); };
+      del.title = isSub ? '구독 해지 (관련 일정도 삭제됨)'
+                : isOwner ? '테마 삭제 (공유도 함께 삭제됨)'
+                : '테마 삭제';
+      del.onclick = async () => {
+        if (isSub) {
+          if (!confirm(`"${th.name}" 구독을 해지하면 원본 사용자가 보낸 일정도 함께 삭제됩니다.\n계속할까요?`)) return;
+          // Drop events tied to this theme_id (they came from the owner)
+          Object.keys(events).forEach(dk => {
+            if (dk.startsWith('__')) return;
+            events[dk] = events[dk].filter(it => !(typeof it === 'object' && it && it.th === th.id));
+            if (events[dk].length === 0) delete events[dk];
+          });
+          themes.splice(i, 1);
+          saveThemes(); saveEvents();
+          setupShareRealtime();
+        } else if (isOwner) {
+          if (!confirm(`"${th.name}" 을 삭제하면 공유도 함께 삭제됩니다.\n구독자들은 다음 동기화 때 "원본 삭제됨" 표시를 보게 됩니다.\n계속할까요?`)) return;
+          try { await window.ThemeShare.deleteShare(th.share_code); }
+          catch (e) { console.warn('share delete failed:', e); }
+          themes.splice(i, 1);
+          saveThemes();
+        } else {
+          themes.splice(i, 1);
+          saveThemes();
+        }
+        renderThemeModal();
+        updateShortcutHelp();
+        render();
+      };
       row.appendChild(del);
       themeBody.appendChild(row);
     });
@@ -2936,6 +3011,11 @@
 
     try {
       const code = await window.ThemeShare.publishShare(payload);
+      // Tag local theme so we can auto-republish on future edits.
+      theme.share_code = code;
+      theme.share_role = 'owner';
+      saveThemes();
+      renderThemeModal();
       showCodeDialog(theme.name, code, evs.length);
     } catch (e) {
       alert('공유 실패: ' + (e.message || e));
@@ -3018,7 +3098,7 @@
       goBtn.textContent = '가져오는 중…';
       try {
         const share = await window.ThemeShare.fetchShare(input.value);
-        const result = applyImportedShare(share.payload);
+        const result = applyImportedShare(share.payload, share.code);
         close();
         alert(`✓ "${result.themeName}" 테마와 일정 ${result.eventsAdded}개를 가져왔습니다.` +
               (result.eventsSkipped ? `\n(중복 ${result.eventsSkipped}개는 건너뜀)` : ''));
@@ -3028,6 +3108,7 @@
         updateShortcutHelp();
         renderSidebar();
         render();
+        setupShareRealtime();  // re-subscribe with the newly added code
       } catch (e) {
         msg.textContent = e.message || '가져오기 실패';
         goBtn.disabled = false;
@@ -3038,17 +3119,22 @@
     input.onkeydown = (e) => { if (e.key === 'Enter') doImport(); };
   }
 
-  function applyImportedShare(payload) {
+  function applyImportedShare(payload, shareCode) {
     if (!payload || !payload.theme) throw new Error('공유 데이터 형식이 올바르지 않습니다');
     if (themes.length >= 4) throw new Error('테마 4개 한도 초과');
+    if (themes.some(t => t.share_code === shareCode)) {
+      throw new Error('이미 같은 코드로 가져온 테마가 있습니다');
+    }
 
     const t = payload.theme;
     const newId = 'th_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const newTheme = {
       id: newId,
-      name: (t.name || '가져온 테마') + ' (가져옴)',
+      name: (t.name || '가져온 테마') + ' (공유)',
       color: t.color || '#5b9bd5',
-      image: t.image || null
+      image: t.image || null,
+      share_code: shareCode,
+      share_role: 'subscriber'
     };
     themes.push(newTheme);
 
@@ -3069,11 +3155,141 @@
     return { themeName: newTheme.name, eventsAdded: added, eventsSkipped: skipped };
   }
 
+  // ─── 공유 테마 라이브 동기화 ──────────────────────────────────
+  // owner: themeManager/event 변경 → 1.2s 디바운스 → theme_shares UPDATE
+  // subscriber: 페이지 로드 시 fetch + Realtime UPDATE 구독 → 즉시 반영
+  let _republishTimer = null;
+  function scheduleOwnedSharesRepublish() {
+    if (!window.SupabaseAuth?.getUser()) return;
+    clearTimeout(_republishTimer);
+    _republishTimer = setTimeout(republishOwnedShares, 1200);
+  }
+  async function republishOwnedShares() {
+    const owned = themes.filter(t => t.share_code && t.share_role === 'owner');
+    for (const theme of owned) {
+      try {
+        const payload = {
+          v: 1,
+          theme: { name: theme.name, color: theme.color, image: theme.image || null },
+          events: collectEventsForTheme(theme.id)
+        };
+        await window.ThemeShare.updateShare(theme.share_code, payload);
+      } catch (e) {
+        console.warn('[share] republish failed for', theme.share_code, e);
+      }
+    }
+  }
+
+  // Replace a subscriber theme's metadata + events with the latest payload.
+  // Keeps the local theme.id stable so existing UI references don't break.
+  function applyShareUpdate(localTheme, payload) {
+    if (!payload || !payload.theme) return;
+    const t = payload.theme;
+    localTheme.name  = (t.name || '가져온 테마') + ' (공유)';
+    localTheme.color = t.color || localTheme.color;
+    localTheme.image = t.image || null;
+    // Drop existing events for this theme, then add the new ones (re-keyed).
+    Object.keys(events).forEach(dk => {
+      if (dk.startsWith('__')) return;
+      const before = events[dk].length;
+      events[dk] = events[dk].filter(it => !(typeof it === 'object' && it && it.th === localTheme.id));
+      if (events[dk].length === 0) delete events[dk];
+    });
+    (payload.events || []).forEach(({date, item}) => {
+      if (!date || typeof item !== 'object' || !item) return;
+      if (!events[date]) events[date] = [];
+      events[date].push({ ...item, th: localTheme.id });
+    });
+  }
+
+  async function pullSubscribedShares() {
+    const subs = themes.filter(t => t.share_code && t.share_role === 'subscriber');
+    if (subs.length === 0) return false;
+    let changed = false;
+    for (const theme of subs) {
+      try {
+        const share = await window.ThemeShare.fetchShare(theme.share_code);
+        applyShareUpdate(theme, share.payload);
+        changed = true;
+      } catch (e) {
+        console.warn('[share] pull failed for', theme.share_code, e?.message || e);
+      }
+    }
+    return changed;
+  }
+
+  let _shareRealtimeUnsub = null;
+  let _shareRealtimeCodes = '';   // serialised set for change detection
+  function setupShareRealtime() {
+    if (!window.sb || !window.SupabaseAuth?.getUser()) return;
+    const codes = themes
+      .filter(t => t.share_code && t.share_role === 'subscriber')
+      .map(t => t.share_code).sort();
+    const key = codes.join(',');
+    if (key === _shareRealtimeCodes && _shareRealtimeUnsub) return;
+    if (_shareRealtimeUnsub) { _shareRealtimeUnsub(); _shareRealtimeUnsub = null; }
+    _shareRealtimeCodes = key;
+    if (codes.length === 0) return;
+    _shareRealtimeUnsub = window.ThemeShare.subscribeToShareUpdates(new Set(codes), (row) => {
+      const subTheme = themes.find(t => t.share_code === row.code && t.share_role === 'subscriber');
+      if (!subTheme) return;
+      if (row._deleted) {
+        // Owner deleted the share. Convert to a local-only theme so the user
+        // doesn't lose visible data, but drop the subscriber tagging.
+        delete subTheme.share_code;
+        delete subTheme.share_role;
+        subTheme.name = subTheme.name.replace(/ \(공유\)$/, '') + ' (원본 삭제됨)';
+      } else {
+        applyShareUpdate(subTheme, row.payload);
+      }
+      saveThemes();
+      saveEvents();
+      renderSidebar();
+      if (themeModal.classList.contains('active')) renderThemeModal();
+      render();
+    });
+  }
+
+  // Kick off subscriber sync once we have an auth session.
+  let _sharesSyncedOnce = false;
+  async function maybeSyncShares() {
+    if (_sharesSyncedOnce) return;
+    if (!window.SupabaseAuth?.getUser()) return;
+    _sharesSyncedOnce = true;
+    try {
+      const changed = await pullSubscribedShares();
+      if (changed) {
+        saveThemes();
+        saveEvents();
+        renderSidebar();
+        render();
+      }
+      setupShareRealtime();
+    } catch (e) {
+      console.warn('[share] initial sync failed:', e);
+      _sharesSyncedOnce = false;
+    }
+  }
+  window.SupabaseAuth?.onAuthChange((user) => {
+    if (user) {
+      maybeSyncShares();
+    } else {
+      _sharesSyncedOnce = false;
+      if (_shareRealtimeUnsub) { _shareRealtimeUnsub(); _shareRealtimeUnsub = null; }
+      _shareRealtimeCodes = '';
+    }
+  });
+  // Also try once after initial load (if already signed in).
+  setTimeout(maybeSyncShares, 1500);
+
   // ─── 테마 셀렉트 (일정 추가 모달) ─────────────────────────
   const themeSelect = document.getElementById('event-theme');
   function populateThemeSelect() {
     themeSelect.innerHTML = '<option value="">테마 없음</option>';
     themes.forEach(th => {
+      // Subscriber themes are managed by the original owner; don't let local
+      // users add events that would be wiped on the next sync.
+      if (th.share_role === 'subscriber') return;
       const opt = document.createElement('option');
       opt.value = th.id;
       opt.textContent = th.name;

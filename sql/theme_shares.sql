@@ -42,3 +42,43 @@ create policy "users can delete their own share"
 
 create index if not exists theme_shares_created_by_idx
   on public.theme_shares(created_by);
+
+-- ────────────────────────────────────────────────────────────────
+-- Live-sync additions (run this file again if you originally ran the
+-- earlier version — every block is idempotent).
+-- ────────────────────────────────────────────────────────────────
+
+-- 1) updated_at column + trigger so subscribers can detect changes
+alter table public.theme_shares
+  add column if not exists updated_at timestamptz default now();
+
+create or replace function public.theme_shares_touch_updated_at()
+returns trigger
+language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists theme_shares_touch_updated_at on public.theme_shares;
+create trigger theme_shares_touch_updated_at
+  before update on public.theme_shares
+  for each row execute function public.theme_shares_touch_updated_at();
+
+-- 2) owners can UPDATE their own shares
+drop policy if exists "owners can update their share" on public.theme_shares;
+create policy "owners can update their share"
+  on public.theme_shares for update
+  to authenticated
+  using (auth.uid() = created_by)
+  with check (auth.uid() = created_by);
+
+-- 3) Realtime: push UPDATEs to subscribers (silently ignored if already added)
+do $$
+begin
+  begin
+    alter publication supabase_realtime add table public.theme_shares;
+  exception when duplicate_object then null;
+  end;
+end $$;
