@@ -46,7 +46,23 @@ function Send-Http {
         405 { 'Method Not Allowed' }
         default { 'OK' }
     }
-    $hdr = "HTTP/1.1 $Code $reason`r`nContent-Type: $ContentType`r`nContent-Length: $($Body.Length)`r`nCache-Control: no-store`r`nConnection: close`r`n`r`n"
+    # 매번 다른 ETag → 어떤 브라우저 캐시도 match 못 함.
+    # no-store, no-cache, must-revalidate 동시 적용 + Pragma, Expires.
+    # Edge --app= 모드가 일부 헤더를 무시하더라도 ETag 변동만으로도 stale 매칭 차단.
+    $etag = '"' + ([Guid]::NewGuid().ToString('N')) + '"'
+    $expires = 'Thu, 01 Jan 1970 00:00:00 GMT'
+    $lastMod = (Get-Date).ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss") + ' GMT'
+    $hdr =
+        "HTTP/1.1 $Code $reason`r`n" +
+        "Content-Type: $ContentType`r`n" +
+        "Content-Length: $($Body.Length)`r`n" +
+        "Cache-Control: no-store, no-cache, must-revalidate, max-age=0, private`r`n" +
+        "Pragma: no-cache`r`n" +
+        "Expires: $expires`r`n" +
+        "Last-Modified: $lastMod`r`n" +
+        "ETag: $etag`r`n" +
+        "Vary: *`r`n" +
+        "Connection: close`r`n`r`n"
     $hb = [System.Text.Encoding]::ASCII.GetBytes($hdr)
     $Stream.Write($hb, 0, $hb.Length)
     if ($Body.Length -gt 0) {
@@ -115,6 +131,11 @@ while ($true) {
         }
         elseif ($method -eq 'GET') {
             if ([string]::IsNullOrEmpty($path)) { $path = 'calendar.html' }
+
+            # `calendar-{anything}.html` 처럼 매번 다른 path 로 요청해도 calendar.html
+            # 을 서빙. launch.ps1 이 cache-bust 를 위해 매번 다른 path 를 사용.
+            if ($path -match '^calendar-[^/\\]+\.html$') { $path = 'calendar.html' }
+
             $file = Join-Path $root $path
             $resolved = $null
             try { $resolved = [System.IO.Path]::GetFullPath($file) } catch {}

@@ -6,11 +6,16 @@
     'calendar-color-preset-v1',
     'calendar-neis-school-v1',
     'calendar-memos-v1',
-    'calendar-postits-v1',
+    'calendar-postits-v1',          // deprecated, kept for backward compat
     'calendar-starred-dates-v1',
     'calendar-circles-v1',
     'calendar-notify-enabled-v1',
-    'calendar-continuous-view-v1'
+    'calendar-continuous-view-v1',
+    'calendar-theme-filter-v1',     // 사이드바 필터 (멀티 테마, 공휴일 가시성)
+    'calendar-cell-design-v1',      // 시간표 셀 디자인 (배경/글자색/굵기)
+    'calendar-motto-v1',            // 달력 상단 모토/명언
+    'calendar-day-templates-v1',    // 일별 위젯 템플릿 정의 (필드/디자인/적용 범위)
+    'calendar-day-widget-values-v1' // 일별 위젯 사용자 입력값
   ];
   const KEY_SET = new Set(KEYS);
   const pushTimers = {};

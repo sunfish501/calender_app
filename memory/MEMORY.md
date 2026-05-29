@@ -1,3 +1,4 @@
 - [Handwriting Calendar Project](project_handwriting_calendar.md) — single-file HTML calendar with Korean handwriting fonts, localStorage, and browser notifications
+- [Shortcut trap](project_shortcut_trap.md) — 달력.lnk shortcuts pointed to old OneDrive path; check .lnk targets first when changes don't appear
 - [PowerShell encoding gotcha](feedback_powershell_encoding.md) — re-save .ps1 files with UTF-8 BOM after Write tool, else PS 5.1 mangles Korean strings
 - [PowerShell ArgumentList splitting](feedback_powershell_argumentlist.md) — Start-Process -ArgumentList splits array values on whitespace; quote the value inside each element

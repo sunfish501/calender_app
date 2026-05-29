@@ -250,6 +250,127 @@
     return modal;
   }
 
+  // ─── 아이디 설정 모달 (Google/전화 로그인 후 최초 1회) ───
+  // Supabase Auth는 OAuth/SMS 사용자에 대해 id metadata가 없음.
+  // 표시명/공유 목적상 사용자가 직접 4~20자 ID를 한 번만 등록.
+  let idSetupModal = null;
+  function buildIdSetupModal() {
+    if (idSetupModal) return idSetupModal;
+    idSetupModal = document.createElement('div');
+    idSetupModal.id = 'sb-idsetup-modal';
+    idSetupModal.style.cssText = [
+      'position:fixed','inset:0','z-index:100050',
+      'background:rgba(0,0,0,.5)','backdrop-filter:blur(4px)',
+      '-webkit-backdrop-filter:blur(4px)',
+      'display:none','align-items:center','justify-content:center',
+      'font:14px -apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Malgun Gothic",sans-serif'
+    ].join(';');
+    idSetupModal.innerHTML = `
+<div style="background:#fff;padding:28px;border-radius:16px;width:380px;max-width:92vw;box-shadow:0 1px 2px rgba(60,64,67,.3),0 8px 24px rgba(60,64,67,.18);">
+  <div style="text-align:center;margin-bottom:18px;">
+    <div style="width:56px;height:56px;border-radius:14px;background:#e8f0fe;color:#1a73e8;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    </div>
+    <h2 style="margin:0;font-size:18px;font-weight:500;color:#202124;">사용할 아이디를 정해주세요</h2>
+    <p style="margin:6px 0 0;font-size:13px;color:#5f6368;line-height:1.5;">
+      친구에게 공유하거나 표시할 때 쓰입니다.<br>한 번만 설정하면 됩니다.
+    </p>
+  </div>
+  <label style="display:block;font-size:12px;color:#5f6368;margin-bottom:5px;">아이디</label>
+  <input id="sb-idsetup-input" type="text" placeholder="예) hong_gildong"
+         autocomplete="username" maxlength="20"
+         style="width:100%;padding:11px 13px;border:1px solid #dadce0;border-radius:8px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace;box-sizing:border-box;">
+  <div style="color:#5f6368;font-size:11px;margin:5px 2px 0;line-height:1.4;">
+    4~20자 · 영문/숫자/_ 만 가능
+  </div>
+  <div id="sb-idsetup-msg" style="color:#d93025;font-size:12px;min-height:16px;margin-top:8px;line-height:1.4;"></div>
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+    <button id="sb-idsetup-skip" style="padding:9px 16px;background:transparent;color:#5f6368;border:none;border-radius:6px;cursor:pointer;font:500 13px inherit;">나중에</button>
+    <button id="sb-idsetup-save" style="padding:9px 18px;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer;font:500 13px inherit;">저장</button>
+  </div>
+</div>`;
+    document.body.appendChild(idSetupModal);
+
+    const input = idSetupModal.querySelector('#sb-idsetup-input');
+    const msg   = idSetupModal.querySelector('#sb-idsetup-msg');
+    const save  = idSetupModal.querySelector('#sb-idsetup-save');
+    const skip  = idSetupModal.querySelector('#sb-idsetup-skip');
+
+    async function doSave() {
+      const id = input.value.trim();
+      msg.textContent = '';
+      if (!window.SupabaseAuth.isValidId(id)) {
+        msg.textContent = '4~20자 영문/숫자/_ 만 가능합니다';
+        input.focus();
+        return;
+      }
+      save.disabled = true;
+      const original = save.textContent;
+      save.textContent = '저장 중…';
+      try {
+        const { error } = await window.sb.auth.updateUser({ data: { id, nickname: id } });
+        if (error) throw error;
+        // 저장 성공 → 영구 skip 표시 (updateUser 후 user 객체 반영이 지연돼도
+        // 다음 reload 시 모달이 다시 뜨지 않게 함)
+        try { localStorage.setItem(ID_SETUP_PERMA_SKIP, '1'); } catch (_) {}
+        hideIdSetup();
+      } catch (e) {
+        msg.textContent = e.message || '저장 실패';
+        save.disabled = false;
+        save.textContent = original;
+      }
+    }
+    save.onclick = doSave;
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); });
+    skip.onclick = () => {
+      // "나중에" 도 영구 skip 으로 처리. 사용자가 거듭 무시한 선택을 매 로그인마다
+      // 다시 물어보는 건 불쾌한 UX → ID 설정은 사용자가 프로필 메뉴에서 자발적으로
+      // 다시 열 수 있도록 한다 (showIdSetup 을 전역에 노출).
+      try { localStorage.setItem(ID_SETUP_PERMA_SKIP, '1'); } catch (_) {}
+      try { sessionStorage.setItem('sb-idsetup-skipped', '1'); } catch (_) {}
+      hideIdSetup();
+    };
+    return idSetupModal;
+  }
+  // 프로필 메뉴에서 ID 설정을 다시 열 수 있게 전역 노출
+  window.SupabaseShowIdSetup = function () {
+    try { localStorage.removeItem(ID_SETUP_PERMA_SKIP); } catch (_) {}
+    try { sessionStorage.removeItem('sb-idsetup-skipped'); } catch (_) {}
+    showIdSetup();
+  };
+  function showIdSetup() {
+    const m = buildIdSetupModal();
+    m.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => m.querySelector('#sb-idsetup-input')?.focus(), 50);
+  }
+  function hideIdSetup() {
+    if (idSetupModal) idSetupModal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  // 아이디 설정이 필요한 사용자인지 판단. 보수적으로: 명확히 "아이디가 없는
+  // OAuth/전화 사용자" 일 때만 모달을 띄운다. 다음 중 하나라도 해당하면 skip:
+  //  - 미로그인
+  //  - 합성 이메일(id@cal-id.local) → ID 가 이메일에 박혀 있음
+  //  - user_metadata.id 또는 nickname 또는 full_name 또는 name 이 이미 있음
+  //    (구글 사용자는 보통 full_name / name 이 채워져 있으므로 표시명 OK)
+  //  - localStorage 에 한 번 영구 skip 표시가 있음
+  //  - 이번 세션에서 "나중에" 를 눌러 skip 상태
+  // 모달이 무차별로 떠서 모토 박스를 가린다는 사용자 보고를 해결.
+  const ID_SETUP_PERMA_SKIP = 'sb-idsetup-perm-skipped';
+  function needsIdSetup(user) {
+    if (!user) return false;
+    if (window.SupabaseAuth.isSyntheticEmail(user.email)) return false;
+    const meta = user.user_metadata || {};
+    if (meta.id || meta.nickname || meta.full_name || meta.name) return false;
+    if (sessionStorage.getItem('sb-idsetup-skipped') === '1') return false;
+    try { if (localStorage.getItem(ID_SETUP_PERMA_SKIP) === '1') return false; } catch (_) {}
+    return true;
+  }
+
   // Pastel-ish palette; pick deterministically from the display name so the
   // same user always gets the same colour across reloads.
   const AVATAR_COLORS = ['#5b8def','#e07a5f','#7fb069','#b07ce0','#d99a3e','#3aa9a0','#d96aa6','#6b7280'];
@@ -405,6 +526,13 @@
     hideModal();
     showProfile(user);
 
+    // 구글/전화 로그인은 아이디가 없으므로 한 번만 설정 유도
+    if (needsIdSetup(user)) {
+      showIdSetup();
+    } else {
+      hideIdSetup();
+    }
+
     if (!localStorage.getItem(CLAIM_FLAG_KEY)) {
       try {
         const { data, error } = await window.sb.rpc('claim_orphan_events');
@@ -426,12 +554,22 @@
     // loop. Only reload when the user just triggered a sign-in in this tab.
     if (sessionStorage.getItem(PENDING_SIGNIN_KEY)) {
       sessionStorage.removeItem(PENDING_SIGNIN_KEY);
-      setTimeout(() => window.location.reload(), 150);
+      // window.location.reload() 는 Edge --app= 모드에서 disk cache hit 으로
+      // 옛 calendar.html 이 다시 로드되는 사례가 있어, URL 의 쿼리스트링을
+      // 갱신해서 강제로 새 응답을 받도록 한다. server.ps1 은 ? 이후 무시.
+      setTimeout(() => {
+        const u = new URL(window.location.href);
+        u.searchParams.set('cb', Date.now().toString());
+        // 'invite' 같은 의미있는 쿼리는 보존됨 (set 으로 cb 만 갱신/추가).
+        window.location.replace(u.toString());
+      }, 150);
     }
   }
 
   function onSignedOut() {
     hideProfile();
+    hideIdSetup();
+    try { sessionStorage.removeItem('sb-idsetup-skipped'); } catch (_) {}
     localStorage.removeItem(CLAIM_FLAG_KEY);
     showModal();
   }
