@@ -1,20 +1,35 @@
 // auth.js — Supabase Auth wrapper.
-// Provides signIn / signUp / signInGoogle / signOut / getUser and a single
-// onAuthChange subscription that fans out to multiple listeners.
+// User-facing identifier is a plain ID (4–20 chars, alnum + underscore);
+// internally we synthesize an email "<id>@cal-id.local" because Supabase Auth
+// only supports email/phone. Email confirmation MUST be disabled in the
+// Supabase Dashboard for this to work (the synthetic addresses can't receive
+// real mail). Google/Phone keep their real identifiers.
 (function () {
+  const ID_DOMAIN = 'cal-id.local';
+  function idToEmail(id)        { return String(id).toLowerCase().trim() + '@' + ID_DOMAIN; }
+  function isSyntheticEmail(em) { return typeof em === 'string' && em.endsWith('@' + ID_DOMAIN); }
+  function emailToId(em)        { return isSyntheticEmail(em) ? em.slice(0, -(ID_DOMAIN.length + 1)) : em; }
+  function isValidId(id)        { return /^[a-zA-Z0-9_]{4,20}$/.test(String(id || '')); }
+  function userDisplayName(u)   {
+    if (!u) return '';
+    if (isSyntheticEmail(u.email)) return emailToId(u.email);
+    return u.user_metadata?.nickname || u.email || u.phone || '';
+  }
+  const ID_HELPERS = { idToEmail, emailToId, isSyntheticEmail, isValidId, userDisplayName };
+
   if (!window.sb) {
-    window.SupabaseAuth = {
+    window.SupabaseAuth = Object.assign({
       enabled: false,
       getUser() { return null; },
       getSession() { return null; },
-      async signIn() { throw new Error('Supabase 클라이언트 없음'); },
-      async signUp() { throw new Error('Supabase 클라이언트 없음'); },
+      async signInWithId() { throw new Error('Supabase 클라이언트 없음'); },
+      async signUpWithId() { throw new Error('Supabase 클라이언트 없음'); },
       async signInGoogle() { throw new Error('Supabase 클라이언트 없음'); },
       async sendPhoneOtp() { throw new Error('Supabase 클라이언트 없음'); },
       async verifyPhoneOtp() { throw new Error('Supabase 클라이언트 없음'); },
       async signOut() { /* no-op */ },
       onAuthChange() { return () => {}; }
-    };
+    }, ID_HELPERS);
     return;
   }
 
@@ -45,17 +60,26 @@
     }
   }).catch(e => console.warn('[auth] getSession failed:', e));
 
-  window.SupabaseAuth = {
+  window.SupabaseAuth = Object.assign({
     enabled: true,
     getUser() { return currentUser; },
     getSession() { return currentSession; },
-    async signUp(email, password) {
-      const { data, error } = await window.sb.auth.signUp({ email, password });
+    async signUpWithId(id, password, metadata) {
+      if (!isValidId(id)) throw new Error('아이디는 4~20자 영문/숫자/_ 만 가능합니다');
+      const { data, error } = await window.sb.auth.signUp({
+        email: idToEmail(id),
+        password,
+        options: { data: Object.assign({ id }, metadata || {}) }
+      });
       if (error) throw error;
       return data;
     },
-    async signIn(email, password) {
-      const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
+    async signInWithId(id, password) {
+      if (!isValidId(id)) throw new Error('아이디는 4~20자 영문/숫자/_ 만 가능합니다');
+      const { data, error } = await window.sb.auth.signInWithPassword({
+        email: idToEmail(id),
+        password
+      });
       if (error) throw error;
       return data;
     },
@@ -91,5 +115,5 @@
       }
       return () => listeners.delete(fn);
     }
-  };
+  }, ID_HELPERS);
 })();

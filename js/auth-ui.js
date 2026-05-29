@@ -28,15 +28,17 @@
 <div style="background:#fff;padding:28px 28px 24px;border-radius:14px;width:340px;max-width:90vw;box-shadow:0 12px 32px rgba(0,0,0,.25);font:14px/1.4 system-ui,-apple-system,sans-serif;">
   <h2 id="sb-auth-title" style="margin:0 0 18px;font-size:20px;text-align:center;color:#222;">달력 로그인</h2>
 
-  <!-- view: email/password -->
+  <!-- view: id/password -->
   <div id="sb-view-email">
-    <input id="sb-auth-email" type="email" placeholder="이메일" autocomplete="email"
+    <input id="sb-auth-id" type="text" placeholder="아이디 (4~20자, 영문/숫자/_)" autocomplete="username"
            style="width:100%;padding:10px 12px;border:1px solid #d8d8dc;border-radius:8px;margin-bottom:8px;box-sizing:border-box;font-size:14px;">
     <input id="sb-auth-pw" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password"
            style="width:100%;padding:10px 12px;border:1px solid #d8d8dc;border-radius:8px;margin-bottom:10px;box-sizing:border-box;font-size:14px;">
     <div id="sb-auth-msg" style="color:#c33;font-size:12px;margin-bottom:8px;min-height:16px;line-height:1.3;"></div>
-    <button id="sb-auth-signin" style="width:100%;padding:11px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:6px;">로그인</button>
-    <button id="sb-auth-signup" style="width:100%;padding:11px;background:#fff;color:#2874e0;border:1px solid #2874e0;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:14px;">회원가입</button>
+    <button id="sb-auth-signin" style="width:100%;padding:11px;background:#2874e0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:10px;">로그인</button>
+    <div style="text-align:center;font-size:13px;color:#666;margin-bottom:14px;">
+      계정이 없으신가요? <a id="sb-auth-signup-link" href="signup.html" style="color:#2874e0;text-decoration:none;font-weight:500;">회원가입</a>
+    </div>
     <div style="text-align:center;color:#aaa;font-size:12px;margin:0 0 10px;position:relative;">
       <span style="background:#fff;padding:0 12px;position:relative;z-index:1;">또는</span>
       <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#eee;"></div>
@@ -91,11 +93,10 @@
     const viewPhone1 = modal.querySelector('#sb-view-phone1');
     const viewPhone2 = modal.querySelector('#sb-view-phone2');
 
-    const email = modal.querySelector('#sb-auth-email');
+    const idInput = modal.querySelector('#sb-auth-id');
     const pw    = modal.querySelector('#sb-auth-pw');
     const msg   = modal.querySelector('#sb-auth-msg');
     const sin   = modal.querySelector('#sb-auth-signin');
-    const sup   = modal.querySelector('#sb-auth-signup');
     const goog  = modal.querySelector('#sb-auth-google');
     const goPhone = modal.querySelector('#sb-auth-go-phone');
 
@@ -111,7 +112,7 @@
     const otpResend  = modal.querySelector('#sb-otp-resend');
     const phoneBack2 = modal.querySelector('#sb-phone-back2');
 
-    const allBtns = [sin, sup, goog, goPhone, phoneSend, phoneBack1, otpVerify, otpResend, phoneBack2];
+    const allBtns = [sin, goog, goPhone, phoneSend, phoneBack1, otpVerify, otpResend, phoneBack2];
 
     let normalisedPhone = '';  // last phone we sent OTP to, in E.164
 
@@ -138,30 +139,22 @@
     }
 
     async function doSignIn() {
-      if (!email.value.trim() || !pw.value) { setMsg('이메일/비밀번호 입력'); return; }
+      const id = idInput.value.trim();
+      if (!id || !pw.value) { setMsg('아이디/비밀번호 입력'); return; }
+      if (!window.SupabaseAuth.isValidId(id)) {
+        setMsg('아이디는 4~20자 영문/숫자/_ 만 가능합니다');
+        return;
+      }
       setMsg(''); setBusy(allBtns, true);
       try {
         sessionStorage.setItem(PENDING_SIGNIN_KEY, '1');
-        await window.SupabaseAuth.signIn(email.value.trim(), pw.value);
+        await window.SupabaseAuth.signInWithId(id, pw.value);
       } catch (e) {
         sessionStorage.removeItem(PENDING_SIGNIN_KEY);
-        setMsg(e.message || '로그인 실패');
-      } finally { setBusy(allBtns, false); }
-    }
-    async function doSignUp() {
-      if (!email.value.trim()) { setMsg('이메일을 입력하세요'); return; }
-      if (pw.value.length < 6) { setMsg('비밀번호는 6자 이상'); return; }
-      setMsg(''); setBusy(allBtns, true);
-      try {
-        sessionStorage.setItem(PENDING_SIGNIN_KEY, '1');
-        const result = await window.SupabaseAuth.signUp(email.value.trim(), pw.value);
-        if (!result?.session) {
-          sessionStorage.removeItem(PENDING_SIGNIN_KEY);
-          setMsg('확인 이메일을 보냈습니다. 인증 후 다시 로그인하세요.', '#2874e0');
-        }
-      } catch (e) {
-        sessionStorage.removeItem(PENDING_SIGNIN_KEY);
-        setMsg(e.message || '회원가입 실패');
+        const m = e.message || '로그인 실패';
+        // Supabase returns this for both wrong-password AND non-existent user.
+        if (/invalid login/i.test(m)) setMsg('아이디 또는 비밀번호가 올바르지 않습니다');
+        else setMsg(m);
       } finally { setBusy(allBtns, false); }
     }
     async function doGoogle() {
@@ -227,7 +220,6 @@
     }
 
     sin.onclick = doSignIn;
-    sup.onclick = doSignUp;
     goog.onclick = doGoogle;
     goPhone.onclick = () => {
       phoneInput.value = '';
@@ -242,7 +234,7 @@
     otpResend.onclick  = doSendOtp;
 
     pw.addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
-    email.addEventListener('keydown', e => { if (e.key === 'Enter') pw.focus(); });
+    idInput.addEventListener('keydown', e => { if (e.key === 'Enter') pw.focus(); });
     phoneInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSendOtp(); });
     otpInput.addEventListener('keydown',   e => { if (e.key === 'Enter') doVerifyOtp(); });
 
@@ -288,7 +280,7 @@
     if (vp2) vp2.style.display = 'none';
     const t = m.querySelector('#sb-auth-title');
     if (t) t.textContent = '달력 로그인';
-    setTimeout(() => m.querySelector('#sb-auth-email')?.focus(), 50);
+    setTimeout(() => m.querySelector('#sb-auth-id')?.focus(), 50);
   }
   function hideModal() {
     if (modal) modal.style.display = 'none';
@@ -306,7 +298,7 @@
 
   async function onSignedIn(user, fromInitial) {
     hideModal();
-    showLogout(user.email);
+    showLogout(window.SupabaseAuth.userDisplayName(user));
 
     if (!localStorage.getItem(CLAIM_FLAG_KEY)) {
       try {
