@@ -249,6 +249,7 @@
     color: var(--text);
     padding: 4px 0;
     letter-spacing: 0.01em;
+    text-align: center;
   }
   .motto-input::placeholder {
     color: var(--text-light);
@@ -858,6 +859,22 @@
   .theme-icon-btn:disabled:hover {
     background: #fafafc; border-color: #d8d8dc; color: #999;
   }
+  .theme-share-btn {
+    padding: 4px 9px;
+    border: 1px solid #2874e0;
+    border-radius: 6px;
+    background: #eef5ff;
+    color: #2874e0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.12s;
+    flex-shrink: 0;
+  }
+  .theme-share-btn:hover { background: #deeaff; border-color: #1f5fbb; }
+  .theme-share-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .theme-preview-img {
     width: 22px; height: 22px;
     border-radius: 4px; object-fit: cover;
@@ -1782,7 +1799,7 @@
       </div>
       <div class="palette-bar" id="palette-bar"></div>
       <button id="theme-mgr-btn">테마 관리</button>
-      <button id="day-tpl-mgr-btn">일별 위젯</button>
+      <button id="day-tpl-mgr-btn">위젯 설정</button>
       <input type="file" id="import-file" class="hidden-input" accept=".json">
     </div>
   </header>
@@ -1856,6 +1873,17 @@
 
 <!-- 날짜 선택 액션 메뉴 -->
 <div id="day-action-menu" class="day-action-menu" style="display:none;"></div>
+
+<!-- 일별 위젯 입력 모달 -->
+<div class="modal-backdrop" id="day-widget-input-backdrop">
+  <div class="modal" style="min-width:360px;max-width:88vw;max-height:88vh;overflow-y:auto;">
+    <h3 id="day-widget-input-title">📊 위젯 입력</h3>
+    <div id="day-widget-input-body" style="margin-top:14px;"></div>
+    <div class="modal-buttons" style="margin-top:18px;">
+      <button id="day-widget-input-close" class="primary">완료</button>
+    </div>
+  </div>
+</div>
 
 <!-- Day Widget Template Manager Modal -->
 <div class="modal-backdrop" id="day-tpl-modal-backdrop">
@@ -4017,6 +4045,142 @@
     }
   }
 
+  // ─── 일별 위젯 입력 모달 (날짜 클릭 → 위젯 입력) ──────────────────────────
+  function openDayWidgetModal(dk) {
+    const tpls = getApplicableTemplates(dk);
+    const backdrop = document.getElementById('day-widget-input-backdrop');
+    const titleEl  = document.getElementById('day-widget-input-title');
+    const body     = document.getElementById('day-widget-input-body');
+
+    titleEl.textContent = '📊 위젯 입력 — ' + dk;
+    body.innerHTML = '';
+
+    if (tpls.length === 0) {
+      body.innerHTML =
+        '<div style="text-align:center;color:#888;padding:20px 0;">' +
+          '이 날짜에 적용된 위젯 템플릿이 없어요.<br>' +
+          '<button id="dwi-goto" style="margin-top:14px;padding:8px 18px;' +
+            'background:#2874e0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">' +
+            '위젯 설정 열기</button>' +
+        '</div>';
+      backdrop.classList.add('active');
+      document.getElementById('dwi-goto').onclick = () => { closeDayWidgetModal(); openDayTplManager(); };
+      return;
+    }
+
+    tpls.forEach(tpl => {
+      const sec = document.createElement('div');
+      sec.style.cssText = 'margin-bottom:20px;';
+      const hd = document.createElement('div');
+      hd.style.cssText = 'font-weight:600;font-size:0.92em;color:var(--text-light);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);';
+      hd.textContent = tpl.name;
+      sec.appendChild(hd);
+
+      (tpl.fields || []).forEach(f => {
+        const row = document.createElement('div');
+        row.style.cssText = 'margin-bottom:10px;';
+        if (f.label && f.showLabel !== false) {
+          const lbl = document.createElement('label');
+          lbl.style.cssText = 'display:block;font-size:0.88em;font-weight:500;color:#555;margin-bottom:4px;';
+          lbl.textContent = f.label;
+          row.appendChild(lbl);
+        }
+        const cur = getFieldValue(dk, tpl.id, f.id);
+        const inputStyle = 'width:100%;padding:8px 10px;border:1px solid #d0d0d5;border-radius:6px;font-size:1em;font-family:inherit;box-sizing:border-box;';
+
+        if (f.type === 'number') {
+          const inp = document.createElement('input');
+          inp.type = 'number'; inp.style.cssText = inputStyle;
+          inp.value = cur != null ? cur : '';
+          inp.placeholder = f.unit || '';
+          inp.oninput = () => setFieldValue(dk, tpl.id, f.id, inp.value.trim());
+          row.appendChild(inp);
+
+        } else if (f.type === 'line') {
+          const inp = document.createElement('input');
+          inp.type = 'text'; inp.style.cssText = inputStyle;
+          inp.value = cur || '';
+          inp.oninput = () => setFieldValue(dk, tpl.id, f.id, inp.value);
+          row.appendChild(inp);
+
+        } else if (f.type === 'memo') {
+          const ta = document.createElement('textarea');
+          ta.style.cssText = inputStyle + 'resize:vertical;';
+          ta.rows = 3; ta.value = cur || '';
+          ta.oninput = () => setFieldValue(dk, tpl.id, f.id, ta.value);
+          row.appendChild(ta);
+
+        } else if (f.type === 'rating') {
+          const max = parseInt(f.max) || 5;
+          let curRating = parseInt(cur) || 0;
+          const cont = document.createElement('div');
+          cont.style.cssText = 'display:flex;gap:6px;font-size:1.8em;cursor:pointer;';
+          function paintR(v) {
+            cont.innerHTML = '';
+            for (let i = 1; i <= max; i++) {
+              const s = document.createElement('span');
+              s.textContent = i <= v ? '★' : '☆';
+              s.style.color = i <= v ? '#f0c040' : '#ccc';
+              s.onmouseenter = () => paintR(i);
+              s.onmouseleave = () => paintR(curRating);
+              s.onclick = () => { curRating = (curRating === i) ? 0 : i; setFieldValue(dk, tpl.id, f.id, curRating); paintR(curRating); };
+              cont.appendChild(s);
+            }
+          }
+          paintR(curRating);
+          row.appendChild(cont);
+
+        } else if (f.type === 'tags') {
+          const inp = document.createElement('input');
+          inp.type = 'text'; inp.style.cssText = inputStyle;
+          inp.value = Array.isArray(cur) ? cur.join(', ') : '';
+          inp.placeholder = '쉼표로 구분 (예: 수학, 영어)';
+          const saveT = () => {
+            const parts = inp.value.split(/,/).map(s => s.trim()).filter(Boolean);
+            setFieldValue(dk, tpl.id, f.id, parts);
+          };
+          inp.oninput = saveT;
+          row.appendChild(inp);
+
+        } else if (f.type === 'check') {
+          const opts = Array.isArray(f.options) ? f.options : [];
+          const state = (typeof cur === 'object' && cur) ? cur : {};
+          const wrap = document.createElement('div');
+          wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+          opts.forEach(opt => {
+            const lbl2 = document.createElement('label');
+            lbl2.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;padding:6px 12px;border:1px solid #d0d0d5;border-radius:6px;font-size:0.9em;user-select:none;';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.checked = !!state[opt];
+            cb.onchange = () => {
+              const v = Object.assign({}, getFieldValue(dk, tpl.id, f.id) || {});
+              v[opt] = cb.checked;
+              setFieldValue(dk, tpl.id, f.id, v);
+            };
+            lbl2.appendChild(cb);
+            lbl2.appendChild(document.createTextNode(opt));
+            wrap.appendChild(lbl2);
+          });
+          row.appendChild(wrap);
+        }
+        sec.appendChild(row);
+      });
+      body.appendChild(sec);
+    });
+
+    backdrop.classList.add('active');
+  }
+
+  function closeDayWidgetModal() {
+    document.getElementById('day-widget-input-backdrop').classList.remove('active');
+    render();
+  }
+
+  document.getElementById('day-widget-input-close').onclick = closeDayWidgetModal;
+  document.getElementById('day-widget-input-backdrop').onclick = (e) => {
+    if (e.target === document.getElementById('day-widget-input-backdrop')) closeDayWidgetModal();
+  };
+
   // ─── 일별 위젯 템플릿 모달 ──────────────────────────
   const dayTplModal = document.getElementById('day-tpl-modal-backdrop');
   const dayTplEditor = document.getElementById('day-tpl-editor-backdrop');
@@ -4539,6 +4703,13 @@
     };
     dayActionMenuEl.appendChild(circleItem);
 
+    // 위젯 입력
+    const widgetItem = document.createElement('div');
+    widgetItem.className = 'dam-item';
+    widgetItem.innerHTML = '<span class="dam-icon">📊</span><span>위젯 입력</span>';
+    widgetItem.onclick = () => { hideDayActionMenu(); openDayWidgetModal(dk); };
+    dayActionMenuEl.appendChild(widgetItem);
+
     // 이 날짜의 일정 목록 (편집·삭제)
     const dayEv = (events[dk] || []).filter(it => !isTimetableEvent(it));
     if (dayEv.length > 0) {
@@ -4741,11 +4912,11 @@
       imgBtn.className = 'theme-icon-btn';
       imgBtn.innerHTML =
         '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-          '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>' +
-          '<circle cx="8.5" cy="8.5" r="1.5"/>' +
-          '<path d="M21 15l-5-5L5 21"/>' +
+          '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
+          '<polyline points="17 8 12 3 7 8"/>' +
+          '<line x1="12" y1="3" x2="12" y2="15"/>' +
         '</svg>';
-      imgBtn.title = isSub ? '구독 테마는 원본 사용자가 수정해야 합니다' : '이미지 설정';
+      imgBtn.title = isSub ? '구독 테마는 원본 사용자가 수정해야 합니다' : '이미지 업로드';
       if (isSub) imgBtn.disabled = true;
       else imgBtn.onclick = () => {
         const fi = document.createElement('input');
@@ -4798,16 +4969,9 @@
       // Share button: owner → show existing code, subscriber → hide, none → create
       if (!isSub) {
         const share = document.createElement('button');
-        share.className = 'theme-icon-btn';
-        share.innerHTML =
-          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-            '<circle cx="18" cy="5" r="3"/>' +
-            '<circle cx="6" cy="12" r="3"/>' +
-            '<circle cx="18" cy="19" r="3"/>' +
-            '<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>' +
-            '<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>' +
-          '</svg>';
-        share.title = isOwner ? '초대 링크 다시 보기' : '초대 링크 만들기';
+        share.className = 'theme-share-btn';
+        share.textContent = isOwner ? '🔗 링크 보기' : '🔗 공유';
+        share.title = isOwner ? '공유 초대 링크를 다시 확인합니다' : '이 테마를 초대 링크로 공유합니다';
         share.onclick = () => {
           if (isOwner) {
             const count = collectEventsForTheme(th.id).length;
