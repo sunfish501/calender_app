@@ -153,12 +153,14 @@
     const user = window.SupabaseAuth?.getUser();
     if (!user) return;
     const displayName = window.SupabaseAuth?.userDisplayName(user) || '';
-    try {
-      await window.sb.from('theme_subscribers').upsert(
-        { share_code: shareCode, user_id: user.id, display_name: displayName },
-        { onConflict: 'share_code,user_id' }
-      );
-    } catch (e) { console.warn('[ThemeShare] registerSubscriber:', e); }
+    const { error } = await window.sb.from('theme_subscribers').upsert(
+      { share_code: shareCode, user_id: user.id, display_name: displayName },
+      { onConflict: 'share_code,user_id' }
+    );
+    if (error) {
+      console.warn('[ThemeShare] registerSubscriber failed:', error.message, error.code);
+      throw error;
+    }
   }
 
   // 구독자 목록 조회 (공유자/owner용). 테이블 없으면 null 반환.

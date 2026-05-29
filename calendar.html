@@ -5686,7 +5686,12 @@
           return;
         }
         if (!subs.length) {
-          listEl.innerHTML = '<div style="color:#888;font-size:0.9em;padding:12px 0;text-align:center;">아직 구독자가 없어요</div>';
+          listEl.innerHTML =
+            '<div style="color:#888;font-size:0.88em;padding:12px 0;text-align:center;line-height:1.6;">' +
+            '아직 구독자가 없어요<br>' +
+            '<span style="font-size:0.9em;color:#aaa;">구독자가 초대 링크로 테마를 가져올 때<br>' +
+            'Supabase 계정으로 로그인되어 있어야 기록됩니다.</span>' +
+            '</div>';
           return;
         }
         listEl.innerHTML = '';
@@ -6087,8 +6092,17 @@ create policy "sub_delete" on public.theme_subscribers
       added++;
     });
 
-    // 구독자 테이블에 등록 (fire-and-forget)
-    window.ThemeShare?.registerSubscriber(shareCode);
+    // 구독자 테이블에 등록 (Supabase 로그인 필요)
+    if (window.SupabaseAuth?.getUser()) {
+      window.ThemeShare?.registerSubscriber(shareCode).catch(e =>
+        console.warn('[subscriber] register failed:', e)
+      );
+    } else {
+      // 비로그인 상태: 구독자로 기록되지 않음을 토스트로 알림
+      setTimeout(() => showToast(
+        '💡 구독자 목록에 표시되려면 Supabase 계정으로 로그인하세요'
+      ), 1000);
+    }
 
     return { themeName: newTheme.name, eventsAdded: added, eventsSkipped: skipped };
   }
@@ -6817,26 +6831,52 @@ create policy "sub_delete" on public.theme_subscribers
     });
   })();
 
-  // 다른 계정 로그인 감지 → 로컬 events 초기화 후 Supabase pull 재실행
+  // 다른 계정 로그인 감지 → 사용자별 로컬 데이터 전체 초기화
   (function watchAccountSwitch() {
     const LAST_UID_KEY = 'calendar-last-uid-v1';
+    // 계정 전환 시 지워야 할 모든 사용자 데이터 키
+    const USER_DATA_KEYS = [
+      'calendar-events-v1',
+      'calendar-themes-v1',
+      'calendar_supabase_hashes_v1',
+      'calendar-day-templates-v1',
+      'calendar-day-widget-values-v1',
+      'calendar-motto-v1',
+      'calendar-circles-v1',
+      'calendar-starred-v1',
+      'calendar-wk-cell-values-v1',
+      'calendar-wk-cell-designs-v1',
+      'calendar-theme-filter-v1',
+      'calendar-neis-school-v1',
+      'calendar-notified-v1',
+    ];
+
     if (!window.SupabaseAuth?.onAuthChange) return;
     window.SupabaseAuth.onAuthChange((user) => {
       if (!user) return;
       let prevId = null;
       try { prevId = localStorage.getItem(LAST_UID_KEY); } catch {}
+
+      // 새 UID를 먼저 저장 (무한 루프 방지)
+      try { localStorage.setItem(LAST_UID_KEY, user.id); } catch {}
+
       if (prevId && prevId !== user.id) {
-        // 이전과 다른 계정 → 로컬 캐시 전부 초기화
+        // ── 다른 계정 감지: localStorage 전부 삭제
+        USER_DATA_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+
+        // ── in-memory 상태도 초기화 (auth-ui.js 리로드 전 렌더링 방지)
         events = {};
+        themes.length = 0;
+        checkedThemes.clear();
         saveEvents();
-        try { localStorage.removeItem('calendar_supabase_hashes_v1'); } catch {}
         render();
-        // Supabase에서 이 계정의 데이터 다시 pull
+        renderSidebar();
+
+        // ── 새 계정의 Supabase 데이터 pull
         setTimeout(() => {
           window.SupabaseSync?.pull(events, () => { saveEvents(); render(); });
-        }, 300);
+        }, 500);
       }
-      try { localStorage.setItem(LAST_UID_KEY, user.id); } catch {}
     });
   })();
 
