@@ -8,6 +8,16 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<!-- Open Graph / SNS 공유 미리보기 -->
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="달력 앱">
+<meta property="og:description" content="나만의 일정 · 시간표 · 위젯을 한 곳에 — 달력 앱">
+<meta property="og:image"       content="https://sunfish501.github.io/calender_app/og-preview.svg">
+<meta property="og:url"         content="https://sunfish501.github.io/calender_app/">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="달력 앱">
+<meta name="twitter:description" content="나만의 일정 · 시간표 · 위젯을 한 곳에">
+<meta name="twitter:image"      content="https://sunfish501.github.io/calender_app/og-preview.svg">
 <!-- 페이지 로드 즉시: Cache API 와 등록된 Service Worker 를 모두 비운다.
      옛 calendar.html 이 어떤 식으로든 SW 또는 Cache 에 들어가 있다면 그것이
      stale 응답을 서빙하는 경로를 차단. JS 가 본문 로딩 전에 실행되도록 head 에 둠. -->
@@ -5166,11 +5176,11 @@
       { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
     ));
   }
-  function inviteUrlForCode(code) {
-    // Always link to calendar.html in the current deployment, regardless of
-    // which page the share was generated from.
-    const url = new URL('calendar.html', window.location.href);
-    url.searchParams.set('invite', code);
+  function inviteUrlForCode(code, themeName, fromUser) {
+    const url = new URL('invite.html', window.location.href);
+    url.searchParams.set('code', code);
+    if (themeName) url.searchParams.set('name', themeName);
+    if (fromUser)  url.searchParams.set('from', fromUser);
     return url.toString();
   }
   // Accepts either a full invite URL or a bare 8-char code.
@@ -5200,7 +5210,8 @@
   }
 
   function showInviteLinkDialog(themeName, code, eventCount) {
-    const url = inviteUrlForCode(code);
+    const fromUser = window.SupabaseAuth?.userDisplayName(window.SupabaseAuth?.getUser()) || '';
+    const url = inviteUrlForCode(code, themeName, fromUser);
     const back = document.createElement('div');
     back.className = 'gc-backdrop';
     back.innerHTML = `
@@ -6000,6 +6011,37 @@
 
   // Re-check every 30 minutes in case the page stays open across days
   setInterval(checkUpcomingEvents, 30 * 60 * 1000);
+
+  // invite.html 랜딩 → calendar.html?invite=CODE 자동 처리
+  (function handleInviteParam() {
+    const code = new URLSearchParams(location.search).get('invite');
+    if (!code) return;
+    // URL에서 파라미터 제거 (뒤로가기 시 재실행 방지)
+    const clean = new URL(location.href);
+    clean.searchParams.delete('invite');
+    history.replaceState({}, '', clean.toString());
+
+    async function doAutoImport() {
+      if (!window.SupabaseAuth?.getUser()) {
+        // 로그인 안 된 상태면 수동 입력창 오픈
+        importThemeFlow();
+        return;
+      }
+      try {
+        const share = await window.ThemeShare.fetchShare(code);
+        const result = applyImportedShare(share.payload, share.code);
+        showToast(`✓ "${result.themeName}" 추가됨 · 일정 ${result.eventsAdded}개`);
+        saveThemes(); saveEvents();
+        renderThemeModal(); updateShortcutHelp(); renderSidebar(); render();
+        setupShareRealtime();
+      } catch (e) {
+        showToast('초대 처리 실패: ' + (e.message || '오류'));
+      }
+    }
+
+    // 인증 상태가 확정될 때까지 잠깐 대기
+    setTimeout(doAutoImport, 900);
+  })();
 </script>
 </body>
 </html>

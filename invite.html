@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>달력 앱 · 테마 초대</title>
+
+<!-- Open Graph — static fallback (KakaoTalk 등 JS 미실행 크롤러용) -->
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="달력 앱 · 테마 초대">
+<meta property="og:description" content="달력 앱 테마에 초대받으셨습니다. 클릭해서 수락하세요!">
+<meta property="og:image"       content="https://sunfish501.github.io/calender_app/og-preview.svg">
+<meta property="og:url"         content="https://sunfish501.github.io/calender_app/invite.html">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="달력 앱 · 테마 초대">
+<meta name="twitter:description" content="달력 앱 테마에 초대받으셨습니다. 클릭해서 수락하세요!">
+<meta name="twitter:image"      content="https://sunfish501.github.io/calender_app/og-preview.svg">
+
+<!-- JS로 OG 태그 동적 업데이트 (Telegram·Discord·iMessage 등 JS 실행 크롤러용) -->
+<script>
+(function() {
+  var p = new URLSearchParams(location.search);
+  var name = p.get('name') || '';
+  var from = p.get('from') || '';
+  if (!name && !from) return;
+  var title = from ? (from + '님의 초대 — 달력 앱') : '달력 앱 · 테마 초대';
+  var desc  = from && name
+    ? from + '님이 “' + name + '” 테마에 초대했어요. 달력 앱으로 join하기 →'
+    : from
+    ? from + '님이 달력 앱 테마에 초대했어요. 클릭해서 join하기 →'
+    : '“' + name + '” 테마에 초대받으셨습니다. 달력 앱으로 join하기 →';
+  document.title = title;
+  var setMeta = function(sel, val) {
+    var el = document.querySelector(sel);
+    if (el) el.setAttribute('content', val);
+  };
+  setMeta('meta[property="og:title"]',       title);
+  setMeta('meta[property="og:description"]', desc);
+  setMeta('meta[name="twitter:title"]',      title);
+  setMeta('meta[name="twitter:description"]',desc);
+})();
+</script>
+
+<link rel="icon" type="image/x-icon" href="calendar.ico">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(135deg, #1b2e52 0%, #0d1b35 100%);
+    color: #fff;
+  }
+  .card {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 44px 40px 36px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .icon-wrap {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 36px;
+    box-shadow: 0 8px 24px rgba(37,99,235,0.4);
+  }
+  .app-badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7eb3f5;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .from-line {
+    font-size: 15px;
+    color: #94b8e8;
+    margin-bottom: 6px;
+  }
+  .theme-name {
+    display: inline-block;
+    margin: 8px 0 20px;
+    padding: 6px 18px;
+    background: rgba(59,130,246,0.2);
+    border: 1px solid rgba(59,130,246,0.4);
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #93c5fd;
+    letter-spacing: 0.3px;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin: 20px 0;
+  }
+  .join-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 6px 20px rgba(37,99,235,0.35);
+    letter-spacing: 0.3px;
+    margin-bottom: 12px;
+  }
+  .join-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(37,99,235,0.5);
+  }
+  .join-btn:active { transform: translateY(0); }
+  .code-hint {
+    font-size: 12px;
+    color: #607a9a;
+    margin-top: 4px;
+  }
+  @media (max-width: 480px) {
+    .card { padding: 36px 24px 28px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon-wrap">📅</div>
+  <div class="app-badge">달력 앱</div>
+  <h1 id="invite-title">테마 초대</h1>
+  <p class="from-line" id="from-line"></p>
+  <span class="theme-name" id="theme-name" style="display:none;"></span>
+  <hr class="divider">
+  <button class="join-btn" id="join-btn">달력 앱으로 join하기</button>
+  <p class="code-hint" id="code-hint"></p>
+</div>
+
+<script>
+(function() {
+  var p    = new URLSearchParams(location.search);
+  var code = p.get('code') || '';
+  var name = p.get('name') || '';
+  var from = p.get('from') || '';
+
+  var titleEl  = document.getElementById('invite-title');
+  var fromLine = document.getElementById('from-line');
+  var themeEl  = document.getElementById('theme-name');
+  var hintEl   = document.getElementById('code-hint');
+  var joinBtn  = document.getElementById('join-btn');
+
+  // Build UI text
+  if (from) fromLine.textContent = from + '님이 초대했어요';
+  if (name) {
+    themeEl.textContent = '🎨 ' + name;
+    themeEl.style.display = 'inline-block';
+    titleEl.textContent   = name + ' 초대';
+  } else if (from) {
+    titleEl.textContent = from + '님의 초대';
+  }
+  if (code) hintEl.textContent = '초대 코드: ' + code;
+
+  joinBtn.onclick = function() {
+    if (code) {
+      location.href = 'calendar.html?invite=' + encodeURIComponent(code);
+    } else {
+      location.href = 'calendar.html';
+    }
+  };
+})();
+</script>
+</body>
+</html>
