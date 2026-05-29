@@ -108,7 +108,11 @@
     color: var(--text);
   }
 
-  .container { max-width: 1100px; margin: 0 auto; }
+  .container { max-width: 1100px; margin: 0 auto; transition: max-width 0.2s; }
+
+  /* 연속 보기 모드: 화면 좌우 여백 최소화 — container 폭 제한 해제 + body 패딩 축소 */
+  body.continuous-fit { padding: 12px 6px; }
+  body.continuous-fit .container { max-width: none; }
 
   .page-layout {
     display: flex;
@@ -2656,7 +2660,15 @@
 
   let weekOffset = 0;
 
+  function applyContainerLayout() {
+    // 연속 보기(가로 3개월)일 때만 container 폭 제한을 풀어 좌우 여백 제거.
+    // 일정 단일 월/시간표 모드는 기존 1100px max-width 유지 (사이드바와의 균형).
+    const fit = (viewMode === 'events') && continuousView;
+    document.body.classList.toggle('continuous-fit', fit);
+  }
+
   function render() {
+    applyContainerLayout();
     if (viewMode === 'timetable') { renderWeekView(); return; }
     if (continuousView) renderContinuousView();
     else { calendarEl.style.gridTemplateColumns = 'repeat(7, 1fr)'; renderCalendarView(); }
