@@ -8,7 +8,16 @@
   // a fresh user-triggered login from a SIGNED_IN that fires on session restore.
   const PENDING_SIGNIN_KEY = 'sb-fresh-signin-pending';
   let modal = null;
-  let logoutBtn = null;
+  let profileWrap = null;
+  let profileBtn  = null;
+  let profileMenu = null;
+  let profileOpen = false;
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => (
+      { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+    ));
+  }
 
   function setBusy(buttons, on) {
     buttons.forEach(b => { if (b) b.disabled = on; });
@@ -241,30 +250,85 @@
     return modal;
   }
 
-  function buildLogoutBtn() {
-    if (logoutBtn) return logoutBtn;
-    logoutBtn = document.createElement('button');
-    logoutBtn.id = 'sb-logout-btn';
-    logoutBtn.textContent = '로그아웃';
-    logoutBtn.style.cssText = [
-      'position:fixed','top:10px','right:10px','z-index:9000',
-      'padding:6px 12px','background:rgba(255,255,255,.92)',
-      'border:1px solid #d8d8dc','border-radius:8px','cursor:pointer',
-      'font:12px system-ui,sans-serif','color:#444',
-      'box-shadow:0 1px 3px rgba(0,0,0,.08)','display:none'
+  // Pastel-ish palette; pick deterministically from the display name so the
+  // same user always gets the same colour across reloads.
+  const AVATAR_COLORS = ['#5b8def','#e07a5f','#7fb069','#b07ce0','#d99a3e','#3aa9a0','#d96aa6','#6b7280'];
+  function colorFor(name) {
+    const s = String(name || '?');
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  }
+
+  function closeProfileMenu() {
+    if (!profileMenu) return;
+    profileMenu.style.display = 'none';
+    profileOpen = false;
+  }
+
+  function buildProfile() {
+    if (profileWrap) return profileWrap;
+
+    profileWrap = document.createElement('div');
+    profileWrap.id = 'sb-profile-wrap';
+    profileWrap.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9000;display:none;font:13px system-ui,-apple-system,sans-serif;';
+
+    profileBtn = document.createElement('button');
+    profileBtn.id = 'sb-profile-btn';
+    profileBtn.setAttribute('aria-label', '프로필');
+    profileBtn.style.cssText = [
+      'width:36px','height:36px','border-radius:50%',
+      'border:none','padding:0','cursor:pointer','overflow:hidden',
+      'background:#888','color:#fff','font:600 15px system-ui',
+      'display:flex','align-items:center','justify-content:center',
+      'box-shadow:0 1px 4px rgba(0,0,0,.18)','transition:transform .1s'
     ].join(';');
-    logoutBtn.onclick = async () => {
-      logoutBtn.disabled = true;
-      logoutBtn.textContent = '나가는 중…';
-      try { await window.SupabaseAuth.signOut(); }
-      catch (e) { console.warn('signOut error:', e); }
-      finally {
-        logoutBtn.disabled = false;
-        logoutBtn.textContent = '로그아웃';
-      }
+    profileBtn.onmouseenter = () => { profileBtn.style.transform = 'scale(1.05)'; };
+    profileBtn.onmouseleave = () => { profileBtn.style.transform = 'scale(1)'; };
+
+    profileMenu = document.createElement('div');
+    profileMenu.id = 'sb-profile-menu';
+    profileMenu.style.cssText = [
+      'position:absolute','top:44px','right:0','min-width:220px',
+      'background:#fff','border:1px solid #e5e5ea','border-radius:10px',
+      'box-shadow:0 8px 24px rgba(0,0,0,.12)','overflow:hidden',
+      'display:none'
+    ].join(';');
+
+    profileBtn.onclick = (e) => {
+      e.stopPropagation();
+      profileOpen = !profileOpen;
+      profileMenu.style.display = profileOpen ? 'block' : 'none';
     };
-    document.body.appendChild(logoutBtn);
-    return logoutBtn;
+
+    // Click outside / ESC to close
+    document.addEventListener('click', (e) => {
+      if (profileOpen && !profileWrap.contains(e.target)) closeProfileMenu();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && profileOpen) closeProfileMenu();
+    });
+
+    profileWrap.appendChild(profileBtn);
+    profileWrap.appendChild(profileMenu);
+    document.body.appendChild(profileWrap);
+    return profileWrap;
+  }
+
+  async function doSignOut(menuBtn) {
+    if (menuBtn) {
+      menuBtn.disabled = true;
+      menuBtn.textContent = '나가는 중…';
+    }
+    try { await window.SupabaseAuth.signOut(); }
+    catch (e) { console.warn('signOut error:', e); }
+    finally {
+      closeProfileMenu();
+      if (menuBtn) {
+        menuBtn.disabled = false;
+        menuBtn.textContent = '로그아웃';
+      }
+    }
   }
 
   function showModal() {
@@ -286,19 +350,60 @@
     if (modal) modal.style.display = 'none';
     document.body.style.overflow = '';
   }
-  function showLogout(email) {
-    const b = buildLogoutBtn();
-    b.style.display = 'block';
-    b.title = email ? `로그인됨: ${email}` : '로그인됨';
+  function showProfile(user) {
+    buildProfile();
+    const name      = window.SupabaseAuth.userDisplayName(user) || '사용자';
+    const meta      = user?.user_metadata || {};
+    const avatarUrl = meta.avatar_url || meta.picture || '';
+    const subtitle  =
+      window.SupabaseAuth.isSyntheticEmail(user?.email) ? '@' + window.SupabaseAuth.emailToId(user.email) :
+      user?.email ? user.email :
+      user?.phone ? user.phone : '';
+
+    // Avatar: real picture if provider gave one, otherwise initial on a colored bg.
+    if (avatarUrl) {
+      profileBtn.style.background = '#eee';
+      profileBtn.innerHTML = `<img src="${escapeHtml(avatarUrl)}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">`;
+    } else {
+      profileBtn.style.background = colorFor(name);
+      profileBtn.innerHTML = '';
+      profileBtn.textContent = (name.charAt(0) || '?').toUpperCase();
+    }
+    profileBtn.title = name;
+
+    profileMenu.innerHTML = `
+      <div style="padding:14px 16px;border-bottom:1px solid #f0f0f3;background:#fafafc;">
+        <div style="font-weight:600;color:#222;font-size:14px;word-break:break-all;">${escapeHtml(name)}</div>
+        ${subtitle ? `<div style="color:#888;font-size:12px;margin-top:3px;word-break:break-all;">${escapeHtml(subtitle)}</div>` : ''}
+      </div>
+      <button id="sb-menu-logout" style="width:100%;padding:11px 16px;background:#fff;border:none;text-align:left;cursor:pointer;font:13px system-ui,-apple-system,sans-serif;color:#c33;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        로그아웃
+      </button>
+    `;
+    const logoutItem = profileMenu.querySelector('#sb-menu-logout');
+    logoutItem.onmouseenter = () => { logoutItem.style.background = '#fdf2f2'; };
+    logoutItem.onmouseleave = () => { logoutItem.style.background = '#fff'; };
+    logoutItem.onclick = () => doSignOut(logoutItem);
+
+    profileWrap.style.display = 'block';
+    closeProfileMenu();
   }
-  function hideLogout() { if (logoutBtn) logoutBtn.style.display = 'none'; }
+  function hideProfile() {
+    if (profileWrap) profileWrap.style.display = 'none';
+    closeProfileMenu();
+  }
 
   // Disable the legacy fake-login gate so it doesn't double up with the modal
   try { localStorage.setItem('calendar-login-mode-v1', 'no-login'); } catch (_) {}
 
   async function onSignedIn(user, fromInitial) {
     hideModal();
-    showLogout(window.SupabaseAuth.userDisplayName(user));
+    showProfile(user);
 
     if (!localStorage.getItem(CLAIM_FLAG_KEY)) {
       try {
@@ -326,7 +431,7 @@
   }
 
   function onSignedOut() {
-    hideLogout();
+    hideProfile();
     localStorage.removeItem(CLAIM_FLAG_KEY);
     showModal();
   }
