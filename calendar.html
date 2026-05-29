@@ -174,35 +174,6 @@
     background: rgba(0,0,0,0.04);
     color: var(--text);
   }
-  /* 저장/불러오기 버튼 */
-  .sb-action-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 14px;
-  }
-  .sb-action-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 7px 4px;
-    border: 0.5px solid var(--border);
-    background: var(--cell-bg);
-    border-radius: 7px;
-    font-size: 0.72em;
-    font-weight: 500;
-    color: var(--text-light);
-    cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, color 0.12s;
-    font-family: inherit;
-    line-height: 1;
-  }
-  .sb-action-btn:hover {
-    background: var(--cell-hover);
-    border-color: #b8b8c0;
-    color: var(--text);
-  }
   /* 섹션 헤더 */
   .sb-section-label {
     font-size: 11px;
@@ -356,18 +327,6 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     transition: border-color 0.18s, box-shadow 0.18s;
-    /* 작은 빌드 표식 (우상단). 사용자가 옛 캐시를 보고 있는지 한눈에 판별 가능. */
-  }
-  .motto-area::after {
-    content: 'v3-' attr(data-build);
-    position: absolute;
-    right: 8px;
-    top: 4px;
-    font: 600 9px ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: var(--text-light);
-    opacity: 0.45;
-    letter-spacing: 0.5px;
-    pointer-events: none;
   }
   .motto-area:focus-within {
     border-color: var(--today-accent);
@@ -1938,8 +1897,14 @@
   .ps-type-btn:hover {
     border-color: #2874e0; background: #eef5ff;
   }
+  .ps-type-btn.ps-selected {
+    border-color: #2874e0;
+    background: #eef5ff;
+    box-shadow: 0 0 0 3px rgba(40,116,224,0.15);
+  }
+  .ps-type-btn.ps-selected .ps-tl { color: #2874e0; }
   .ps-type-btn .ps-ti { font-size: 1.7em; }
-  .ps-type-btn .ps-tl { font-size: 0.9em; font-weight: 600; color: #222; }
+  .ps-type-btn .ps-tl { font-size: 0.9em; font-weight: 600; color: #222; transition: color 0.14s; }
   .ps-type-btn .ps-ts { font-size: 0.72em; color: #888; }
   /* 학교 검색 */
   .ps-search-input {
@@ -2164,24 +2129,6 @@
 
       <!-- 일정 모드 전용 영역 -->
       <div id="sb-main">
-        <!-- 저장 / 불러오기 -->
-        <div class="sb-action-row">
-          <button id="export-btn" class="sb-action-btn" title="현재 일정을 JSON으로 저장">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-              <path d="M14 4v4H8V4"/>
-              <circle cx="12" cy="15" r="2"/>
-            </svg>
-            저장
-          </button>
-          <button id="import-btn" class="sb-action-btn" title="JSON 파일에서 일정 불러오기">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-            </svg>
-            불러오기
-          </button>
-        </div>
-
         <!-- 테마 필터 -->
         <div class="sb-section-label">테마 필터</div>
         <div id="sidebar-items"></div>
@@ -2495,6 +2442,7 @@
             <span class="ps-ts">직장인·기타</span>
           </button>
         </div>
+        <button class="ps-finish-btn" id="ps-next1" style="display:none;margin-top:14px;">다음 →</button>
       </div>
       <!-- Step 2: 학교 검색 -->
       <div class="ps-step" id="ps-step2">
@@ -3028,12 +2976,8 @@
   (function initMotto() {
     const input = document.getElementById('motto-input');
     if (!input) return;
-    // 빌드 식별
     const area = document.getElementById('motto-area');
     if (area) {
-      const now = new Date();
-      area.dataset.build = now.getHours().toString().padStart(2,'0') + ':' +
-                            now.getMinutes().toString().padStart(2,'0');
       area.style.removeProperty('display');
       area.style.removeProperty('visibility');
     }
@@ -7334,6 +7278,10 @@ create policy "user_backups_policy" on public.user_backups
     });
     const hdr = { title: document.getElementById('ps-title'), desc: document.getElementById('ps-desc'), emoji: document.getElementById('ps-emoji') };
     if (n === 1) {
+      // 선택 상태 초기화
+      document.querySelectorAll('.ps-type-btn').forEach(b => b.classList.remove('ps-selected'));
+      const nb = document.getElementById('ps-next1');
+      if (nb) nb.style.display = 'none';
       if (hdr.emoji) hdr.emoji.textContent = '👋';
       if (hdr.title) hdr.title.textContent = '어떤 사용자이신가요?';
       if (hdr.desc)  hdr.desc.textContent  = '달력을 더 잘 맞춰드리기 위해 한 가지만 여쭤볼게요.';
@@ -7454,21 +7402,32 @@ create policy "user_backups_policy" on public.user_backups
     // 유저 타입 버튼
     document.querySelectorAll('.ps-type-btn').forEach(btn => {
       btn.onclick = () => {
-        const type = btn.dataset.type;
-        _pendingProfile.userType = type;
-        if (type === 'none') {
-          _pendingProfile.school = null;  // 학교 정보 명시적으로 초기화
-          finishProfile();
-        } else {
-          _pendingProfile.school = null;  // 학교 타입 바뀌면 이전 학교 초기화
-          goStep(2);
+        // 선택 표시만 — 이동은 "다음" 버튼으로
+        document.querySelectorAll('.ps-type-btn').forEach(b => b.classList.remove('ps-selected'));
+        btn.classList.add('ps-selected');
+        _pendingProfile.userType = btn.dataset.type;
+        _pendingProfile.school = null;
+        const nextBtn = document.getElementById('ps-next1');
+        if (nextBtn) {
+          nextBtn.style.display = '';
+          nextBtn.textContent = btn.dataset.type === 'none' ? '시작하기 →' : '다음 →';
         }
       };
     });
+    // "다음" 버튼 클릭 시 실제 이동
+    const next1 = document.getElementById('ps-next1');
+    if (next1) {
+      next1.onclick = () => {
+        const type = _pendingProfile.userType;
+        if (!type) return;
+        if (type === 'none') { finishProfile(); }
+        else { goStep(2); }
+      };
+    }
     // 뒤로가기
     const back2 = document.getElementById('ps-back2');
     if (back2) back2.onclick = () => {
-      _pendingProfile.school = null;  // 학교 선택 취소 시 초기화
+      _pendingProfile.school = null;
       goStep(1);
     };
     // 학교 건너뛰기
