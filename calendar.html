@@ -962,6 +962,10 @@
           <input type="checkbox" id="toggle-notify" checked>
           <span class="sidebar-label">알림</span>
         </label>
+        <label class="sidebar-item">
+          <input type="checkbox" id="toggle-continuous">
+          <span class="sidebar-label">연속 보기</span>
+        </label>
       </div>
     </div>
     <div class="main-col">
@@ -1478,6 +1482,20 @@
     render();
   };
 
+  // 연속 보기 (여러 달을 세로로 이어서 표시)
+  const CONTINUOUS_VIEW_KEY = 'calendar-continuous-view-v1';
+  const CONTINUOUS_MONTHS = 3;
+  let continuousView = localStorage.getItem(CONTINUOUS_VIEW_KEY) === 'true';
+  const continuousToggle = document.getElementById('toggle-continuous');
+  if (continuousToggle) {
+    continuousToggle.checked = continuousView;
+    continuousToggle.onchange = () => {
+      continuousView = continuousToggle.checked;
+      localStorage.setItem(CONTINUOUS_VIEW_KEY, String(continuousView));
+      render();
+    };
+  }
+
   const NOTIFY_TOGGLE_KEY = 'calendar-notify-enabled-v1';
   let notifyEnabled = localStorage.getItem(NOTIFY_TOGGLE_KEY) !== 'false';
   const notifyToggle = document.getElementById('toggle-notify');
@@ -1666,16 +1684,11 @@
   function render() {
     if (viewMode === 'timetable') { renderWeekView(); return; }
     calendarEl.style.gridTemplateColumns = 'repeat(7, 1fr)';
-    renderCalendarView();
+    if (continuousView) renderContinuousView();
+    else renderCalendarView();
   }
 
-  function renderCalendarView() {
-    const tb = document.getElementById('wk-toolbar');
-    if (tb) tb.style.display = 'none';
-    pencilMode = false;
-    monthLabel.textContent = `${viewYear}년 ${viewMonth + 1}월`;
-    calendarEl.innerHTML = '';
-
+  function _appendDayNamesHeader() {
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
     dayNames.forEach((name, idx) => {
       const el = document.createElement('div');
@@ -1685,12 +1698,51 @@
       el.textContent = name;
       calendarEl.appendChild(el);
     });
+  }
 
-    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  function renderCalendarView() {
+    const tb = document.getElementById('wk-toolbar');
+    if (tb) tb.style.display = 'none';
+    pencilMode = false;
+    monthLabel.textContent = `${viewYear}년 ${viewMonth + 1}월`;
+    calendarEl.innerHTML = '';
+    _appendDayNamesHeader();
+    _renderMonthSection(viewYear, viewMonth);
+  }
+
+  function renderContinuousView() {
+    const tb = document.getElementById('wk-toolbar');
+    if (tb) tb.style.display = 'none';
+    pencilMode = false;
+    const endY = viewYear + Math.floor((viewMonth + CONTINUOUS_MONTHS - 1) / 12);
+    const endM = ((viewMonth + CONTINUOUS_MONTHS - 1) % 12 + 12) % 12;
+    monthLabel.textContent = `${viewYear}년 ${viewMonth + 1}월 ~ ${endY}년 ${endM + 1}월`;
+    calendarEl.innerHTML = '';
+    _appendDayNamesHeader();
+
+    for (let i = 0; i < CONTINUOUS_MONTHS; i++) {
+      let y = viewYear, m = viewMonth + i;
+      while (m > 11) { m -= 12; y++; }
+      if (i > 0) {
+        const lbl = document.createElement('div');
+        lbl.className = 'month-divider';
+        lbl.style.cssText =
+          'grid-column:1/-1;padding:18px 14px 10px;font-weight:600;' +
+          'font-size:1.05em;color:var(--text-light);' +
+          'border-top:2px solid var(--border);margin-top:10px;background:var(--day-header-bg);';
+        lbl.textContent = `${y}년 ${m + 1}월`;
+        calendarEl.appendChild(lbl);
+      }
+      _renderMonthSection(y, m);
+    }
+  }
+
+  function _renderMonthSection(yr, mo) {
+    const firstDay = new Date(yr, mo, 1).getDay();
+    const daysInMonth = new Date(yr, mo + 1, 0).getDate();
     const today = todayKey();
     const todayDate = new Date(); todayDate.setHours(0,0,0,0);
-    const monthHolidays = computeMonthHolidays(viewYear, viewMonth + 1);
+    const monthHolidays = computeMonthHolidays(yr, mo + 1);
 
     if (firstDay > 0) {
       const memo = document.createElement('div');
@@ -1699,7 +1751,7 @@
       const ta = document.createElement('textarea');
       ta.className = 'memo-textarea';
       ta.placeholder = '메모...';
-      const mk = viewYear + '-' + pad(viewMonth + 1) + '-top';
+      const mk = yr + '-' + pad(mo + 1) + '-top';
       ta.value = memos[mk] || '';
       ta.oninput = () => { memos[mk] = ta.value; saveMemos(); };
       ta.onclick = (e) => e.stopPropagation();
@@ -1710,11 +1762,11 @@
     for (let d = 1; d <= daysInMonth; d++) {
       const cell = document.createElement('div');
       cell.className = 'day-cell';
-      const dow = new Date(viewYear, viewMonth, d).getDay();
+      const dow = new Date(yr, mo, d).getDay();
       if (dow === 0) cell.classList.add('sun');
       if (dow === 6) cell.classList.add('sat');
 
-      const key = dateKey(viewYear, viewMonth, d);
+      const key = dateKey(yr, mo, d);
       if (key === today) cell.classList.add('today');
 
       const num = document.createElement('div');
@@ -1743,7 +1795,7 @@
 
       // 일요일 칸에 음력 날짜 표시
       if (dow === 0) {
-        const lunar = solarToLunar(viewYear, viewMonth + 1, d);
+        const lunar = solarToLunar(yr, mo + 1, d);
         if (lunar) {
           const lunarEl = document.createElement('div');
           lunarEl.className = 'lunar' + (lunar.isLeap ? ' leap' : '');
@@ -1838,7 +1890,7 @@
       cell.appendChild(eventsEl);
 
       // 지나간 날 X + 흐리게 (일정 모드 + 토글 ON일 때만)
-      const cellDate = new Date(viewYear, viewMonth, d);
+      const cellDate = new Date(yr, mo, d);
       if (cellDate < todayDate && viewMode === 'events' && showPast) {
         cell.classList.add('past');
         const px = document.createElement('div');
@@ -1894,7 +1946,7 @@
       const ta = document.createElement('textarea');
       ta.className = 'memo-textarea';
       ta.placeholder = '메모...';
-      const mk = viewYear + '-' + pad(viewMonth + 1) + '-bottom';
+      const mk = yr + '-' + pad(mo + 1) + '-bottom';
       ta.value = memos[mk] || '';
       ta.oninput = () => { memos[mk] = ta.value; saveMemos(); };
       ta.onclick = (e) => e.stopPropagation();

@@ -9,7 +9,8 @@
     'calendar-postits-v1',
     'calendar-starred-dates-v1',
     'calendar-circles-v1',
-    'calendar-notify-enabled-v1'
+    'calendar-notify-enabled-v1',
+    'calendar-continuous-view-v1'
   ];
   const KEY_SET = new Set(KEYS);
   const pushTimers = {};
