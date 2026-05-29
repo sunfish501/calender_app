@@ -145,10 +145,91 @@
     return () => { try { window.sb.removeChannel(ch); } catch (_) {} };
   }
 
+  // ── 구독자 관리 ──────────────────────────────────────────────────────────────
+
+  // 구독 등록: 테마를 가져올 때 호출 (theme_subscribers 테이블에 upsert)
+  async function registerSubscriber(shareCode) {
+    if (!window.sb) return;
+    const user = window.SupabaseAuth?.getUser();
+    if (!user) return;
+    const displayName = window.SupabaseAuth?.userDisplayName(user) || '';
+    try {
+      await window.sb.from('theme_subscribers').upsert(
+        { share_code: shareCode, user_id: user.id, display_name: displayName },
+        { onConflict: 'share_code,user_id' }
+      );
+    } catch (e) { console.warn('[ThemeShare] registerSubscriber:', e); }
+  }
+
+  // 구독자 목록 조회 (공유자/owner용). 테이블 없으면 null 반환.
+  async function fetchSubscribers(shareCode) {
+    if (!window.sb) return [];
+    const { data, error } = await window.sb
+      .from('theme_subscribers')
+      .select('id,share_code,user_id,display_name,subscribed_at')
+      .eq('share_code', shareCode)
+      .order('subscribed_at', { ascending: true });
+    if (error) {
+      if (isMissingTableError(error)) return null;
+      throw error;
+    }
+    return data || [];
+  }
+
+  // 구독자 추방 (row id로 삭제)
+  async function kickSubscriber(subscriberRowId) {
+    if (!window.sb) throw new Error('Supabase 없음');
+    const { error } = await window.sb
+      .from('theme_subscribers')
+      .delete()
+      .eq('id', subscriberRowId);
+    if (error) throw error;
+  }
+
+  // 구독자 목록 실시간 구독 (owner용 모달)
+  function subscribeToSubscriberList(shareCode, onChange) {
+    if (!window.sb) return () => {};
+    const ch = window.sb
+      .channel('subs_live_' + shareCode + '_' + Date.now())
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'theme_subscribers',
+        filter: 'share_code=eq.' + shareCode
+      }, () => onChange())
+      .subscribe();
+    return () => { try { window.sb.removeChannel(ch); } catch (_) {} };
+  }
+
+  // 일정 추가 브로드캐스트 (owner → subscribers)
+  async function broadcastEventToSubscribers(shareCode, payload) {
+    if (!window.sb) return;
+    const ch = window.sb.channel('tevt_' + shareCode);
+    await new Promise(res => {
+      ch.subscribe(status => { if (status === 'SUBSCRIBED') res(); });
+    });
+    await ch.send({ type: 'broadcast', event: 'new_event', payload });
+    setTimeout(() => { try { window.sb.removeChannel(ch); } catch (_) {} }, 2000);
+  }
+
+  // 새 일정 알림 수신 (subscriber용, 페이지 로드 시 호출)
+  function listenForEventBroadcasts(shareCodes, onEvent) {
+    if (!window.sb || !shareCodes.length) return () => {};
+    const channels = shareCodes.map(code => {
+      const ch = window.sb.channel('tevt_' + code);
+      ch.on('broadcast', { event: 'new_event' }, ({ payload }) => onEvent(code, payload));
+      ch.subscribe();
+      return ch;
+    });
+    return () => channels.forEach(ch => { try { window.sb.removeChannel(ch); } catch (_) {} });
+  }
+
   window.ThemeShare = {
     CODE_LEN,
     generateCode, normaliseCode,
     publishShare, fetchShare, updateShare, deleteShare,
-    subscribeToShareUpdates
+    subscribeToShareUpdates,
+    // subscriber management
+    registerSubscriber, fetchSubscribers, kickSubscriber,
+    subscribeToSubscriberList,
+    broadcastEventToSubscribers, listenForEventBroadcasts
   };
 })();
