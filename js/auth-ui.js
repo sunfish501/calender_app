@@ -506,6 +506,14 @@
         </svg>
         프로필 설정
       </button>
+      <button id="sb-menu-backup" style="width:100%;padding:11px 16px;background:#fff;border:none;text-align:left;cursor:pointer;font:13px system-ui,-apple-system,sans-serif;color:#222;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        백업
+      </button>
       <div style="height:0.5px;background:#f0f0f3;margin:2px 0;"></div>
       <button id="sb-menu-logout" style="width:100%;padding:11px 16px;background:#fff;border:none;text-align:left;cursor:pointer;font:13px system-ui,-apple-system,sans-serif;color:#c33;display:flex;align-items:center;gap:8px;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -522,6 +530,13 @@
     profileItem.onclick = () => {
       closeProfileMenu();
       window.__showProfileSetup?.(true);
+    };
+    const backupItem = profileMenu.querySelector('#sb-menu-backup');
+    backupItem.onmouseenter = () => { backupItem.style.background = '#f3f6fc'; };
+    backupItem.onmouseleave = () => { backupItem.style.background = '#fff'; };
+    backupItem.onclick = () => {
+      closeProfileMenu();
+      window.__showBackupModal?.();
     };
     const logoutItem = profileMenu.querySelector('#sb-menu-logout');
     logoutItem.onmouseenter = () => { logoutItem.style.background = '#fdf2f2'; };

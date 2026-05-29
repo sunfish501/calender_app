@@ -2035,6 +2035,79 @@
     font-size: 0.72em; color: var(--text-light);
     padding: 2px 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+
+  /* ── 백업 모달 ── */
+  .bk-header {
+    padding: 22px 24px 14px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .bk-header h2 { font-size: 1.1em; font-weight: 700; color: #1a1a2e; margin: 0; flex: 1; }
+  .bk-header .bk-emoji { font-size: 1.4em; }
+  .bk-close {
+    background: none; border: none; font-size: 1.1em; cursor: pointer;
+    color: #888; padding: 4px; border-radius: 4px;
+  }
+  .bk-close:hover { background: #f0f0f3; color: #222; }
+  .bk-body { padding: 18px 24px 22px; }
+  .bk-section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 0.5px solid var(--border); }
+  .bk-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .bk-section-title {
+    font-size: 0.82em; font-weight: 700; color: var(--text-light);
+    letter-spacing: 0.4px; margin-bottom: 10px; text-transform: uppercase;
+  }
+  /* 주기 선택 세그먼트 */
+  .bk-seg {
+    display: flex; background: var(--day-header-bg);
+    border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 8px;
+  }
+  .bk-seg-btn {
+    flex: 1; padding: 6px 0; border: none; background: transparent;
+    border-radius: 6px; font-size: 0.82em; font-weight: 500;
+    color: var(--text-light); cursor: pointer; transition: all 0.14s;
+    font-family: inherit;
+  }
+  .bk-seg-btn.active {
+    background: var(--cell-bg); color: var(--text); font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .bk-seg-btn:hover:not(.active) { background: rgba(0,0,0,0.04); color: var(--text); }
+  /* 버튼 */
+  .bk-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bk-btn {
+    padding: 8px 14px; border: 1px solid var(--border); background: var(--cell-bg);
+    border-radius: 7px; font-size: 0.85em; font-family: inherit; cursor: pointer;
+    transition: all 0.12s; color: var(--text);
+  }
+  .bk-btn:hover { background: var(--cell-hover); border-color: #b0b0b8; }
+  .bk-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .bk-btn-primary { background: #2874e0 !important; color: #fff !important; border-color: #2874e0 !important; }
+  .bk-btn-primary:hover { background: #1f5fbb !important; border-color: #1f5fbb !important; }
+  .bk-btn-danger { color: #c33 !important; border-color: #f0c0c0 !important; }
+  .bk-btn-danger:hover { background: #fdf2f2 !important; }
+  /* 메시지 */
+  .bk-msg { font-size: 0.82em; margin-top: 8px; min-height: 1em; }
+  .bk-ok  { color: #2e7d32; }
+  .bk-err { color: #c33; }
+  .bk-last-info { font-size: 0.8em; color: var(--text-light); margin-top: 6px; }
+  /* 백업 이력 목록 */
+  .bk-hist-list {
+    margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    max-height: 220px; overflow-y: auto;
+  }
+  .bk-hist-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; border-bottom: 0.5px solid var(--border);
+    font-size: 0.85em;
+  }
+  .bk-hist-row:last-child { border-bottom: none; }
+  .bk-hist-label { flex: 1; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bk-hist-date  { font-size: 0.78em; color: var(--text-light); white-space: nowrap; }
+  /* 로그인 필요 배너 */
+  .bk-login-notice {
+    padding: 10px 12px; background: #fff8e6; border: 1px solid #f0d090;
+    border-radius: 8px; font-size: 0.82em; color: #7a5c00;
+  }
 </style>
 </head>
 <body>
@@ -2339,6 +2412,59 @@
 
 <div class="notifications" id="notifications"></div>
 
+<!-- 백업 설정 모달 -->
+<div class="ps-backdrop" id="bk-modal">
+  <div class="ps-card" style="width:440px;max-width:92vw;">
+    <div class="bk-header">
+      <span class="bk-emoji">💾</span>
+      <h2>백업 설정</h2>
+      <button class="bk-close" id="bk-close-btn">✕</button>
+    </div>
+    <div class="bk-body">
+
+      <!-- 자동 백업 주기 -->
+      <div class="bk-section">
+        <div class="bk-section-title">자동 백업 주기</div>
+        <div class="bk-seg" id="bk-schedule">
+          <button class="bk-seg-btn" data-v="manual">수동</button>
+          <button class="bk-seg-btn" data-v="daily">매일</button>
+          <button class="bk-seg-btn" data-v="weekly">매주</button>
+          <button class="bk-seg-btn" data-v="monthly">매월</button>
+        </div>
+        <div class="bk-last-info" id="bk-last-info">마지막 백업: 없음</div>
+      </div>
+
+      <!-- 클라우드 백업 -->
+      <div class="bk-section" id="bk-cloud-section">
+        <div class="bk-section-title">☁️ Supabase 클라우드</div>
+        <div id="bk-login-notice" class="bk-login-notice" style="display:none;">
+          Supabase 계정으로 로그인하면 클라우드 백업을 사용할 수 있어요.
+        </div>
+        <div id="bk-cloud-actions">
+          <div class="bk-btn-row">
+            <button id="bk-cloud-now"  class="bk-btn bk-btn-primary">지금 백업</button>
+            <button id="bk-cloud-hist" class="bk-btn">이력 보기</button>
+          </div>
+          <div class="bk-msg" id="bk-cloud-msg"></div>
+          <div id="bk-hist-list-wrap"></div>
+        </div>
+      </div>
+
+      <!-- 파일 백업 -->
+      <div class="bk-section">
+        <div class="bk-section-title">📁 파일 백업</div>
+        <div class="bk-btn-row">
+          <button id="bk-export" class="bk-btn">⬇️ 파일로 내보내기</button>
+          <button id="bk-import-btn" class="bk-btn">⬆️ 파일에서 복원</button>
+        </div>
+        <input type="file" id="bk-import-file" accept=".json" style="display:none;">
+        <div class="bk-msg" id="bk-file-msg"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- 프로필 설정 모달 -->
 <div class="ps-backdrop" id="ps-backdrop">
   <div class="ps-card">
@@ -2407,6 +2533,7 @@
       'js/events.js',
       'js/userDataSync.js',
       'js/themeShare.js',
+      'js/backup.js',
       'js/auth-ui.js'
     ];
     // document.write 는 파서 차단·순차 실행을 보장하므로 순서 의존성이 그대로 유지된다.
@@ -6736,6 +6863,9 @@ create policy "sub_delete" on public.theme_subscribers
   // Re-check every 30 minutes in case the page stays open across days
   setInterval(checkUpcomingEvents, 30 * 60 * 1000);
 
+  // 자동 백업 주기 체크 (페이지 로드 3초 후 — 인증 완료 후 실행되도록 지연)
+  setTimeout(() => window.CalendarBackup?.checkAutoBackup(), 3000);
+
   // invite.html 랜딩 → calendar.html?invite=CODE 자동 처리
   (function handleInviteParam() {
     const code = new URLSearchParams(location.search).get('invite');
@@ -6769,6 +6899,229 @@ create policy "sub_delete" on public.theme_subscribers
 </script>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════════════
+// 백업 모달 UI
+// ═══════════════════════════════════════════════════════════════════════════
+(function initBackupModal() {
+  const modal = document.getElementById('bk-modal');
+  if (!modal) return;
+
+  function show() { modal.classList.add('active'); renderState(); }
+  function hide() { modal.classList.remove('active'); }
+  window.__showBackupModal = show;
+
+  function fmtTime(ts) {
+    if (!ts) return '없음';
+    const d = new Date(ts);
+    return d.toLocaleDateString('ko-KR') + ' ' +
+           d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function setMsg(elId, text, cls) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'bk-msg' + (cls ? ' ' + cls : '');
+  }
+
+  function renderState() {
+    const bk   = window.CalendarBackup;
+    const cfg  = bk?.getConfig() || {};
+    const sch  = cfg.schedule || 'manual';
+    const isLoggedIn = !!(window.SupabaseAuth?.getUser());
+
+    // 주기 버튼 active 상태
+    modal.querySelectorAll('.bk-seg-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.v === sch);
+    });
+
+    // 마지막 백업
+    const lastEl = document.getElementById('bk-last-info');
+    if (lastEl) {
+      const typeLabel = cfg.lastBackupType === 'cloud' ? '☁️ 클라우드' : '📁 파일';
+      lastEl.textContent = cfg.lastBackup
+        ? `마지막 백업: ${fmtTime(cfg.lastBackup)} (${typeLabel})`
+        : '마지막 백업: 없음';
+    }
+
+    // 클라우드 섹션 — 로그인 여부에 따라 표시
+    const notice  = document.getElementById('bk-login-notice');
+    const actions = document.getElementById('bk-cloud-actions');
+    if (notice)  notice.style.display  = isLoggedIn ? 'none' : '';
+    if (actions) actions.style.display = isLoggedIn ? ''     : 'none';
+  }
+
+  // ── 주기 버튼 ──
+  modal.querySelectorAll('.bk-seg-btn').forEach(btn => {
+    btn.onclick = () => {
+      window.CalendarBackup?.setConfig({ schedule: btn.dataset.v });
+      renderState();
+    };
+  });
+
+  // ── 클라우드 지금 백업 ──
+  document.getElementById('bk-cloud-now').onclick = async () => {
+    const btn = document.getElementById('bk-cloud-now');
+    btn.disabled = true;
+    setMsg('bk-cloud-msg', '백업 중…', '');
+    try {
+      await window.CalendarBackup.backupToCloud();
+      setMsg('bk-cloud-msg', '✓ 클라우드 백업 완료!', 'bk-ok');
+      renderState();
+      setTimeout(() => setMsg('bk-cloud-msg', '', ''), 3000);
+    } catch (e) {
+      if (e.message === 'TABLE_MISSING') {
+        const el = document.getElementById('bk-cloud-msg');
+        el.className = 'bk-msg bk-err';
+        el.innerHTML = '⚠️ user_backups 테이블 없음 — ' +
+          '<a href="#" id="bk-sql-lnk" style="color:#c33;">SQL 설정 보기</a>';
+        document.getElementById('bk-sql-lnk')?.addEventListener('click', ev => {
+          ev.preventDefault(); showBackupSqlGuide();
+        });
+      } else {
+        setMsg('bk-cloud-msg', '오류: ' + (e.message || '백업 실패'), 'bk-err');
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  // ── 클라우드 이력 ──
+  let histVisible = false;
+  document.getElementById('bk-cloud-hist').onclick = async () => {
+    const wrap = document.getElementById('bk-hist-list-wrap');
+    if (histVisible) { wrap.innerHTML = ''; histVisible = false; return; }
+    wrap.innerHTML = '<div style="padding:10px;color:#888;font-size:0.85em;">불러오는 중…</div>';
+    histVisible = true;
+    try {
+      const list = await window.CalendarBackup.listCloudBackups();
+      if (list === null) {
+        wrap.innerHTML = '<div class="bk-login-notice" style="margin-top:8px;">user_backups 테이블이 없습니다.</div>';
+        return;
+      }
+      if (!list.length) {
+        wrap.innerHTML = '<div style="padding:10px;color:#888;font-size:0.85em;text-align:center;">백업 이력 없음</div>';
+        return;
+      }
+      wrap.innerHTML = '';
+      const ul = document.createElement('div');
+      ul.className = 'bk-hist-list';
+      list.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'bk-hist-row';
+        const dt = new Date(item.created_at);
+        row.innerHTML = `
+          <span class="bk-hist-label">${item.label || '백업'}</span>
+          <span class="bk-hist-date">${dt.toLocaleDateString('ko-KR')} ${dt.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</span>
+        `;
+        const restoreBtn = document.createElement('button');
+        restoreBtn.className = 'bk-btn';
+        restoreBtn.style.cssText = 'padding:3px 8px;font-size:0.78em;';
+        restoreBtn.textContent = '복원';
+        restoreBtn.onclick = async () => {
+          if (!confirm(`"${item.label || '이 백업'}"으로 복원할까요?\n현재 데이터가 덮어써지고 페이지가 새로고침됩니다.`)) return;
+          restoreBtn.disabled = true; restoreBtn.textContent = '…';
+          try {
+            await window.CalendarBackup.restoreFromCloud(item.id);
+            restoreBtn.textContent = '완료';
+            setTimeout(() => window.location.reload(), 800);
+          } catch (e) {
+            alert('복원 실패: ' + (e.message || ''));
+            restoreBtn.disabled = false; restoreBtn.textContent = '복원';
+          }
+        };
+        const delBtn = document.createElement('button');
+        delBtn.className = 'bk-btn bk-btn-danger';
+        delBtn.style.cssText = 'padding:3px 8px;font-size:0.78em;';
+        delBtn.textContent = '삭제';
+        delBtn.onclick = async () => {
+          if (!confirm('이 백업을 삭제할까요?')) return;
+          delBtn.disabled = true;
+          try {
+            await window.CalendarBackup.deleteCloudBackup(item.id);
+            row.style.opacity = '0';
+            setTimeout(() => { row.remove(); if (!ul.children.length) wrap.innerHTML = ''; }, 300);
+          } catch (e) {
+            alert('삭제 실패: ' + (e.message || ''));
+            delBtn.disabled = false;
+          }
+        };
+        row.appendChild(restoreBtn);
+        row.appendChild(delBtn);
+        ul.appendChild(row);
+      });
+      wrap.appendChild(ul);
+    } catch (e) {
+      wrap.innerHTML = `<div style="padding:8px;color:#c33;font-size:0.82em;">오류: ${e.message}</div>`;
+    }
+  };
+
+  // ── 파일 내보내기 ──
+  document.getElementById('bk-export').onclick = () => {
+    window.CalendarBackup?.exportToFile();
+    setMsg('bk-file-msg', '✓ 파일 저장 완료!', 'bk-ok');
+    renderState();
+    setTimeout(() => setMsg('bk-file-msg', '', ''), 3000);
+  };
+
+  // ── 파일 복원 ──
+  const importFileEl = document.getElementById('bk-import-file');
+  document.getElementById('bk-import-btn').onclick = () => importFileEl?.click();
+  if (importFileEl) {
+    importFileEl.onchange = async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!confirm('현재 데이터가 백업 파일로 덮어써집니다.\n복원 후 페이지가 새로고침됩니다. 계속할까요?')) {
+        importFileEl.value = ''; return;
+      }
+      setMsg('bk-file-msg', '복원 중…', '');
+      try {
+        await window.CalendarBackup.importFromFile(file);
+        setMsg('bk-file-msg', '✓ 복원 완료! 새로고침합니다…', 'bk-ok');
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (err) {
+        setMsg('bk-file-msg', '오류: ' + (err.message || '복원 실패'), 'bk-err');
+      }
+      importFileEl.value = '';
+    };
+  }
+
+  // ── SQL 가이드 ──
+  function showBackupSqlGuide() {
+    const back = document.createElement('div');
+    back.className = 'gc-backdrop';
+    back.innerHTML = `
+      <div class="gc-card" style="width:520px;">
+        <h2 class="gc-card-title" style="margin:22px 24px 0;">클라우드 백업 SQL 설정</h2>
+        <p class="gc-card-desc">Supabase 대시보드 → SQL Editor에서 아래 SQL을 실행하세요.</p>
+        <div style="margin:0 24px 16px;background:#f1f3f4;border-radius:8px;padding:14px;
+                    font:12px ui-monospace,monospace;white-space:pre;overflow-x:auto;
+                    color:#202124;user-select:all;">create table if not exists public.user_backups (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  backup_data jsonb not null,
+  label text default '',
+  created_at timestamptz default now()
+);
+alter table public.user_backups enable row level security;
+create policy "user_backups_policy" on public.user_backups
+  for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);</div>
+        <div class="gc-card-actions">
+          <button class="gc-btn gc-btn-primary" id="bk-sql-ok">확인</button>
+        </div>
+      </div>`;
+    document.body.appendChild(back);
+    const close = () => back.remove();
+    back.querySelector('#bk-sql-ok').onclick = close;
+    back.onclick = e => { if (e.target === back) close(); };
+  }
+
+  // 닫기
+  document.getElementById('bk-close-btn').onclick = hide;
+  modal.onclick = e => { if (e.target === modal) hide(); };
+})();
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 유저 프로필 & 학교 교훈 시스템
 // ═══════════════════════════════════════════════════════════════════════════
