@@ -1855,6 +1855,33 @@
   .login-back:hover { color: #2874e0; }
 
   /* ── 프로필 설정 모달 ── */
+  /* 설정 목록 행 */
+  .ps-setting-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 6px; cursor: pointer;
+    border-radius: 8px; transition: background 0.12s;
+  }
+  .ps-setting-row + .ps-setting-row { border-top: 0.5px solid var(--border); }
+  .ps-setting-row:hover { background: #f5f7fa; }
+  .ps-setting-row.ps-row-disabled { opacity: 0.38; pointer-events: none; }
+  .ps-set-icon  { font-size: 1.25em; width: 28px; text-align: center; flex-shrink: 0; }
+  .ps-set-info  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .ps-set-label { font-size: 0.72em; color: var(--text-light); }
+  .ps-set-val   { font-size: 0.92em; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ps-set-val.unset { color: #bbb; font-weight: 400; }
+  .ps-set-arrow { color: #ccc; font-size: 1.3em; flex-shrink: 0; }
+  /* 헤더 행 (제목 + 뒤로/닫기 버튼) */
+  .ps-hdr-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 2px;
+  }
+  .ps-hdr-back, .ps-hdr-close {
+    background: none; border: none; cursor: pointer;
+    color: #888; padding: 4px 6px; border-radius: 6px; line-height: 1;
+    font-family: inherit;
+  }
+  .ps-hdr-back  { font-size: 1.3em; }
+  .ps-hdr-close { font-size: 1.0em; }
+  .ps-hdr-back:hover, .ps-hdr-close:hover { background: #f0f0f3; color: #222; }
   .ps-backdrop {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.45);
@@ -2416,13 +2443,38 @@
 <div class="ps-backdrop" id="ps-backdrop">
   <div class="ps-card">
     <div class="ps-header">
-      <span class="ps-emoji" id="ps-emoji">👋</span>
-      <h2 id="ps-title">어떤 사용자이신가요?</h2>
-      <p id="ps-desc">달력을 더 잘 맞춰드리기 위해 한 가지만 여쭤볼게요.</p>
+      <div class="ps-hdr-row">
+        <button class="ps-hdr-back" id="ps-hdr-back" style="display:none;">‹</button>
+        <span class="ps-emoji" id="ps-emoji">⚙️</span>
+        <h2 id="ps-title" style="flex:1;margin:0;">프로필 설정</h2>
+        <button class="ps-hdr-close" id="ps-hdr-close">✕</button>
+      </div>
+      <p id="ps-desc" style="margin:4px 0 0;font-size:0.85em;color:#888;"></p>
     </div>
     <div class="ps-body">
+
+      <!-- Step 0: 설정 목록 -->
+      <div class="ps-step active" id="ps-step0">
+        <div class="ps-setting-row" id="ps-row-type">
+          <span class="ps-set-icon">👤</span>
+          <div class="ps-set-info">
+            <span class="ps-set-label">유저 타입</span>
+            <span class="ps-set-val unset" id="ps-val-type">미설정</span>
+          </div>
+          <span class="ps-set-arrow">›</span>
+        </div>
+        <div class="ps-setting-row ps-row-disabled" id="ps-row-school">
+          <span class="ps-set-icon">🏫</span>
+          <div class="ps-set-info">
+            <span class="ps-set-label">학교</span>
+            <span class="ps-set-val unset" id="ps-val-school">미설정</span>
+          </div>
+          <span class="ps-set-arrow">›</span>
+        </div>
+      </div>
+
       <!-- Step 1: 유저 타입 선택 -->
-      <div class="ps-step active" id="ps-step1">
+      <div class="ps-step" id="ps-step1">
         <div class="ps-type-grid">
           <button class="ps-type-btn" data-type="middle">
             <span class="ps-ti">📚</span>
@@ -2442,15 +2494,16 @@
             <span class="ps-ts">직장인·기타</span>
           </button>
         </div>
-        <button class="ps-finish-btn" id="ps-next1" style="display:none;margin-top:14px;">다음 →</button>
+        <button class="ps-finish-btn" id="ps-next1" style="display:none;margin-top:14px;">저장</button>
       </div>
+
       <!-- Step 2: 학교 검색 -->
       <div class="ps-step" id="ps-step2">
-        <button class="ps-back-btn" id="ps-back2">← 뒤로</button>
-        <input type="text" class="ps-search-input" id="ps-school-input" placeholder="학교 이름으로 검색…" autocomplete="off">
+        <input type="text" class="ps-search-input" id="ps-school-input" placeholder="학교 이름으로 검색…" autocomplete="off" style="margin-top:0;">
         <div class="ps-school-list" id="ps-school-list"></div>
-        <button class="ps-skip" id="ps-skip-school">학교 검색을 건너뛰기</button>
+        <button class="ps-skip" id="ps-skip-school">학교 없이 계속하기</button>
       </div>
+
       <!-- Step 3: 교훈 표시 -->
       <div class="ps-step" id="ps-step3">
         <div class="ps-motto-card">
@@ -2459,8 +2512,9 @@
           <div class="ps-motto-text"  id="ps-m-motto"></div>
           <div class="ps-motto-quote" id="ps-m-quote"></div>
         </div>
-        <button class="ps-finish-btn" id="ps-finish">달력 시작하기 →</button>
+        <button class="ps-finish-btn" id="ps-finish">완료 ✓</button>
       </div>
+
     </div>
   </div>
 </div>
@@ -7263,7 +7317,7 @@ create policy "user_backups_policy" on public.user_backups
     const bd = document.getElementById('ps-backdrop');
     if (!bd) return;
     bd.classList.add('active');
-    goStep(1);
+    goStep(0); // 항상 설정 목록 화면에서 시작
   }
 
   function hideProfileSetup() {
@@ -7272,31 +7326,75 @@ create policy "user_backups_policy" on public.user_backups
   }
 
   function goStep(n) {
-    [1, 2, 3].forEach(i => {
+    [0, 1, 2, 3].forEach(i => {
       const el = document.getElementById('ps-step' + i);
       if (el) el.classList.toggle('active', i === n);
     });
-    const hdr = { title: document.getElementById('ps-title'), desc: document.getElementById('ps-desc'), emoji: document.getElementById('ps-emoji') };
-    if (n === 1) {
-      // 선택 상태 초기화
-      document.querySelectorAll('.ps-type-btn').forEach(b => b.classList.remove('ps-selected'));
+    const emoji = document.getElementById('ps-emoji');
+    const title = document.getElementById('ps-title');
+    const desc  = document.getElementById('ps-desc');
+    const back  = document.getElementById('ps-hdr-back');
+    const close = document.getElementById('ps-hdr-close');
+
+    // 뒤로가기 버튼: step 0에서는 숨기고 나머지는 step 0으로
+    if (back) {
+      back.style.display = n === 0 ? 'none' : '';
+      back.onclick = () => goStep(0);
+    }
+    if (close) close.style.display = ''; // 항상 표시
+
+    if (n === 0) {
+      if (emoji) emoji.textContent = '⚙️';
+      if (title) title.textContent = '프로필 설정';
+      if (desc)  desc.textContent  = '';
+      renderStep0();
+    } else if (n === 1) {
+      // 현재 타입 미리 선택 표시
+      document.querySelectorAll('.ps-type-btn').forEach(b => {
+        b.classList.toggle('ps-selected', b.dataset.type === _pendingProfile.userType);
+      });
       const nb = document.getElementById('ps-next1');
-      if (nb) nb.style.display = 'none';
-      if (hdr.emoji) hdr.emoji.textContent = '👋';
-      if (hdr.title) hdr.title.textContent = '어떤 사용자이신가요?';
-      if (hdr.desc)  hdr.desc.textContent  = '달력을 더 잘 맞춰드리기 위해 한 가지만 여쭤볼게요.';
+      if (nb) {
+        nb.style.display = _pendingProfile.userType ? '' : 'none';
+        if (nb.style.display !== 'none') nb.textContent = '저장';
+      }
+      if (emoji) emoji.textContent = '👤';
+      if (title) title.textContent = '유저 타입';
+      if (desc)  desc.textContent  = '나의 상황에 맞는 유형을 선택하세요';
     } else if (n === 2) {
       const typeLabel = { middle: '중학교', high: '고등학교', university: '대학교' }[_pendingProfile.userType] || '학교';
-      if (hdr.emoji) hdr.emoji.textContent = '🏫';
-      if (hdr.title) hdr.title.textContent = `${typeLabel}를 선택해주세요`;
-      if (hdr.desc)  hdr.desc.textContent  = '학교 이름으로 검색하거나 목록에서 선택하세요.';
+      if (emoji) emoji.textContent = '🏫';
+      if (title) title.textContent = typeLabel + ' 선택';
+      if (desc)  desc.textContent  = '학교 이름으로 검색해 선택하세요';
       setupSchoolSearch();
     } else if (n === 3) {
-      if (hdr.emoji) hdr.emoji.textContent = '🎉';
-      if (hdr.title) hdr.title.textContent = '설정 완료!';
-      if (hdr.desc)  hdr.desc.textContent  = '';
+      if (emoji) emoji.textContent = '🎉';
+      if (title) title.textContent = '학교 설정 완료';
+      if (desc)  desc.textContent  = '';
+      if (back)  back.style.display = 'none'; // step 3에서는 뒤로가기 숨김
       renderMottoStep();
     }
+  }
+
+  // step 0 설정 목록 업데이트
+  function renderStep0() {
+    const TYPE_LABELS = { middle: '중학생', high: '고등학생', university: '대학(원)생', none: '해당 없음' };
+    const typeVal = document.getElementById('ps-val-type');
+    const schoolVal = document.getElementById('ps-val-school');
+    const schoolRow = document.getElementById('ps-row-school');
+
+    if (typeVal) {
+      const lbl = TYPE_LABELS[_pendingProfile.userType];
+      typeVal.textContent = lbl || '미설정';
+      typeVal.classList.toggle('unset', !lbl);
+    }
+    if (schoolVal) {
+      schoolVal.textContent = _pendingProfile.school?.name || '미설정';
+      schoolVal.classList.toggle('unset', !_pendingProfile.school?.name);
+    }
+    // 학교 행: type이 없거나 none이면 비활성화
+    const canSelectSchool = _pendingProfile.userType && _pendingProfile.userType !== 'none';
+    if (schoolRow) schoolRow.classList.toggle('ps-row-disabled', !canSelectSchool);
   }
 
   // 학교 검색 UI
@@ -7399,54 +7497,62 @@ create policy "user_backups_policy" on public.user_backups
 
   // 이벤트 바인딩
   function bindProfileEvents() {
-    // 유저 타입 버튼
+    // Step 0: 설정 행 클릭
+    const rowType = document.getElementById('ps-row-type');
+    if (rowType) rowType.onclick = () => goStep(1);
+
+    const rowSchool = document.getElementById('ps-row-school');
+    if (rowSchool) rowSchool.onclick = () => {
+      if (!_pendingProfile.userType || _pendingProfile.userType === 'none') return;
+      goStep(2);
+    };
+
+    // Step 1: 유저 타입 카드 클릭 → 선택 표시만
     document.querySelectorAll('.ps-type-btn').forEach(btn => {
       btn.onclick = () => {
-        // 선택 표시만 — 이동은 "다음" 버튼으로
         document.querySelectorAll('.ps-type-btn').forEach(b => b.classList.remove('ps-selected'));
         btn.classList.add('ps-selected');
         _pendingProfile.userType = btn.dataset.type;
-        _pendingProfile.school = null;
-        const nextBtn = document.getElementById('ps-next1');
-        if (nextBtn) {
-          nextBtn.style.display = '';
-          nextBtn.textContent = btn.dataset.type === 'none' ? '시작하기 →' : '다음 →';
-        }
+        if (btn.dataset.type !== _pendingProfile.userType) _pendingProfile.school = null;
+        const nb = document.getElementById('ps-next1');
+        if (nb) { nb.style.display = ''; nb.textContent = '저장'; }
       };
     });
-    // "다음" 버튼 클릭 시 실제 이동
+
+    // Step 1: "저장" 버튼 → step 0으로 복귀
     const next1 = document.getElementById('ps-next1');
     if (next1) {
       next1.onclick = () => {
-        const type = _pendingProfile.userType;
-        if (!type) return;
-        if (type === 'none') { finishProfile(); }
-        else { goStep(2); }
+        if (!_pendingProfile.userType) return;
+        // 타입이 바뀌면 학교 초기화
+        const prev = getProfile();
+        if (prev?.userType !== _pendingProfile.userType) _pendingProfile.school = null;
+        saveAndApply();
+        goStep(0);
       };
     }
-    // 뒤로가기
-    const back2 = document.getElementById('ps-back2');
-    if (back2) back2.onclick = () => {
-      _pendingProfile.school = null;
-      goStep(1);
-    };
-    // 학교 건너뛰기
+
+    // Step 2: 학교 없이 계속하기
     const skip = document.getElementById('ps-skip-school');
-    if (skip) skip.onclick = () => {
-      _pendingProfile.school = null;
-      goStep(3);
-    };
-    // 완료 버튼
+    if (skip) skip.onclick = () => { _pendingProfile.school = null; goStep(0); };
+
+    // Step 3: 완료 → step 0으로 복귀
     const fin = document.getElementById('ps-finish');
-    if (fin) fin.onclick = finishProfile;
+    if (fin) fin.onclick = () => { saveAndApply(); goStep(0); };
+
+    // 헤더 닫기 버튼
+    const closeBtn = document.getElementById('ps-hdr-close');
+    if (closeBtn) closeBtn.onclick = hideProfileSetup;
   }
 
-  function finishProfile() {
+  function saveAndApply() {
     _pendingProfile.setupDone = true;
     saveProfile(_pendingProfile);
-    hideProfileSetup();
     applyProfile(_pendingProfile);
   }
+
+  // 하위 호환: 기존 호출부가 finishProfile()을 쓰는 경우를 위해 유지
+  function finishProfile() { saveAndApply(); goStep(0); }
 
   // ── 초기화 ─────────────────────────────────────────────────────────────────
   bindProfileEvents();
