@@ -2284,90 +2284,154 @@
   }
   .gx-tip-btn:hover .gx-tip-arrow { transform: translateX(2px); }
 
-  /* ── 튜토리얼 모달 ── */
-  .tutorial-modal {
-    background: var(--cell-bg);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 0;
-    min-width: 360px;
-    max-width: 460px;
-    width: 92vw;
-    box-shadow: 0 16px 50px rgba(0,0,0,0.18);
-    overflow: hidden;
+  /* ── 튜토리얼 (coach mark / spotlight) ──────────────────────────────
+     4개의 fixed mask div 가 강조 영역의 상/우/하/좌 를 어둡게 가리고,
+     중앙의 강조 영역은 자연스럽게 클릭 가능 (mask 가 외부 클릭을 흡수,
+     hole 안쪽은 mask 가 없어 underlying 요소까지 이벤트가 전달됨).
+     spotlight 는 ring 시각 효과만 담당 (pointer-events: none). */
+  .tut-coach {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 9000;
     font-family: inherit;
   }
-  .tut-header {
+  .tut-coach.active { display: block; }
+
+  .tut-mask {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9000;
+    transition: top 0.25s ease, left 0.25s ease,
+                width 0.25s ease, height 0.25s ease;
+  }
+  /* spotlight 자체는 클릭 차단하지 않음 — ring 만 그림 */
+  .tut-spotlight {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow:
+      0 0 0 2px var(--today-accent),
+      0 0 0 6px rgba(40,116,224,0.22),
+      0 0 24px 4px rgba(40,116,224,0.18);
+    pointer-events: none;
+    z-index: 9001;
+    transition: top 0.25s ease, left 0.25s ease,
+                width 0.25s ease, height 0.25s ease;
+    background: transparent;
+  }
+  /* 강조 대상이 없는 step (welcome / shortcuts / done) → 화면 전체 dim */
+  .tut-coach.no-spot .tut-mask-top {
+    top: 0 !important; left: 0 !important;
+    width: 100vw !important; height: 100vh !important;
+  }
+  .tut-coach.no-spot .tut-mask-right,
+  .tut-coach.no-spot .tut-mask-bottom,
+  .tut-coach.no-spot .tut-mask-left,
+  .tut-coach.no-spot .tut-spotlight { display: none; }
+
+  /* 툴팁 카드 */
+  .tut-tooltip {
+    position: fixed;
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.30);
+    padding: 14px 18px 14px;
+    width: 360px;
+    max-width: calc(100vw - 24px);
+    z-index: 9002;
+    font-family: inherit;
+    transition: top 0.2s ease, left 0.2s ease, opacity 0.15s ease;
+  }
+  .tut-tooltip.pos-center {
+    top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%);
+  }
+  /* 화살표 (대상이 있을 때만 보임) */
+  .tut-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
+    transform: rotate(45deg);
+    display: none;
+  }
+  .tut-tooltip.pos-below::before {
+    display: block;
+    top: -7px;
+    left: var(--arrow-x, 50%);
+    border-right: none; border-bottom: none;
+    margin-left: -6px;
+  }
+  .tut-tooltip.pos-above::before {
+    display: block;
+    bottom: -7px;
+    left: var(--arrow-x, 50%);
+    border-left: none; border-top: none;
+    margin-left: -6px;
+  }
+
+  .tut-tt-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 18px 4px;
+    margin-bottom: 8px;
   }
   .tut-step-indicator {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-light);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
-  .tut-step-indicator .tut-step-sep { margin: 0 4px; opacity: 0.5; }
+  .tut-step-indicator .tut-step-sep { margin: 0 5px; opacity: 0.5; }
   .tut-close {
     background: transparent; border: none; padding: 0;
     cursor: pointer; color: var(--text-light);
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 24px; height: 24px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
   }
   .tut-close:hover { background: rgba(0,0,0,0.06); color: var(--text); }
 
-  .tut-body {
-    padding: 8px 28px 22px;
-    text-align: center;
-  }
-  .tut-icon {
-    font-size: 48px;
-    line-height: 1;
-    margin: 8px 0 18px;
-  }
   .tut-title {
-    font-size: 1.15em;
+    font-size: 1.05em;
     font-weight: 700;
     color: var(--text);
-    margin: 0 0 10px;
+    margin: 2px 0 8px;
     line-height: 1.35;
     word-break: keep-all;
   }
   .tut-desc {
-    font-size: 0.94em;
+    font-size: 0.9em;
     color: var(--text);
     line-height: 1.6;
     margin: 0;
     word-break: keep-all;
-    opacity: 0.85;
+    opacity: 0.88;
   }
   .tut-extra {
-    margin-top: 14px;
-    padding: 10px 14px;
-    background: rgba(0,0,0,0.04);
+    margin-top: 10px;
+    padding: 9px 12px;
+    background: rgba(0,0,0,0.045);
     border-radius: 10px;
-    font-size: 0.85em;
-    color: var(--text-light);
+    font-size: 0.82em;
+    color: var(--text);
     line-height: 1.5;
     word-break: keep-all;
   }
-  .tut-extra::before {
-    content: '💡  ';
-  }
+  .tut-extra::before { content: '💡  '; opacity: 0.9; }
   .tut-extra.hidden { display: none; }
 
   .tut-progress {
     height: 3px;
     background: rgba(0,0,0,0.06);
     overflow: hidden;
+    border-radius: 2px;
+    margin-top: 14px;
   }
   .tut-progress-bar {
     height: 100%;
     background: var(--today-accent);
-    border-radius: 2px;
     transition: width 0.3s ease;
     width: 0%;
   }
@@ -2375,14 +2439,14 @@
   .tut-footer {
     display: flex;
     align-items: center;
-    padding: 14px 18px 18px;
-    gap: 8px;
+    margin-top: 12px;
+    gap: 6px;
   }
   .tut-spacer { flex: 1; }
   .tut-btn {
     font-family: inherit;
-    font-size: 0.9em;
-    padding: 9px 16px;
+    font-size: 0.84em;
+    padding: 7px 14px;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: var(--cell-bg);
@@ -2393,13 +2457,11 @@
   }
   .tut-btn:hover { background: var(--cell-hover); }
   .tut-btn:active { transform: scale(0.97); }
-  .tut-btn:disabled {
-    opacity: 0.4; cursor: not-allowed; transform: none;
-  }
+  .tut-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   .tut-btn-text {
     background: transparent; border-color: transparent;
     color: var(--text-light);
-    padding: 9px 10px;
+    padding: 7px 10px;
   }
   .tut-btn-text:hover { background: rgba(0,0,0,0.04); color: var(--text); }
   .tut-btn-primary {
@@ -2407,10 +2469,7 @@
     border-color: var(--today-accent);
     color: #ffffff;
   }
-  .tut-btn-primary:hover {
-    background: var(--today-accent);
-    filter: brightness(0.93);
-  }
+  .tut-btn-primary:hover { filter: brightness(0.93); }
 
   /* ── 캘린더 grid: 외곽선 / 그림자 제거, 셀은 hairline 없이 padding only ── */
   .calendar {
@@ -2870,21 +2929,25 @@
 <!-- 날짜 선택 액션 메뉴 -->
 <div id="day-action-menu" class="day-action-menu" style="display:none;"></div>
 
-<!-- 단계별 튜토리얼 모달 (캘린더 사용법) -->
-<div class="modal-backdrop" id="tutorial-backdrop">
-  <div class="modal tutorial-modal" role="dialog" aria-labelledby="tut-title">
-    <div class="tut-header">
+<!-- 단계별 튜토리얼 (coach mark / 제품 투어 방식) -->
+<!-- 4개의 mask div 가 강조 요소 주위를 어둡게 가리고, 그 안쪽은 자연스럽게
+     클릭 가능 (mask 가 fixed 요소라서 외부 클릭을 흡수). -->
+<div class="tut-coach" id="tut-coach" aria-hidden="true">
+  <div class="tut-mask tut-mask-top"></div>
+  <div class="tut-mask tut-mask-right"></div>
+  <div class="tut-mask tut-mask-bottom"></div>
+  <div class="tut-mask tut-mask-left"></div>
+  <div class="tut-spotlight" id="tut-spotlight"></div>
+  <div class="tut-tooltip" id="tut-tooltip" role="dialog" aria-labelledby="tut-title">
+    <div class="tut-tt-header">
       <div class="tut-step-indicator">
-        <span id="tut-current">1</span> <span class="tut-step-sep">/</span> <span id="tut-total">1</span>
+        <span id="tut-current">1</span><span class="tut-step-sep">/</span><span id="tut-total">1</span>
       </div>
       <button class="tut-close" id="tut-close" type="button" aria-label="닫기">✕</button>
     </div>
-    <div class="tut-body">
-      <div class="tut-icon" id="tut-icon" aria-hidden="true">🗓️</div>
-      <h3 class="tut-title" id="tut-title"></h3>
-      <p class="tut-desc" id="tut-desc"></p>
-      <div class="tut-extra hidden" id="tut-extra"></div>
-    </div>
+    <h3 class="tut-title" id="tut-title"></h3>
+    <p class="tut-desc" id="tut-desc"></p>
+    <div class="tut-extra hidden" id="tut-extra"></div>
     <div class="tut-progress" aria-hidden="true">
       <div class="tut-progress-bar" id="tut-progress-bar"></div>
     </div>
@@ -8567,124 +8630,291 @@ create policy "user_backups_policy" on public.user_backups
 <script>
 (function gxOneUiEnhance() {
 
-  // ── 1) 캘린더 사용법 튜토리얼 ───────────────────────────────
-  // 토글 버튼 (#gx-tip-btn) 을 누르면 모달이 열리고, "이전/다음" 으로
-  // 단계별 기능 안내. ESC / ←→ 화살표 / 배경 클릭 으로 닫기/이동.
+  // ── 1) 캘린더 사용법 튜토리얼 (coach mark / spotlight) ──────
+  // 각 step 은 강조할 DOM 요소를 selector 로 지목. 4개 mask div 가
+  // 요소 주변을 어둡게 가리고, 그 안쪽은 자연스럽게 클릭 가능 → 사용자는
+  // 강조된 한 가지 기능에만 집중할 수 있음.
+  //   target          : 강조할 요소 (없으면 화면 중앙 안내)
+  //   targetAll       : true 면 모든 매칭 요소의 합집합 영역을 강조
+  //   requireTarget   : true 인데 요소가 없으면 그 step 은 스킵 (예: 학교 미선택 시)
+  //   title / desc    : 툴팁 본문
+  //   extra           : 회색 박스 안에 들어가는 추가 팁 (선택)
   const TUTORIAL_STEPS = [
     {
-      icon: '🗓️',
-      title: '날짜 클릭으로 일정 추가',
-      desc: '달력의 원하는 날짜를 한 번 클릭하면 액션 메뉴가 떠요. ' +
-            '거기서 일정 추가, 별표, 메모 등을 선택할 수 있어요.',
-      extra: '이미 일정이 있는 날도 같은 방법으로 일정을 더 추가하거나 편집할 수 있어요.'
+      target: null,
+      title: '캘린더 사용법을 안내해드릴게요',
+      desc:  '각 단계에서 강조된 부분만 클릭할 수 있어요. ' +
+             '직접 눌러보면서 따라오시면 됩니다. ESC 키 또는 ✕ 로 언제든 종료.',
     },
     {
-      icon: '⭐',
-      title: '더블클릭으로 별표 토글',
-      desc: '날짜를 더블클릭하면 그 날에 빨간 별표가 켜져요. ' +
-            '시험·면접·생일처럼 시각적으로 강조해야 하는 날에 쓰세요.',
-      extra: '한 번 더 더블클릭하면 별표가 사라집니다.'
+      target: '.palette-current',
+      title: '색상 테마 변경',
+      desc:  '왼쪽 위 작은 색 동그라미를 누르면 캘린더 전체 색상이 ' +
+             '바뀝니다. 기본 · 피치 · 하늘 · 레몬 · 로즈 중 골라보세요.',
     },
     {
-      icon: '🎨',
-      title: '좌측 상단 동그라미로 색상 테마 변경',
-      desc: '화면 왼쪽 위 작은 색 동그라미를 누르면 캘린더 전체 색상이 ' +
-            '바뀝니다. 기본 / 피치 / 하늘 / 레몬 / 로즈 중 골라보세요.',
+      target: '#theme-mgr-btn',
+      title: '테마 관리',
+      desc:  '학교 · 학원 · 친구 같은 카테고리 테마를 만들고 색을 지정할 ' +
+             '수 있어요. 한 일정에 여러 테마를 동시에 붙일 수도 있습니다.',
+      extra: '초대 링크를 만들면 친구와 같은 테마의 일정을 실시간 공유할 수 있어요.',
     },
     {
-      icon: '🏷️',
-      title: '"테마 관리" 로 일정 분류',
-      desc: '좌측 상단 [테마 관리] 에서 학교·학원·친구 같은 카테고리 ' +
-            '테마를 만들고 색을 지정할 수 있어요. 일정 하나에 여러 ' +
-            '테마를 동시에 붙일 수도 있습니다.',
-      extra: '초대 링크를 만들면 친구와 같은 테마의 일정을 실시간 공유할 수 있어요.'
+      target: '#day-tpl-mgr-btn',
+      title: '위젯 설정',
+      desc:  '순공시간 · 한 줄 일기 · 공부 과목 체크리스트 같은 일별 입력 ' +
+             '위젯을 만들 수 있어요. 적용할 날짜 범위도 지정할 수 있습니다.',
     },
     {
-      icon: '🔍',
-      title: '사이드바로 테마별 필터링',
-      desc: '왼쪽 사이드바의 테마 체크박스로 보고 싶은 테마만 켜 / 꺼 ' +
-            '볼 수 있어요. 공휴일 숨기기, 시험만 보기 등 자유롭게.',
+      target: '.nav-controls',
+      title: '월 이동',
+      desc:  '월 라벨을 클릭하면 연 · 월 picker, 양옆 화살표로 한 달씩 ' +
+             '이동, [오늘] 버튼으로 즉시 오늘로.',
     },
     {
-      icon: '📊',
-      title: '"위젯 설정" 으로 일별 기록',
-      desc: '좌측 상단 [위젯 설정] 에서 순공시간 · 한줄일기 · ' +
-            '공부 과목 체크리스트 같은 일별 입력 위젯을 만들 수 있어요. ' +
-            '적용할 날짜 범위도 지정 가능.',
+      target: '.sb-seg',
+      title: '일정 ↔ 시간표 전환',
+      desc:  '사이드바 위쪽 탭에서 일정 모드와 시간표 모드를 전환할 수 있어요.',
     },
     {
-      icon: '⏰',
-      title: '시간표 탭 / 연속 보기 토글',
-      desc: '사이드바 위쪽 [시간표] 탭에서 주간 시간표 + 급식을 관리할 수 ' +
-            '있고, "연속 보기" 토글을 켜면 3개월을 한 화면에 가로로 ' +
-            '펼쳐서 볼 수 있어요.',
+      target: '#sidebar-items',
+      title: '테마 필터',
+      desc:  '체크박스로 보고 싶은 테마만 켜고 끌 수 있어요. ' +
+             '공휴일 숨기기, 특정 학원만 보기 등 자유롭게.',
     },
     {
-      icon: '🏫',
+      target: '.sb-option-row',
+      targetAll: true,
+      title: '보기 옵션',
+      desc:  '"지난 날 표시" / "알림" / "연속 보기" 토글. 연속 보기를 켜면 ' +
+             '3개월을 한 화면에 가로로 펼쳐서 볼 수 있어요.',
+    },
+    {
+      target: '#sb-school-sec .sb-school-nm',
+      requireTarget: true,
       title: '학교 정보 카드',
-      desc: '사이드바 "내 학교" 영역에서 학교 이름을 클릭하면 ' +
-            '교훈 · 주소 · 전화 · 홈페이지 등 정보 카드가 떠요.',
-      extra: 'NEIS open API 로 항상 최신 정보를 가져오니까 주소가 정확합니다.'
+      desc:  '"내 학교" 영역에서 학교 이름을 클릭하면 교훈 · 주소 · 전화 · ' +
+             '홈페이지 등 정보 카드가 떠요.',
+      extra: 'NEIS open API 로 항상 최신 정보를 가져오니까 주소가 정확합니다.',
     },
     {
-      icon: '🚀',
+      target: '.day-cell.today, .day-cell:not(.empty)',
+      title: '날짜 클릭으로 일정 추가',
+      desc:  '날짜를 한 번 클릭하면 액션 메뉴가 떠요. 거기서 일정 추가, ' +
+             '별표, 동그라미, 위젯 입력 중 골라서 사용합니다.',
+    },
+    {
+      target: null,
+      title: '빠른 단축키',
+      desc:  '마우스 커서를 날짜 위에 올린 상태에서 키보드를 사용하면 ' +
+             '더 빠르게 작업할 수 있어요.',
+      extra: '⌨  1 키 → 별표 토글 (1~3개 누적)    ' +
+             '⌫  Backspace → 별표 / 동그라미 / 선택된 일정 삭제',
+    },
+    {
+      target: null,
       title: '준비 완료!',
-      desc: '이제 캘린더의 핵심 기능을 다 익히셨어요. ' +
-            '필요할 땐 언제든 "💡 캘린더 사용법" 버튼을 다시 누르면 돼요.',
+      desc:  '이제 캘린더의 핵심 기능을 다 익히셨어요. 필요할 땐 ' +
+             '언제든 [💡 캘린더 사용법] 버튼을 다시 누르면 돼요.',
     },
   ];
 
-  const tutBack = document.getElementById('tutorial-backdrop');
+  const coach   = document.getElementById('tut-coach');
   const tipBtn  = document.getElementById('gx-tip-btn');
-  let tutStep = 0;
+  const tooltip = document.getElementById('tut-tooltip');
+  const maskT   = document.querySelector('.tut-mask-top');
+  const maskR   = document.querySelector('.tut-mask-right');
+  const maskB   = document.querySelector('.tut-mask-bottom');
+  const maskL   = document.querySelector('.tut-mask-left');
+  const spot    = document.getElementById('tut-spotlight');
+  let tutIdx = 0;          // 사용자에게 보이는 인덱스 (스킵 step 보정 후)
+  let lastShownStep = null; // 현재 표시 중인 step (resize 시 재배치용)
 
-  function tutRender() {
-    const s = TUTORIAL_STEPS[tutStep];
-    document.getElementById('tut-icon').textContent  = s.icon;
+  // 강조 영역 계산: 단일 / 다중 selector 지원
+  function computeRect(step) {
+    if (!step.target) return null;
+    let els;
+    if (step.targetAll) {
+      els = Array.from(document.querySelectorAll(step.target));
+    } else {
+      const one = document.querySelector(step.target);
+      els = one ? [one] : [];
+    }
+    els = els.filter(e => {
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
+    if (!els.length) return null;
+    if (els.length === 1) {
+      const r = els[0].getBoundingClientRect();
+      return { left: r.left, top: r.top, right: r.right, bottom: r.bottom,
+               width: r.width, height: r.height, scrollEl: els[0] };
+    }
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+    for (const e of els) {
+      const x = e.getBoundingClientRect();
+      l = Math.min(l, x.left);
+      t = Math.min(t, x.top);
+      r = Math.max(r, x.right);
+      b = Math.max(b, x.bottom);
+    }
+    return { left: l, top: t, right: r, bottom: b, width: r - l, height: b - t,
+             scrollEl: els[0] };
+  }
+
+  // 강조 영역 주위 4면을 어둡게 가림 + 툴팁 배치
+  function applySpotlight(rect) {
+    coach.classList.remove('no-spot');
+    tooltip.classList.remove('pos-center');
+    const PAD = 6;
+    const x = Math.max(0, rect.left - PAD);
+    const y = Math.max(0, rect.top - PAD);
+    const w = Math.min(window.innerWidth, rect.right + PAD) - x;
+    const h = Math.min(window.innerHeight, rect.bottom + PAD) - y;
+    const W = window.innerWidth, H = window.innerHeight;
+
+    maskT.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${y}px;`;
+    maskB.style.cssText = `position:fixed;left:0;top:${y+h}px;width:${W}px;height:${Math.max(0, H-(y+h))}px;`;
+    maskL.style.cssText = `position:fixed;left:0;top:${y}px;width:${x}px;height:${h}px;`;
+    maskR.style.cssText = `position:fixed;left:${x+w}px;top:${y}px;width:${Math.max(0, W-(x+w))}px;height:${h}px;`;
+    spot.style.cssText  = `position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${h}px;` +
+                          'border-radius:12px;pointer-events:none;background:transparent;' +
+                          'box-shadow:0 0 0 2px var(--today-accent),0 0 0 6px rgba(40,116,224,0.22),0 0 24px 4px rgba(40,116,224,0.18);';
+
+    // 툴팁 위치: 아래쪽 우선, 공간 없으면 위쪽, 둘 다 안 되면 중앙
+    // 일단 표시해 사이즈를 측정
+    tooltip.style.left = '-9999px';
+    tooltip.style.top  = '0px';
+    tooltip.classList.add('pos-below'); // 임시 — 사이즈 측정
+    const ttW = Math.min(360, W - 24);
+    const ttRect = tooltip.getBoundingClientRect();
+    const ttH = ttRect.height || 240;
+
+    let tx, ty, arrow;
+    const GAP = 14;
+    if (y + h + GAP + ttH + 12 <= H) {
+      ty = y + h + GAP;
+      arrow = 'below';
+    } else if (y - GAP - ttH >= 12) {
+      ty = y - GAP - ttH;
+      arrow = 'above';
+    } else {
+      ty = (H - ttH) / 2;
+      arrow = null;
+    }
+    const elCx = x + w / 2;
+    tx = elCx - ttW / 2;
+    tx = Math.max(12, Math.min(tx, W - ttW - 12));
+
+    tooltip.classList.remove('pos-above', 'pos-below');
+    if (arrow) {
+      tooltip.classList.add('pos-' + arrow);
+      const arrowX = Math.max(20, Math.min(elCx - tx, ttW - 20));
+      tooltip.style.setProperty('--arrow-x', arrowX + 'px');
+    }
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top  = ty + 'px';
+  }
+  function applyCentered() {
+    coach.classList.add('no-spot');
+    tooltip.classList.remove('pos-above', 'pos-below');
+    tooltip.classList.add('pos-center');
+  }
+
+  function tutRenderText(s) {
     document.getElementById('tut-title').textContent = s.title;
-    document.getElementById('tut-desc').textContent  = s.desc;
+    document.getElementById('tut-desc' ).textContent = s.desc;
     const extra = document.getElementById('tut-extra');
     if (s.extra) { extra.textContent = s.extra; extra.classList.remove('hidden'); }
     else         { extra.classList.add('hidden'); }
-    document.getElementById('tut-current').textContent = String(tutStep + 1);
-    document.getElementById('tut-total').textContent   = String(TUTORIAL_STEPS.length);
-    const pct = ((tutStep + 1) / TUTORIAL_STEPS.length) * 100;
-    document.getElementById('tut-progress-bar').style.width = pct + '%';
-    const prev = document.getElementById('tut-prev');
-    const next = document.getElementById('tut-next');
-    prev.disabled = (tutStep === 0);
-    next.textContent = (tutStep === TUTORIAL_STEPS.length - 1) ? '시작하기 ✓' : '다음 →';
+
+    // 진행률 표시 (스킵 step 제외한 인덱스 / 보이는 step 총 개수)
+    const visibleSteps = TUTORIAL_STEPS.filter(stepIsVisible);
+    const cur = visibleSteps.indexOf(s) + 1;
+    document.getElementById('tut-current').textContent = String(cur);
+    document.getElementById('tut-total'  ).textContent = String(visibleSteps.length);
+    document.getElementById('tut-progress-bar').style.width =
+      (cur / visibleSteps.length * 100) + '%';
+
+    document.getElementById('tut-prev').disabled = (cur === 1);
+    document.getElementById('tut-next').textContent =
+      (cur === visibleSteps.length) ? '시작하기 ✓' : '다음 →';
+  }
+  function stepIsVisible(s) {
+    if (!s.requireTarget) return true;
+    return !!document.querySelector(s.target);
+  }
+  function tutShow(idx) {
+    // skip-step 보정: 현재 위치에서 다음 visible step 찾기
+    while (idx >= 0 && idx < TUTORIAL_STEPS.length &&
+           !stepIsVisible(TUTORIAL_STEPS[idx])) {
+      idx++;
+    }
+    if (idx >= TUTORIAL_STEPS.length) { tutClose(); return; }
+    if (idx < 0) idx = 0;
+    tutIdx = idx;
+    const s = TUTORIAL_STEPS[idx];
+    lastShownStep = s;
+    tutRenderText(s);
+
+    const rect = computeRect(s);
+    if (rect) {
+      // 스크롤로 화면 안에 들어오도록
+      if (rect.scrollEl && typeof rect.scrollEl.scrollIntoView === 'function') {
+        try { rect.scrollEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        catch { rect.scrollEl.scrollIntoView(); }
+      }
+      // 스크롤 애니메이션 후 재측정
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const fresh = computeRect(s);
+        if (fresh) applySpotlight(fresh); else applyCentered();
+      }));
+    } else {
+      applyCentered();
+    }
   }
   function tutOpen() {
-    tutStep = 0;
-    tutRender();
-    tutBack.classList.add('active');
+    coach.setAttribute('aria-hidden', 'false');
+    coach.classList.add('active');
+    tutShow(0);
   }
   function tutClose() {
-    tutBack.classList.remove('active');
+    coach.classList.remove('active');
+    coach.setAttribute('aria-hidden', 'true');
+    lastShownStep = null;
   }
   function tutNext() {
-    if (tutStep < TUTORIAL_STEPS.length - 1) { tutStep++; tutRender(); }
-    else { tutClose(); }
+    // 다음 visible step
+    let i = tutIdx + 1;
+    while (i < TUTORIAL_STEPS.length && !stepIsVisible(TUTORIAL_STEPS[i])) i++;
+    if (i >= TUTORIAL_STEPS.length) tutClose();
+    else tutShow(i);
   }
   function tutPrev() {
-    if (tutStep > 0) { tutStep--; tutRender(); }
+    let i = tutIdx - 1;
+    while (i >= 0 && !stepIsVisible(TUTORIAL_STEPS[i])) i--;
+    if (i < 0) return;
+    tutShow(i);
   }
 
   if (tipBtn) tipBtn.addEventListener('click', tutOpen);
-  if (tutBack) {
-    document.getElementById('tut-close').addEventListener('click', tutClose);
-    document.getElementById('tut-skip' ).addEventListener('click', tutClose);
-    document.getElementById('tut-next' ).addEventListener('click', tutNext);
-    document.getElementById('tut-prev' ).addEventListener('click', tutPrev);
-    tutBack.addEventListener('click', e => { if (e.target === tutBack) tutClose(); });
-    document.addEventListener('keydown', e => {
-      if (!tutBack.classList.contains('active')) return;
-      if      (e.key === 'Escape')     tutClose();
-      else if (e.key === 'ArrowRight') tutNext();
-      else if (e.key === 'ArrowLeft')  tutPrev();
-    });
-  }
+  document.getElementById('tut-close').addEventListener('click', tutClose);
+  document.getElementById('tut-skip' ).addEventListener('click', tutClose);
+  document.getElementById('tut-next' ).addEventListener('click', tutNext);
+  document.getElementById('tut-prev' ).addEventListener('click', tutPrev);
+  document.addEventListener('keydown', e => {
+    if (!coach.classList.contains('active')) return;
+    if      (e.key === 'Escape')     { e.preventDefault(); tutClose(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); tutNext();  }
+    else if (e.key === 'ArrowLeft')  { e.preventDefault(); tutPrev();  }
+  });
+  // 화면 크기 변경 시 스포트라이트 재배치
+  window.addEventListener('resize', () => {
+    if (!coach.classList.contains('active') || !lastShownStep) return;
+    const rect = computeRect(lastShownStep);
+    if (rect) applySpotlight(rect); else applyCentered();
+  });
+
   // 디버깅 / 외부 트리거용
   window.TutorialOpen = tutOpen;
 
