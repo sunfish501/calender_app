@@ -2440,6 +2440,115 @@
   .sidebar {
     background: #ffffff !important;
   }
+
+  /* 사이드바 학교명: 클릭 가능 hint */
+  .sb-school-nm {
+    cursor: pointer;
+    transition: color 0.12s;
+  }
+  .sb-school-nm:hover { color: var(--today-accent); text-decoration: underline; }
+
+  /* ── 학교 정보 모달 (school info card) ── */
+  .school-info-modal {
+    background: #ffffff;
+    border: 1px solid #ececef;
+    border-radius: 18px;
+    padding: 22px 24px 24px;
+    min-width: 360px;
+    max-width: 460px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.16);
+    font-family: inherit;
+  }
+  .si-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .si-avatar {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1em;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .si-meta { flex: 1; min-width: 0; }
+  .si-meta h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 3px;
+    line-height: 1.3;
+    word-break: keep-all;
+  }
+  .si-type {
+    font-size: 0.78em;
+    color: #80868b;
+    font-weight: 500;
+  }
+  .si-close {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #8a8a8e;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+  }
+  .si-close:hover { background: #f4f4f6; color: #1a1a1a; }
+
+  .si-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .si-row {
+    display: flex;
+    gap: 12px;
+    padding: 11px 14px;
+    background: #f7f7f9;
+    border-radius: 12px;
+    font-size: 0.92em;
+    line-height: 1.5;
+  }
+  .si-row .si-label {
+    flex-shrink: 0;
+    width: 72px;
+    color: #80868b;
+    font-weight: 500;
+  }
+  .si-row .si-value {
+    flex: 1;
+    color: #1a1a1a;
+    word-break: break-all;
+  }
+  .si-row.hidden { display: none; }
+  .si-quote-row {
+    background: linear-gradient(135deg, #f7f7f9 0%, #fafafc 100%);
+    font-style: italic;
+    color: #4a4a52;
+    padding: 12px 16px;
+  }
+  .si-quote-row::before {
+    content: '\201C';
+    font-family: Georgia, serif;
+    color: var(--today-accent);
+    opacity: 0.4;
+    font-size: 1.6em;
+    line-height: 0.6;
+    margin-right: 6px;
+    vertical-align: -0.2em;
+  }
 </style>
 </head>
 <body>
@@ -2620,6 +2729,41 @@
 
 <!-- 날짜 선택 액션 메뉴 -->
 <div id="day-action-menu" class="day-action-menu" style="display:none;"></div>
+
+<!-- 학교 정보 카드 -->
+<div class="modal-backdrop" id="school-info-backdrop">
+  <div class="modal school-info-modal" role="dialog" aria-labelledby="si-name">
+    <div class="si-header">
+      <div class="si-avatar" id="si-avatar"></div>
+      <div class="si-meta">
+        <h3 id="si-name"></h3>
+        <div class="si-type" id="si-type"></div>
+      </div>
+      <button class="si-close" id="si-close" type="button" aria-label="닫기">✕</button>
+    </div>
+    <div class="si-body">
+      <div class="si-row si-quote-row" id="si-quote-row">
+        <span class="si-value" id="si-quote"></span>
+      </div>
+      <div class="si-row" id="si-motto-row">
+        <span class="si-label">교훈</span>
+        <span class="si-value" id="si-motto"></span>
+      </div>
+      <div class="si-row" id="si-established-row">
+        <span class="si-label">설립</span>
+        <span class="si-value" id="si-established"></span>
+      </div>
+      <div class="si-row" id="si-address-row">
+        <span class="si-label">주소</span>
+        <span class="si-value" id="si-address"></span>
+      </div>
+      <div class="si-row" id="si-category-row">
+        <span class="si-label">구분</span>
+        <span class="si-value" id="si-category"></span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 일별 위젯 입력 모달 -->
 <div class="modal-backdrop" id="day-widget-input-backdrop">
@@ -7568,7 +7712,11 @@ create policy "user_backups_policy" on public.user_backups
       { name: '광주과학기술원',   color: '#003087', motto: '창의와 도전',              quote: '세계 최고의 연구중심 대학', abbr: 'GIST' },
     ],
     high: [
-      { name: '한국디지털미디어고등학교', color: '#003087', motto: 'VPS',         quote: 'Vision · Passion · Service', abbr: 'KDMH' },
+      { name: '한국디지털미디어고등학교', color: '#003087', motto: 'VPS',         quote: 'Vision · Passion · Service', abbr: 'KDMH',
+        logo: 'assets/schools/kdmh.svg',
+        established: '2002년',
+        address: '대전광역시 대덕구 동서대로 89',
+        category: '특성화고 (디지털 미디어)' },
       { name: '하나고등학교',             color: '#1B4F8A', motto: '새로운 가치 창조', quote: '세상을 변화시키는 글로벌 인재 양성' },
       { name: '경기과학고등학교',         color: '#003087', motto: '지·인·용',     quote: '창의와 도전으로 미래를 이끄는 과학영재' },
       { name: '서울과학고등학교',         color: '#003087', motto: '진리 탐구',    quote: '자연과 인간을 위한 과학기술 선도' },
@@ -7583,17 +7731,38 @@ create policy "user_backups_policy" on public.user_backups
     ],
   };
 
-  // ── 학교별 로고 이미지 매핑 ────────────────────────────────────────────────
-  // 이름 일치하면 "KD" 같은 약자 텍스트 대신 이미지를 표시.
-  // 추가 학교는 여기에 한 줄만 등록하면 됨.
-  const SCHOOL_LOGOS = {
-    '한국디지털미디어고등학교': 'assets/schools/kdmh.svg',
-  };
+  // ── 학교 DB 조회 ──────────────────────────────────────────────────────────
+  // 저장된 프로필이 옛 스키마라서 logo/address 필드가 없어도, 이름으로
+  // SCHOOL_DATA 에서 최신 정보를 찾아 머지해 사용한다.
+  function findSchoolInfo(name) {
+    if (!name) return null;
+    for (const k of Object.keys(SCHOOL_DATA)) {
+      const hit = SCHOOL_DATA[k].find(s => s.name === name);
+      if (hit) return { ...hit, type: k };
+    }
+    return null;
+  }
+  // 학교 + DB 정보 머지 (저장된 프로필 우선 + 누락 필드는 DB 폴백)
+  function enrichSchool(s) {
+    if (!s) return null;
+    const db = findSchoolInfo(s.name);
+    if (!db) return s;
+    return { ...db, ...s, logo: s.logo || db.logo,
+             address: s.address || db.address,
+             established: s.established || db.established,
+             category: s.category || db.category };
+  }
   // 학교 아바타 (sb-school-av / ps-school-avatar / ps-m-avatar 공용) 렌더링.
-  // 로고가 있으면 흰 배경 + 이미지, 없으면 학교색 + 약자 텍스트로 폴백.
+  // s.logo 가 있으면 (또는 DB 에 로고가 있으면) 흰 배경 + 이미지,
+  // 없으면 학교색 + 약자 텍스트로 폴백. 학교 데이터 추가 시 SCHOOL_DATA 의
+  // 항목에 logo: 'assets/schools/xxx.svg' 한 줄만 박으면 자동 반영됨.
   function applySchoolAvatar(av, s) {
     if (!av) return;
-    const logo = s && SCHOOL_LOGOS[s.name];
+    let logo = s && s.logo;
+    if (!logo && s && s.name) {
+      const db = findSchoolInfo(s.name);
+      if (db && db.logo) logo = db.logo;
+    }
     if (logo) {
       av.style.background       = '#ffffff';
       av.style.backgroundImage  = "url('" + logo + "')";
@@ -7661,7 +7830,8 @@ create policy "user_backups_policy" on public.user_backups
     const nm = document.createElement('span');
     nm.className = 'sb-school-nm';
     nm.textContent = s.name;
-    nm.title = s.name;
+    nm.title = s.name + ' (클릭하면 정보 보기)';
+    nm.onclick = () => showSchoolInfo(s);
     row.appendChild(nm);
 
     const ch = document.createElement('button');
@@ -7681,6 +7851,62 @@ create policy "user_backups_policy" on public.user_backups
 
     sbMain.appendChild(sec);
   }
+
+  // ── 학교 정보 카드 표시 ────────────────────────────────────────────────────
+  // 저장된 프로필의 학교 (s) 와 SCHOOL_DATA 의 항목을 머지해 표시.
+  // 모든 필드는 옵셔널 — 값이 없는 행은 자동 숨김.
+  function showSchoolInfo(s) {
+    if (!s || !s.name) return;
+    const m = enrichSchool(s);
+    const back = document.getElementById('school-info-backdrop');
+    if (!back) return;
+
+    // Avatar
+    const av = document.getElementById('si-avatar');
+    applySchoolAvatar(av, m);
+
+    // 이름 / 구분
+    document.getElementById('si-name').textContent = m.name;
+    const typeMap = { university: '대학교', high: '고등학교', middle: '중학교', none: '학생' };
+    const typeLabel = m.category || typeMap[m.type] || '';
+    document.getElementById('si-type').textContent = typeLabel;
+
+    // 각 행: 값이 있는 것만 보이도록 hidden 토글
+    const setRow = (rowId, valId, value) => {
+      const row = document.getElementById(rowId);
+      const val = document.getElementById(valId);
+      if (value && String(value).trim()) {
+        if (val) val.textContent = value;
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    };
+    setRow('si-quote-row',       'si-quote',       m.quote);
+    setRow('si-motto-row',       'si-motto',       m.motto);
+    setRow('si-established-row', 'si-established', m.established);
+    setRow('si-address-row',     'si-address',     m.address);
+    setRow('si-category-row',    'si-category',    m.category);
+
+    back.classList.add('active');
+  }
+
+  // 닫기 핸들러 — 한 번만 바인딩
+  (function bindSchoolInfoClose() {
+    const back = document.getElementById('school-info-backdrop');
+    if (!back || back.dataset.siBound === '1') return;
+    back.dataset.siBound = '1';
+    const close = () => back.classList.remove('active');
+    const btn = document.getElementById('si-close');
+    if (btn) btn.onclick = close;
+    back.addEventListener('click', e => { if (e.target === back) close(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && back.classList.contains('active')) close();
+    });
+  })();
+
+  // 외부에서도 학교 정보 카드를 열 수 있게 노출 (디버깅/타 모듈용)
+  window.SchoolInfoShow = showSchoolInfo;
 
   // ── 교훈 배너 표시 ──────────────────────────────────────────────────────────
   function renderSchoolQuoteBar(p) {
