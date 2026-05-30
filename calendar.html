@@ -2549,6 +2549,19 @@
     margin-right: 6px;
     vertical-align: -0.2em;
   }
+  /* 홈페이지 링크 */
+  .si-row .si-link {
+    color: var(--today-accent);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .si-row .si-link:hover { text-decoration: underline; }
+  /* NEIS 조회 중 안내 */
+  .si-loading-row {
+    background: transparent;
+    padding: 6px 14px 0;
+    font-size: 0.78em;
+  }
 </style>
 </head>
 <body>
@@ -2760,6 +2773,17 @@
       <div class="si-row" id="si-category-row">
         <span class="si-label">구분</span>
         <span class="si-value" id="si-category"></span>
+      </div>
+      <div class="si-row" id="si-tel-row">
+        <span class="si-label">전화</span>
+        <span class="si-value" id="si-tel"></span>
+      </div>
+      <div class="si-row" id="si-homepage-row">
+        <span class="si-label">홈페이지</span>
+        <span class="si-value" id="si-homepage"></span>
+      </div>
+      <div class="si-row si-loading-row hidden" id="si-loading-row">
+        <span class="si-value" style="color:#888;font-style:italic;">NEIS 에서 최신 정보를 조회 중…</span>
       </div>
     </div>
   </div>
@@ -7712,11 +7736,7 @@ create policy "user_backups_policy" on public.user_backups
       { name: '광주과학기술원',   color: '#003087', motto: '창의와 도전',              quote: '세계 최고의 연구중심 대학', abbr: 'GIST' },
     ],
     high: [
-      { name: '한국디지털미디어고등학교', color: '#003087', motto: 'VPS',         quote: 'Vision · Passion · Service', abbr: 'KDMH',
-        logo: 'assets/schools/kdmh.svg',
-        established: '2002년',
-        address: '대전광역시 대덕구 동서대로 89',
-        category: '특성화고 (디지털 미디어)' },
+      { name: '한국디지털미디어고등학교', color: '#003087', motto: 'VPS',         quote: 'Vision · Passion · Service', abbr: 'KDMH' },
       { name: '하나고등학교',             color: '#1B4F8A', motto: '새로운 가치 창조', quote: '세상을 변화시키는 글로벌 인재 양성' },
       { name: '경기과학고등학교',         color: '#003087', motto: '지·인·용',     quote: '창의와 도전으로 미래를 이끄는 과학영재' },
       { name: '서울과학고등학교',         color: '#003087', motto: '진리 탐구',    quote: '자연과 인간을 위한 과학기술 선도' },
@@ -7852,43 +7872,179 @@ create policy "user_backups_policy" on public.user_backups
     sbMain.appendChild(sec);
   }
 
+  // ── NEIS 학교 상세 정보 조회 (주소 / 설립일 / 전화 / 홈페이지 등) ──────────
+  // 하드코딩 가능성을 없애기 위해 항상 NEIS open API 를 정답 출처로 사용.
+  // localStorage 캐시 30일 — 같은 학교 재조회 시 즉시 응답.
+  const NEIS_INFO_CACHE_PREFIX = 'neis-school-info-v1-';
+  const NEIS_INFO_TTL_MS       = 30 * 24 * 60 * 60 * 1000;
+  const NEIS_API_KEY           = '21e74fc6a71d49d38adda2f572fdde85';
+
+  function _neisCacheKey(school) {
+    return NEIS_INFO_CACHE_PREFIX + (school.neisCode || school.name);
+  }
+  function _readNeisCache(school) {
+    try {
+      const raw = localStorage.getItem(_neisCacheKey(school));
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (obj && obj.ts && (Date.now() - obj.ts < NEIS_INFO_TTL_MS)) return obj.data;
+    } catch {}
+    return null;
+  }
+  function _writeNeisCache(school, data) {
+    try {
+      localStorage.setItem(_neisCacheKey(school),
+        JSON.stringify({ ts: Date.now(), data }));
+    } catch {}
+  }
+  // YYYYMMDD → "2002년 1월 8일" / 비표준 형식이면 원본 그대로
+  function _fmtEstablished(ymd) {
+    if (!ymd) return '';
+    if (/^\d{8}$/.test(ymd)) {
+      return ymd.slice(0,4) + '년 ' + Number(ymd.slice(4,6)) + '월 ' +
+             Number(ymd.slice(6,8)) + '일';
+    }
+    return ymd;
+  }
+  async function fetchNeisSchoolInfo(school) {
+    if (!school || (!school.neisCode && !school.name)) return null;
+    const cached = _readNeisCache(school);
+    if (cached) return cached;
+
+    const base = 'https://open.neis.go.kr/hub/schoolInfo';
+    const params = '?KEY=' + NEIS_API_KEY + '&Type=json&pIndex=1&pSize=3';
+    const filter = school.neisCode
+      ? '&SD_SCHUL_CODE=' + encodeURIComponent(school.neisCode)
+      : '&SCHUL_NM=' + encodeURIComponent(school.name);
+    try {
+      const res  = await fetch(base + params + filter);
+      const json = await res.json();
+      const rows = json && json.schoolInfo && json.schoolInfo[1] && json.schoolInfo[1].row;
+      if (!rows || !rows.length) return null;
+      // 코드로 조회한 경우는 무조건 첫 결과, 이름으로 조회한 경우 정확히 매칭되는 항목 우선
+      let row = rows[0];
+      if (!school.neisCode) {
+        const exact = rows.find(r => r.SCHUL_NM === school.name);
+        if (exact) row = exact;
+      }
+      const data = {
+        name:        row.SCHUL_NM || '',
+        engName:     row.ENG_SCHUL_NM || '',
+        kind:        row.SCHUL_KND_SC_NM || '',     // 고등학교
+        hsKind:      row.HS_SC_NM || '',            // 일반계/특성화/...
+        foundation:  row.FOND_SC_NM || '',          // 공립/사립
+        location:    row.LCTN_SC_NM || '',          // 대전광역시
+        zip:         row.ORG_RDNZC || '',
+        address:     row.ORG_RDNMA || '',
+        addressSub:  row.ORG_RDNDA || '',
+        established: row.FOND_YMD || '',
+        coedu:       row.COEDU_SC_NM || '',
+        tel:         row.ORG_TELNO || '',
+        fax:         row.ORG_FAXNO || '',
+        homepage:    row.HMPG_ADRES || '',
+        anniversary: row.FOAS_MEMRD || '',
+      };
+      _writeNeisCache(school, data);
+      return data;
+    } catch (err) {
+      console.warn('[NEIS school info] fetch failed:', err);
+      return null;
+    }
+  }
+
+  // 카드 내부의 setRow 유틸 (text)
+  function _siSetRow(rowId, valId, value) {
+    const row = document.getElementById(rowId);
+    const val = document.getElementById(valId);
+    if (!row || !val) return;
+    if (value && String(value).trim()) {
+      val.textContent = value;
+      row.classList.remove('hidden');
+    } else {
+      row.classList.add('hidden');
+    }
+  }
+  // 홈페이지: 클릭 가능한 <a>
+  function _siSetHomepage(url) {
+    const row = document.getElementById('si-homepage-row');
+    const val = document.getElementById('si-homepage');
+    if (!row || !val) return;
+    if (url && String(url).trim()) {
+      let href = url.trim();
+      if (!/^https?:\/\//i.test(href)) href = 'http://' + href;
+      val.innerHTML = '';
+      const a = document.createElement('a');
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = url;
+      a.className = 'si-link';
+      val.appendChild(a);
+      row.classList.remove('hidden');
+    } else {
+      row.classList.add('hidden');
+    }
+  }
+
   // ── 학교 정보 카드 표시 ────────────────────────────────────────────────────
-  // 저장된 프로필의 학교 (s) 와 SCHOOL_DATA 의 항목을 머지해 표시.
-  // 모든 필드는 옵셔널 — 값이 없는 행은 자동 숨김.
+  // 저장된 프로필의 학교 (s) 와 SCHOOL_DATA 의 항목을 머지해 즉시 표시 →
+  // 중·고등학교는 NEIS API 에서 정확한 주소/설립일/전화/홈페이지를 async 보강.
   function showSchoolInfo(s) {
     if (!s || !s.name) return;
     const m = enrichSchool(s);
     const back = document.getElementById('school-info-backdrop');
     if (!back) return;
 
-    // Avatar
-    const av = document.getElementById('si-avatar');
-    applySchoolAvatar(av, m);
-
-    // 이름 / 구분
+    // Avatar / 이름 / 구분
+    applySchoolAvatar(document.getElementById('si-avatar'), m);
     document.getElementById('si-name').textContent = m.name;
-    const typeMap = { university: '대학교', high: '고등학교', middle: '중학교', none: '학생' };
+    const typeMap   = { university: '대학교', high: '고등학교', middle: '중학교', none: '학생' };
     const typeLabel = m.category || typeMap[m.type] || '';
     document.getElementById('si-type').textContent = typeLabel;
 
-    // 각 행: 값이 있는 것만 보이도록 hidden 토글
-    const setRow = (rowId, valId, value) => {
-      const row = document.getElementById(rowId);
-      const val = document.getElementById(valId);
-      if (value && String(value).trim()) {
-        if (val) val.textContent = value;
-        row.classList.remove('hidden');
-      } else {
-        row.classList.add('hidden');
-      }
-    };
-    setRow('si-quote-row',       'si-quote',       m.quote);
-    setRow('si-motto-row',       'si-motto',       m.motto);
-    setRow('si-established-row', 'si-established', m.established);
-    setRow('si-address-row',     'si-address',     m.address);
-    setRow('si-category-row',    'si-category',    m.category);
+    // 즉시 가능한 정적 필드부터 채워넣음 (정확하지 않을 수 있으나 빠른 표시)
+    _siSetRow('si-quote-row',       'si-quote',       m.quote);
+    _siSetRow('si-motto-row',       'si-motto',       m.motto);
+    _siSetRow('si-established-row', 'si-established', m.established);
+    _siSetRow('si-address-row',     'si-address',     m.address);
+    _siSetRow('si-category-row',    'si-category',    m.category);
+    _siSetRow('si-tel-row',         'si-tel',         m.tel);
+    _siSetHomepage(m.homepage);
+
+    // 로딩 안내 — NEIS 가 응답하면 숨김
+    const loadingRow = document.getElementById('si-loading-row');
+    const isNeis = (m.type === 'middle' || m.type === 'high');
+    if (loadingRow) {
+      if (isNeis) loadingRow.classList.remove('hidden');
+      else        loadingRow.classList.add('hidden');
+    }
 
     back.classList.add('active');
+
+    // NEIS 보강 (중·고등학교만)
+    if (!isNeis) return;
+    const opened = m.name;
+    fetchNeisSchoolInfo(m).then(live => {
+      // 사용자가 이미 닫았거나 다른 학교로 전환되었으면 무시
+      if (!back.classList.contains('active')) return;
+      if (document.getElementById('si-name').textContent !== opened) return;
+      if (loadingRow) loadingRow.classList.add('hidden');
+      if (!live) return;
+
+      // 라이브 데이터로 덮어쓰기 (정답 출처)
+      _siSetRow('si-address-row', 'si-address',
+        live.address + (live.addressSub ? ' ' + live.addressSub : ''));
+      _siSetRow('si-established-row', 'si-established', _fmtEstablished(live.established));
+      // 구분: NEIS 의 설립명 + 학교종류 + 일반/특성화 + 공학구분
+      const catParts = [
+        live.foundation, live.hsKind || live.kind, live.coedu
+      ].filter(Boolean);
+      if (catParts.length) {
+        _siSetRow('si-category-row', 'si-category', catParts.join(' · '));
+      }
+      _siSetRow('si-tel-row', 'si-tel', live.tel);
+      _siSetHomepage(live.homepage);
+    });
   }
 
   // 닫기 핸들러 — 한 번만 바인딩
