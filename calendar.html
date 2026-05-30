@@ -2286,14 +2286,20 @@
 
   /* ── 튜토리얼 (coach mark / spotlight) ──────────────────────────────
      4개의 fixed mask div 가 강조 영역의 상/우/하/좌 를 어둡게 가리고,
-     중앙의 강조 영역은 자연스럽게 클릭 가능 (mask 가 외부 클릭을 흡수,
-     hole 안쪽은 mask 가 없어 underlying 요소까지 이벤트가 전달됨).
-     spotlight 는 ring 시각 효과만 담당 (pointer-events: none). */
+     강조 영역(hole) 은 자연스럽게 클릭 가능.
+     포인터 이벤트 정책:
+       .tut-coach        — pointer-events: none  (투명한 부모가 클릭을 흡수하지 못하게)
+       .tut-mask         — auto  (어두운 영역은 클릭 차단)
+       .tut-spotlight    — none  (강조 영역 클릭이 underlying 요소까지 전달됨)
+       .tut-tooltip      — auto  (버튼 / 닫기 클릭 가능)
+     사용자가 강조 영역을 클릭하면 .exploring 모드가 켜져
+     마스크가 사라지고 그 결과로 열린 popup/menu 까지 자유롭게 사용 가능. */
   .tut-coach {
     display: none;
     position: fixed; inset: 0;
     z-index: 9000;
     font-family: inherit;
+    pointer-events: none;
   }
   .tut-coach.active { display: block; }
 
@@ -2301,23 +2307,44 @@
     position: fixed;
     background: rgba(0, 0, 0, 0.55);
     z-index: 9000;
+    pointer-events: auto;
     transition: top 0.25s ease, left 0.25s ease,
-                width 0.25s ease, height 0.25s ease;
+                width 0.25s ease, height 0.25s ease,
+                opacity 0.25s ease;
   }
-  /* spotlight 자체는 클릭 차단하지 않음 — ring 만 그림 */
+  /* spotlight 자체는 클릭 차단하지 않음 — pulse ring 시각 효과만 담당.
+     box-shadow 는 keyframe 에서 설정되므로 JS 가 cssText 로 덮어쓰지 않음. */
   .tut-spotlight {
     position: fixed;
     border-radius: 12px;
-    box-shadow:
-      0 0 0 2px var(--today-accent),
-      0 0 0 6px rgba(40,116,224,0.22),
-      0 0 24px 4px rgba(40,116,224,0.18);
     pointer-events: none;
+    background: transparent;
     z-index: 9001;
     transition: top 0.25s ease, left 0.25s ease,
-                width 0.25s ease, height 0.25s ease;
-    background: transparent;
+                width 0.25s ease, height 0.25s ease,
+                opacity 0.25s ease;
+    animation: tut-spot-pulse 1.7s ease-in-out infinite;
   }
+  @keyframes tut-spot-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px var(--today-accent),
+        0 0 0 6px rgba(40,116,224,0.22),
+        0 0 24px 4px rgba(40,116,224,0.18);
+    }
+    50% {
+      box-shadow:
+        0 0 0 3px var(--today-accent),
+        0 0 0 10px rgba(40,116,224,0.30),
+        0 0 30px 6px rgba(40,116,224,0.26);
+    }
+  }
+
+  /* 사용자가 강조 영역을 클릭한 직후 — "직접 사용해보기" 모드.
+     마스크가 사라져 popup/menu 까지 자유롭게 사용 가능. tooltip 만 남음. */
+  .tut-coach.exploring .tut-mask     { opacity: 0; pointer-events: none; }
+  .tut-coach.exploring .tut-spotlight { opacity: 0.55; animation-duration: 2.6s; }
+
   /* 강조 대상이 없는 step (welcome / shortcuts / done) → 화면 전체 dim */
   .tut-coach.no-spot .tut-mask-top {
     top: 0 !important; left: 0 !important;
@@ -2339,9 +2366,24 @@
     width: 360px;
     max-width: calc(100vw - 24px);
     z-index: 9002;
+    pointer-events: auto;
     font-family: inherit;
     transition: top 0.2s ease, left 0.2s ease, opacity 0.15s ease;
   }
+  /* exploring 모드일 때 "잘하셨어요" 작은 hint */
+  .tut-explore-hint {
+    display: none;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(40,116,224,0.10);
+    border-radius: 10px;
+    font-size: 0.82em;
+    color: var(--today-accent);
+    line-height: 1.45;
+    font-weight: 500;
+  }
+  .tut-coach.exploring .tut-explore-hint { display: block; }
+  .tut-explore-hint::before { content: '✨  '; }
   .tut-tooltip.pos-center {
     top: 50% !important; left: 50% !important;
     transform: translate(-50%, -50%);
@@ -2948,6 +2990,9 @@
     <h3 class="tut-title" id="tut-title"></h3>
     <p class="tut-desc" id="tut-desc"></p>
     <div class="tut-extra hidden" id="tut-extra"></div>
+    <div class="tut-explore-hint">
+      잘하셨어요! 화면을 자유롭게 사용해본 뒤 [다음 →] 으로 진행하세요.
+    </div>
     <div class="tut-progress" aria-hidden="true">
       <div class="tut-progress-bar" id="tut-progress-bar"></div>
     </div>
@@ -8762,6 +8807,14 @@ create policy "user_backups_policy" on public.user_backups
              scrollEl: els[0] };
   }
 
+  // 4 mask + spotlight 위치만 JS 가 세팅. CSS 의 transition / pulse 애니메이션
+  // 이 살아있어야 하므로 cssText 로 전체 덮지 않고 개별 속성만 변경.
+  function setBox(el, left, top, width, height) {
+    el.style.left   = left   + 'px';
+    el.style.top    = top    + 'px';
+    el.style.width  = width  + 'px';
+    el.style.height = height + 'px';
+  }
   // 강조 영역 주위 4면을 어둡게 가림 + 툴팁 배치
   function applySpotlight(rect) {
     coach.classList.remove('no-spot');
@@ -8773,13 +8826,11 @@ create policy "user_backups_policy" on public.user_backups
     const h = Math.min(window.innerHeight, rect.bottom + PAD) - y;
     const W = window.innerWidth, H = window.innerHeight;
 
-    maskT.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${y}px;`;
-    maskB.style.cssText = `position:fixed;left:0;top:${y+h}px;width:${W}px;height:${Math.max(0, H-(y+h))}px;`;
-    maskL.style.cssText = `position:fixed;left:0;top:${y}px;width:${x}px;height:${h}px;`;
-    maskR.style.cssText = `position:fixed;left:${x+w}px;top:${y}px;width:${Math.max(0, W-(x+w))}px;height:${h}px;`;
-    spot.style.cssText  = `position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${h}px;` +
-                          'border-radius:12px;pointer-events:none;background:transparent;' +
-                          'box-shadow:0 0 0 2px var(--today-accent),0 0 0 6px rgba(40,116,224,0.22),0 0 24px 4px rgba(40,116,224,0.18);';
+    setBox(maskT, 0,     0,     W,                       y);
+    setBox(maskB, 0,     y + h, W,                       Math.max(0, H - (y + h)));
+    setBox(maskL, 0,     y,     x,                       h);
+    setBox(maskR, x + w, y,     Math.max(0, W - (x + w)), h);
+    setBox(spot,  x,     y,     w,                       h);
 
     // 툴팁 위치: 아래쪽 우선, 공간 없으면 위쪽, 둘 다 안 되면 중앙
     // 일단 표시해 사이즈를 측정
@@ -8855,6 +8906,8 @@ create policy "user_backups_policy" on public.user_backups
     tutIdx = idx;
     const s = TUTORIAL_STEPS[idx];
     lastShownStep = s;
+    // 매 step 시작 시 exploring 모드 해제 (마스크 복귀)
+    coach.classList.remove('exploring');
     tutRenderText(s);
 
     const rect = computeRect(s);
@@ -8914,6 +8967,26 @@ create policy "user_backups_policy" on public.user_backups
     const rect = computeRect(lastShownStep);
     if (rect) applySpotlight(rect); else applyCentered();
   });
+
+  // ── 강조 영역 클릭 감지: 사용자가 highlight 안쪽을 누르면 exploring 모드로 ──
+  // 마스크가 페이드아웃 → popup/menu 까지 자유롭게 사용 가능. 툴팁만 남고
+  // [다음 →] 으로 진행. tooltip/mask 내부 클릭은 트리거 X.
+  document.addEventListener('click', e => {
+    if (!coach.classList.contains('active')) return;
+    if (coach.classList.contains('exploring')) return;
+    if (coach.classList.contains('no-spot'))   return;  // 강조 대상 없음
+    if (e.target.closest('#tut-tooltip'))      return;
+    if (e.target.closest('.tut-mask'))         return;  // 어둠 영역 클릭
+    // spotlight rect 내부인지 확인 (현재 inline style 의 left/top/width/height 사용)
+    const sx = parseFloat(spot.style.left  ) || 0;
+    const sy = parseFloat(spot.style.top   ) || 0;
+    const sw = parseFloat(spot.style.width ) || 0;
+    const sh = parseFloat(spot.style.height) || 0;
+    if (e.clientX >= sx && e.clientX <= sx + sw &&
+        e.clientY >= sy && e.clientY <= sy + sh) {
+      coach.classList.add('exploring');
+    }
+  }, true);
 
   // 디버깅 / 외부 트리거용
   window.TutorialOpen = tutOpen;
