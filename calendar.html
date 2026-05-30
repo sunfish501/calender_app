@@ -2428,14 +2428,25 @@
     display: block;
   }
 
-  /* 사용자 프로필 아바타 — viewport 우측 상단에 강제 고정.
-     (auth-ui.js 가 inline style 로 fixed 를 설정하지만, 어떤 transform 이나
-      다른 CSS 가 깰 수 없도록 한 번 더 못박음.) */
+  /* 사용자 프로필 아바타 — viewport 우측 상단에 무조건 고정.
+     스크롤 / 연속 보기 / 모토 (🎲 추천) / 어떤 transform 이 있어도 절대로
+     움직이지 않게 못박음. z-index 는 튜토리얼 (9000~9002) 보다도 높게
+     해서 항상 위에서 보임. */
   #sb-profile-wrap {
     position: fixed !important;
-    top: 10px !important;
-    right: 14px !important;
-    z-index: 9500 !important;
+    top: 12px !important;
+    right: 16px !important;
+    left: auto !important;
+    bottom: auto !important;
+    z-index: 10000 !important;
+    pointer-events: auto !important;
+    /* 일부 브라우저에서 부모의 contain 이나 transform 으로 인해 fixed 가
+       깨지는 경우를 막기 위해 will-change 로 새로운 stacking 컨텍스트 보장. */
+    will-change: transform;
+  }
+  /* 다크 모드 / 색상 테마 변경 시에도 어색하지 않게 그림자 살짝 */
+  #sb-profile-btn {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
   }
 
   /* exploring 모드일 때 "잘하셨어요" 작은 hint */
