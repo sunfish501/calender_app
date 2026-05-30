@@ -114,15 +114,16 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
     background: var(--bg);
     min-height: 100vh;
-    padding: 20px;
+    padding: 14px 14px;
     color: var(--text);
   }
 
-  .container { max-width: 1100px; margin: 0 auto; transition: max-width 0.2s; }
+  /* container 폭 제한 해제 — 사용자 보고: 큰 화면에서 좌우 여백이 너무 크다.
+     사이드바 + main-col(flex:1) 이 가용 너비를 모두 차지하도록 max-width 제거. */
+  .container { max-width: none; margin: 0 auto; transition: max-width 0.2s; }
 
-  /* 연속 보기 모드: 화면 좌우 여백 최소화 — container 폭 제한 해제 + body 패딩 축소 */
+  /* 연속 보기 모드: 좌우 패딩 더 축소 */
   body.continuous-fit { padding: 12px 6px; }
-  body.continuous-fit .container { max-width: none; }
 
   .page-layout {
     display: flex;
@@ -3289,8 +3290,8 @@
   let weekOffset = 0;
 
   function applyContainerLayout() {
-    // 연속 보기(가로 3개월)일 때만 container 폭 제한을 풀어 좌우 여백 제거.
-    // 일정 단일 월/시간표 모드는 기존 1100px max-width 유지 (사이드바와의 균형).
+    // 모든 모드에서 container 는 화면 전체 너비 사용 (max-width 제거됨).
+    // 연속 보기(가로 3개월)일 때만 좌우 패딩까지 더 축소.
     const fit = (viewMode === 'events') && continuousView;
     document.body.classList.toggle('continuous-fit', fit);
   }
