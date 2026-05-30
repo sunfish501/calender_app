@@ -2258,36 +2258,159 @@
     border-color: var(--border);
   }
 
-  /* ── 팁 카드 ── */
-  .gx-tip-card {
+  /* ── 사용법 토글 버튼 (튜토리얼 진입점) ── */
+  .gx-tip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(0,0,0,0.045);
+    border: none;
+    border-radius: 999px;
+    padding: 7px 14px 7px 12px;
+    margin: 2px 2px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .gx-tip-btn:hover { background: rgba(0,0,0,0.075); }
+  .gx-tip-btn:active { transform: scale(0.97); }
+  .gx-tip-btn .gx-tip-arrow {
+    color: var(--text-light);
+    font-weight: 600;
+    margin-left: 2px;
+    transition: transform 0.18s;
+  }
+  .gx-tip-btn:hover .gx-tip-arrow { transform: translateX(2px); }
+
+  /* ── 튜토리얼 모달 ── */
+  .tutorial-modal {
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 0;
+    min-width: 360px;
+    max-width: 460px;
+    width: 92vw;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+    overflow: hidden;
+    font-family: inherit;
+  }
+  .tut-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    /* rgba 오버레이는 어떤 팔레트의 --bg 위에서도 자연스러운 음영 효과 */
-    background: rgba(0,0,0,0.045);
-    border-radius: 14px;
-    padding: 11px 14px 11px 14px;
-    margin: 4px 2px 16px;
-    font-size: 14px;
-    color: var(--text);
-    font-weight: 500;
+    justify-content: space-between;
+    padding: 14px 18px 4px;
   }
-  .gx-tip-card.hidden { display: none; }
-  .gx-tip-card .gx-tip-emoji {
-    font-size: 17px; flex-shrink: 0; line-height: 1;
+  .tut-step-indicator {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
-  .gx-tip-card .gx-tip-text {
-    flex: 1; line-height: 1.45; font-weight: 400; color: var(--text);
-  }
-  .gx-tip-card .gx-tip-text b { font-weight: 600; color: var(--text); margin-right: 2px; }
-  .gx-tip-card .gx-tip-close {
+  .tut-step-indicator .tut-step-sep { margin: 0 4px; opacity: 0.5; }
+  .tut-close {
     background: transparent; border: none; padding: 0;
-    cursor: pointer; color: var(--text-light); font-size: 13px;
-    width: 26px; height: 26px; border-radius: 50%;
+    cursor: pointer; color: var(--text-light);
+    width: 28px; height: 28px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-weight: 600;
+    font-size: 14px;
   }
-  .gx-tip-card .gx-tip-close:hover { background: rgba(0,0,0,0.06); color: var(--text); }
+  .tut-close:hover { background: rgba(0,0,0,0.06); color: var(--text); }
+
+  .tut-body {
+    padding: 8px 28px 22px;
+    text-align: center;
+  }
+  .tut-icon {
+    font-size: 48px;
+    line-height: 1;
+    margin: 8px 0 18px;
+  }
+  .tut-title {
+    font-size: 1.15em;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 10px;
+    line-height: 1.35;
+    word-break: keep-all;
+  }
+  .tut-desc {
+    font-size: 0.94em;
+    color: var(--text);
+    line-height: 1.6;
+    margin: 0;
+    word-break: keep-all;
+    opacity: 0.85;
+  }
+  .tut-extra {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 10px;
+    font-size: 0.85em;
+    color: var(--text-light);
+    line-height: 1.5;
+    word-break: keep-all;
+  }
+  .tut-extra::before {
+    content: '💡  ';
+  }
+  .tut-extra.hidden { display: none; }
+
+  .tut-progress {
+    height: 3px;
+    background: rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .tut-progress-bar {
+    height: 100%;
+    background: var(--today-accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .tut-footer {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px 18px;
+    gap: 8px;
+  }
+  .tut-spacer { flex: 1; }
+  .tut-btn {
+    font-family: inherit;
+    font-size: 0.9em;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--cell-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.12s, border-color 0.12s, transform 0.08s;
+  }
+  .tut-btn:hover { background: var(--cell-hover); }
+  .tut-btn:active { transform: scale(0.97); }
+  .tut-btn:disabled {
+    opacity: 0.4; cursor: not-allowed; transform: none;
+  }
+  .tut-btn-text {
+    background: transparent; border-color: transparent;
+    color: var(--text-light);
+    padding: 9px 10px;
+  }
+  .tut-btn-text:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+  .tut-btn-primary {
+    background: var(--today-accent);
+    border-color: var(--today-accent);
+    color: #ffffff;
+  }
+  .tut-btn-primary:hover {
+    background: var(--today-accent);
+    filter: brightness(0.93);
+  }
 
   /* ── 캘린더 grid: 외곽선 / 그림자 제거, 셀은 hairline 없이 padding only ── */
   .calendar {
@@ -2701,13 +2824,12 @@
         <button id="today-btn">오늘</button>
       </div>
 
-      <div class="gx-tip-card" id="gx-tip-card">
-        <span class="gx-tip-emoji" aria-hidden="true">💡</span>
-        <span class="gx-tip-text">
-          <b>캘린더 팁</b> · 날짜를 클릭하면 일정을 추가하고, 더블클릭하면 별표를 토글합니다.
-        </span>
-        <button class="gx-tip-close" id="gx-tip-close" type="button" aria-label="팁 닫기">✕</button>
-      </div>
+      <!-- 캘린더 사용법 토글: 누르면 단계별 튜토리얼 모달이 열림 -->
+      <button class="gx-tip-btn" id="gx-tip-btn" type="button">
+        <span aria-hidden="true">💡</span>
+        <span>캘린더 사용법</span>
+        <span class="gx-tip-arrow" aria-hidden="true">›</span>
+      </button>
 
       <div class="calendar" id="calendar"></div>
       <div class="shortcut-help" id="shortcut-help"></div>
@@ -2747,6 +2869,33 @@
 
 <!-- 날짜 선택 액션 메뉴 -->
 <div id="day-action-menu" class="day-action-menu" style="display:none;"></div>
+
+<!-- 단계별 튜토리얼 모달 (캘린더 사용법) -->
+<div class="modal-backdrop" id="tutorial-backdrop">
+  <div class="modal tutorial-modal" role="dialog" aria-labelledby="tut-title">
+    <div class="tut-header">
+      <div class="tut-step-indicator">
+        <span id="tut-current">1</span> <span class="tut-step-sep">/</span> <span id="tut-total">1</span>
+      </div>
+      <button class="tut-close" id="tut-close" type="button" aria-label="닫기">✕</button>
+    </div>
+    <div class="tut-body">
+      <div class="tut-icon" id="tut-icon" aria-hidden="true">🗓️</div>
+      <h3 class="tut-title" id="tut-title"></h3>
+      <p class="tut-desc" id="tut-desc"></p>
+      <div class="tut-extra hidden" id="tut-extra"></div>
+    </div>
+    <div class="tut-progress" aria-hidden="true">
+      <div class="tut-progress-bar" id="tut-progress-bar"></div>
+    </div>
+    <div class="tut-footer">
+      <button class="tut-btn tut-btn-text"      id="tut-skip" type="button">건너뛰기</button>
+      <div class="tut-spacer"></div>
+      <button class="tut-btn tut-btn-secondary" id="tut-prev" type="button">← 이전</button>
+      <button class="tut-btn tut-btn-primary"   id="tut-next" type="button">다음 →</button>
+    </div>
+  </div>
+</div>
 
 <!-- 학교 정보 카드 -->
 <div class="modal-backdrop" id="school-info-backdrop">
@@ -8417,22 +8566,127 @@ create policy "user_backups_policy" on public.user_backups
      ═══════════════════════════════════════════════════════════════ -->
 <script>
 (function gxOneUiEnhance() {
-  const TIP_KEY = 'gx-tip-closed-v1';
 
-  // ── 1) 팁 카드 ─────────────────────────────────────────────
-  const tipCard  = document.getElementById('gx-tip-card');
-  const tipClose = document.getElementById('gx-tip-close');
-  if (tipCard) {
-    try {
-      if (localStorage.getItem(TIP_KEY) === '1') tipCard.classList.add('hidden');
-    } catch (_) {}
-    if (tipClose) {
-      tipClose.addEventListener('click', () => {
-        tipCard.classList.add('hidden');
-        try { localStorage.setItem(TIP_KEY, '1'); } catch (_) {}
-      });
-    }
+  // ── 1) 캘린더 사용법 튜토리얼 ───────────────────────────────
+  // 토글 버튼 (#gx-tip-btn) 을 누르면 모달이 열리고, "이전/다음" 으로
+  // 단계별 기능 안내. ESC / ←→ 화살표 / 배경 클릭 으로 닫기/이동.
+  const TUTORIAL_STEPS = [
+    {
+      icon: '🗓️',
+      title: '날짜 클릭으로 일정 추가',
+      desc: '달력의 원하는 날짜를 한 번 클릭하면 액션 메뉴가 떠요. ' +
+            '거기서 일정 추가, 별표, 메모 등을 선택할 수 있어요.',
+      extra: '이미 일정이 있는 날도 같은 방법으로 일정을 더 추가하거나 편집할 수 있어요.'
+    },
+    {
+      icon: '⭐',
+      title: '더블클릭으로 별표 토글',
+      desc: '날짜를 더블클릭하면 그 날에 빨간 별표가 켜져요. ' +
+            '시험·면접·생일처럼 시각적으로 강조해야 하는 날에 쓰세요.',
+      extra: '한 번 더 더블클릭하면 별표가 사라집니다.'
+    },
+    {
+      icon: '🎨',
+      title: '좌측 상단 동그라미로 색상 테마 변경',
+      desc: '화면 왼쪽 위 작은 색 동그라미를 누르면 캘린더 전체 색상이 ' +
+            '바뀝니다. 기본 / 피치 / 하늘 / 레몬 / 로즈 중 골라보세요.',
+    },
+    {
+      icon: '🏷️',
+      title: '"테마 관리" 로 일정 분류',
+      desc: '좌측 상단 [테마 관리] 에서 학교·학원·친구 같은 카테고리 ' +
+            '테마를 만들고 색을 지정할 수 있어요. 일정 하나에 여러 ' +
+            '테마를 동시에 붙일 수도 있습니다.',
+      extra: '초대 링크를 만들면 친구와 같은 테마의 일정을 실시간 공유할 수 있어요.'
+    },
+    {
+      icon: '🔍',
+      title: '사이드바로 테마별 필터링',
+      desc: '왼쪽 사이드바의 테마 체크박스로 보고 싶은 테마만 켜 / 꺼 ' +
+            '볼 수 있어요. 공휴일 숨기기, 시험만 보기 등 자유롭게.',
+    },
+    {
+      icon: '📊',
+      title: '"위젯 설정" 으로 일별 기록',
+      desc: '좌측 상단 [위젯 설정] 에서 순공시간 · 한줄일기 · ' +
+            '공부 과목 체크리스트 같은 일별 입력 위젯을 만들 수 있어요. ' +
+            '적용할 날짜 범위도 지정 가능.',
+    },
+    {
+      icon: '⏰',
+      title: '시간표 탭 / 연속 보기 토글',
+      desc: '사이드바 위쪽 [시간표] 탭에서 주간 시간표 + 급식을 관리할 수 ' +
+            '있고, "연속 보기" 토글을 켜면 3개월을 한 화면에 가로로 ' +
+            '펼쳐서 볼 수 있어요.',
+    },
+    {
+      icon: '🏫',
+      title: '학교 정보 카드',
+      desc: '사이드바 "내 학교" 영역에서 학교 이름을 클릭하면 ' +
+            '교훈 · 주소 · 전화 · 홈페이지 등 정보 카드가 떠요.',
+      extra: 'NEIS open API 로 항상 최신 정보를 가져오니까 주소가 정확합니다.'
+    },
+    {
+      icon: '🚀',
+      title: '준비 완료!',
+      desc: '이제 캘린더의 핵심 기능을 다 익히셨어요. ' +
+            '필요할 땐 언제든 "💡 캘린더 사용법" 버튼을 다시 누르면 돼요.',
+    },
+  ];
+
+  const tutBack = document.getElementById('tutorial-backdrop');
+  const tipBtn  = document.getElementById('gx-tip-btn');
+  let tutStep = 0;
+
+  function tutRender() {
+    const s = TUTORIAL_STEPS[tutStep];
+    document.getElementById('tut-icon').textContent  = s.icon;
+    document.getElementById('tut-title').textContent = s.title;
+    document.getElementById('tut-desc').textContent  = s.desc;
+    const extra = document.getElementById('tut-extra');
+    if (s.extra) { extra.textContent = s.extra; extra.classList.remove('hidden'); }
+    else         { extra.classList.add('hidden'); }
+    document.getElementById('tut-current').textContent = String(tutStep + 1);
+    document.getElementById('tut-total').textContent   = String(TUTORIAL_STEPS.length);
+    const pct = ((tutStep + 1) / TUTORIAL_STEPS.length) * 100;
+    document.getElementById('tut-progress-bar').style.width = pct + '%';
+    const prev = document.getElementById('tut-prev');
+    const next = document.getElementById('tut-next');
+    prev.disabled = (tutStep === 0);
+    next.textContent = (tutStep === TUTORIAL_STEPS.length - 1) ? '시작하기 ✓' : '다음 →';
   }
+  function tutOpen() {
+    tutStep = 0;
+    tutRender();
+    tutBack.classList.add('active');
+  }
+  function tutClose() {
+    tutBack.classList.remove('active');
+  }
+  function tutNext() {
+    if (tutStep < TUTORIAL_STEPS.length - 1) { tutStep++; tutRender(); }
+    else { tutClose(); }
+  }
+  function tutPrev() {
+    if (tutStep > 0) { tutStep--; tutRender(); }
+  }
+
+  if (tipBtn) tipBtn.addEventListener('click', tutOpen);
+  if (tutBack) {
+    document.getElementById('tut-close').addEventListener('click', tutClose);
+    document.getElementById('tut-skip' ).addEventListener('click', tutClose);
+    document.getElementById('tut-next' ).addEventListener('click', tutNext);
+    document.getElementById('tut-prev' ).addEventListener('click', tutPrev);
+    tutBack.addEventListener('click', e => { if (e.target === tutBack) tutClose(); });
+    document.addEventListener('keydown', e => {
+      if (!tutBack.classList.contains('active')) return;
+      if      (e.key === 'Escape')     tutClose();
+      else if (e.key === 'ArrowRight') tutNext();
+      else if (e.key === 'ArrowLeft')  tutPrev();
+    });
+  }
+  // 디버깅 / 외부 트리거용
+  window.TutorialOpen = tutOpen;
 
   // ── 2) 월 라벨 분리 ────────────────────────────────────────
   const monthLabel = document.getElementById('month-label');
