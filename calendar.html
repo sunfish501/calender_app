@@ -2130,6 +2130,316 @@
     padding: 10px 12px; background: #fff8e6; border: 1px solid #f0d090;
     border-radius: 8px; font-size: 0.82em; color: #7a5c00;
   }
+
+  /* ════════════════════════════════════════════════════════════════
+     GALAXY ONE UI ─ DESKTOP RESKIN (image 2 의 시각 언어 흡수)
+     모바일 폼팩터로 가지 않음. 데스크톱 + 사이드바 레이아웃은 그대로,
+     "표면 디자인"만 큰 볼드 타이포 / 둥근 캡슐 / 미니멀 셀 / 파스텔 pill /
+     옅은 회색 팁카드 풍으로 교체.
+     ── 모든 신규 규칙은 기존 스타일보다 뒤에 위치 → 자연스럽게 cascade
+        로 덮어쓰여 별도 !important 남발 없이도 우위. (구버전 inline /
+        hover 와 충돌하는 일부 속성만 !important 사용.)
+     ════════════════════════════════════════════════════════════════ */
+
+  body {
+    background: #fafafa;
+  }
+
+  /* ── 상단 header (테마 관리 / 위젯 설정) ── */
+  .container > header {
+    margin-bottom: 6px;
+    padding: 2px 2px 6px;
+  }
+  .controls {
+    justify-content: flex-end;
+    width: 100%;
+    gap: 6px;
+  }
+  #theme-mgr-btn,
+  #day-tpl-mgr-btn {
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #ececef;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    font-size: 0.84em;
+    color: #444;
+    font-weight: 500;
+  }
+  #theme-mgr-btn:hover,
+  #day-tpl-mgr-btn:hover {
+    background: #f4f4f6;
+    border-color: #d6d6db;
+    color: #1a1a1a;
+  }
+
+  /* ── 모토 영역: 박스 라인 제거 + 더 공기감 있게 ── */
+  .motto-area {
+    background: transparent !important;
+    border: 1px dashed transparent !important;
+    padding: 4px 18px 4px 46px !important;
+    margin-bottom: 6px !important;
+  }
+  .motto-area:focus-within {
+    background: rgba(255,255,255,0.7) !important;
+    border: 1px dashed #cfcfd5 !important;
+    border-radius: 12px;
+    box-shadow: none !important;
+  }
+
+  /* ── nav-controls: 큰 볼드 월 라벨 (좌) + 캡슐 버튼 (우) ── */
+  .nav-controls {
+    background: transparent !important;
+    border: none !important;
+    padding: 6px 2px 14px !important;
+    margin-bottom: 4px !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+  }
+  .nav-controls h2#month-label {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.018em !important;
+    color: #161616 !important;
+    text-align: left !important;
+    min-width: 0 !important;
+    margin: 0 auto 0 4px !important; /* push subsequent buttons to right */
+    padding: 2px 8px !important;
+    border-radius: 10px !important;
+    line-height: 1.15 !important;
+  }
+  .nav-controls h2#month-label:hover {
+    background: rgba(0,0,0,0.04);
+    color: var(--today-accent) !important;
+  }
+  .nav-controls h2#month-label .ml-year {
+    font-size: 0.46em;
+    font-weight: 500;
+    color: #9a9aa0;
+    margin-right: 8px;
+    vertical-align: 0.45em;
+    letter-spacing: 0;
+  }
+  .nav-controls h2#month-label .ml-month {
+    font-weight: 700;
+  }
+  .nav-controls .nav-btn {
+    width: 38px; height: 38px;
+    border-radius: 50% !important;
+    border: 1px solid #ececef !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    font-size: 16px !important;
+    color: #555 !important;
+    display: inline-flex !important;
+    align-items: center; justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    min-width: 0 !important;
+  }
+  .nav-controls .nav-btn:hover {
+    background: #f4f4f6 !important;
+    color: #1a1a1a !important;
+    border-color: #d6d6db !important;
+  }
+  #today-btn {
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #ececef;
+    color: #1a1a1a;
+    font-weight: 600;
+    margin-left: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  #today-btn:hover {
+    background: #f4f4f6;
+    border-color: #d6d6db;
+  }
+
+  /* ── 팁 카드 ── */
+  .gx-tip-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f1f1f3;
+    border-radius: 14px;
+    padding: 11px 14px 11px 14px;
+    margin: 4px 2px 16px;
+    font-size: 14px;
+    color: #232323;
+    font-weight: 500;
+  }
+  .gx-tip-card.hidden { display: none; }
+  .gx-tip-card .gx-tip-emoji {
+    font-size: 17px; flex-shrink: 0; line-height: 1;
+  }
+  .gx-tip-card .gx-tip-text {
+    flex: 1; line-height: 1.45; font-weight: 400; color: #2a2a2c;
+  }
+  .gx-tip-card .gx-tip-text b { font-weight: 600; color: #1a1a1a; margin-right: 2px; }
+  .gx-tip-card .gx-tip-close {
+    background: transparent; border: none; padding: 0;
+    cursor: pointer; color: #8a8a8e; font-size: 13px;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-weight: 600;
+  }
+  .gx-tip-card .gx-tip-close:hover { background: rgba(0,0,0,0.06); color: #1a1a1a; }
+
+  /* ── 캘린더 grid: 외곽선 / 그림자 제거, 셀은 hairline 없이 padding only ── */
+  .calendar {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+  .day-name {
+    background: transparent !important;
+    border: none !important;
+    color: #9a9aa0 !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.06em !important;
+    padding: 6px 0 14px !important;
+    text-transform: none;
+  }
+  .day-name.sun { color: #e44a4a !important; }
+  .day-name.sat { color: #4a83e4 !important; }
+
+  .day-cell {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 12px !important;
+    min-height: 108px !important;
+    padding: 10px 8px 6px !important;
+    transition: background 0.12s !important;
+  }
+  .day-cell:hover { background: rgba(0,0,0,0.025) !important; }
+  .day-cell.empty:hover { background: transparent !important; }
+  .day-cell.empty .day-number { color: #d4d4da !important; }
+
+  .day-number {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #1a1a1a !important;
+    margin-bottom: 6px !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1 !important;
+    background: transparent;
+  }
+  .day-cell.sun  .day-number { color: #e44a4a !important; }
+  .day-cell.sat  .day-number { color: #4a83e4 !important; }
+  .day-cell.holiday .day-number { color: #e44a4a !important; }
+
+  .day-cell.today { background: transparent !important; }
+  .day-cell.today .day-number {
+    background: #2874e0 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    width: 26px !important; height: 26px !important;
+    font-size: 14px !important;
+  }
+  .day-cell.holiday.today .day-number {
+    background: #e44a4a !important;
+    color: #ffffff !important;
+  }
+
+  /* 음력 / 공휴일 텍스트 더 옅게 */
+  .lunar {
+    color: #b5b5bb !important;
+    font-size: 0.62em !important;
+    opacity: 0.92;
+    margin-top: 0 !important;
+  }
+  .holiday-name {
+    color: #e44a4a !important;
+    font-size: 0.62em !important;
+    font-weight: 400 !important;
+    line-height: 1.2 !important;
+    margin: 0 0 3px !important;
+  }
+  .holiday-name.minor { color: #b8b8be !important; }
+
+  /* ── 이벤트: 파스텔 pill ── */
+  .events {
+    margin-top: 2px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .event {
+    padding: 1px 8px !important;
+    border-radius: 10px !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    border: none !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    display: flex !important;
+    align-items: center !important;
+    font-size: 11px !important;
+  }
+  .event:hover { filter: brightness(0.96); }
+  .event.multi { padding-left: 10px !important; }
+  .event.multi::before {
+    width: 3px !important;
+    border-radius: 2px 0 0 2px !important;
+  }
+  /* 파스텔 톤 통일 (더 채도 낮은 부드러운 색) */
+  .event.c0 { background: #fff3c2 !important; color: #7a5c10 !important; }
+  .event.c1 { background: #fde0e0 !important; color: #9a2a2a !important; }
+  .event.c2 { background: #dfeaff !important; color: #2148a0 !important; }
+  .event.c3 { background: #d8efd0 !important; color: #245e25 !important; }
+  .event.c4 { background: #e8dbff !important; color: #4f24a0 !important; }
+  .event.c5 { background: #ffe1cc !important; color: #944418 !important; }
+  /* 초과 일정 라벨 (JS 가 자동 삽입) */
+  .event.event-more {
+    background: #eeeef1 !important;
+    color: #6e6e74 !important;
+    font-weight: 600 !important;
+    cursor: default;
+    justify-content: center !important;
+  }
+  .event.event-more:hover { filter: none; }
+  /* 3번째 이후 일정은 시각적으로 숨김 (.event-more 가 대신 표시) */
+  .events > .event:not(.event-more):nth-child(n+3) {
+    display: none !important;
+  }
+
+  /* ── 연속 보기 (가로 3개월) 도 같은 미니멀 느낌으로 ── */
+  .calendar.continuous-horizontal { background: transparent !important; }
+  .calendar.continuous-horizontal .month-col {
+    background: var(--cell-bg);
+    border: 1px solid #ececef !important;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .calendar.continuous-horizontal .month-col-title {
+    background: transparent !important;
+    border-bottom: 1px solid #f0f0f3 !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    padding: 12px 14px !important;
+    font-size: 1em !important;
+  }
+  .calendar.continuous-horizontal .month-grid {
+    background: transparent !important;
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 사이드바도 배경 톤 맞춤 */
+  .sidebar {
+    background: #ffffff !important;
+  }
 </style>
 </head>
 <body>
@@ -2262,6 +2572,14 @@
         <button class="nav-btn" id="next-month" title="다음 월">＞</button>
         <button class="nav-btn" id="next-year" title="다음 년">≫</button>
         <button id="today-btn">오늘</button>
+      </div>
+
+      <div class="gx-tip-card" id="gx-tip-card">
+        <span class="gx-tip-emoji" aria-hidden="true">💡</span>
+        <span class="gx-tip-text">
+          <b>캘린더 팁</b> · 날짜를 클릭하면 일정을 추가하고, 더블클릭하면 별표를 토글합니다.
+        </span>
+        <button class="gx-tip-close" id="gx-tip-close" type="button" aria-label="팁 닫기">✕</button>
       </div>
 
       <div class="calendar" id="calendar"></div>
@@ -7672,6 +7990,90 @@ create policy "user_backups_policy" on public.user_backups
       if (p?.setupDone) applyProfile(p);
       else setTimeout(() => showProfileSetup(), 300);
     }
+  }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     GALAXY ONE UI 리스킨용 UI enhancement (기능 / 데이터 일절 건드리지 않음)
+       1) 팁 카드 닫기 (localStorage 로 영속)
+       2) "2026년 5월" → 작은 연도 + 큰 월 두 토큰으로 시각 분리
+       3) 셀당 일정이 3개 이상이면 "+N" pill 자동 삽입
+     모두 DOM 표시 레이어만 만지며, MutationObserver 의 부작용을
+     "변화가 없으면 mutation 을 발생시키지 않는" 방어로 차단.
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function gxOneUiEnhance() {
+  const TIP_KEY = 'gx-tip-closed-v1';
+
+  // ── 1) 팁 카드 ─────────────────────────────────────────────
+  const tipCard  = document.getElementById('gx-tip-card');
+  const tipClose = document.getElementById('gx-tip-close');
+  if (tipCard) {
+    try {
+      if (localStorage.getItem(TIP_KEY) === '1') tipCard.classList.add('hidden');
+    } catch (_) {}
+    if (tipClose) {
+      tipClose.addEventListener('click', () => {
+        tipCard.classList.add('hidden');
+        try { localStorage.setItem(TIP_KEY, '1'); } catch (_) {}
+      });
+    }
+  }
+
+  // ── 2) 월 라벨 분리 ────────────────────────────────────────
+  const monthLabel = document.getElementById('month-label');
+  function styleMonthLabel() {
+    if (!monthLabel) return;
+    const txt = monthLabel.textContent || '';
+    if (monthLabel.dataset.gxStyled === txt) return;
+    const m = txt.match(/^\s*(\d{4})\s*년\s*(\d+)\s*월\s*$/);
+    if (m) {
+      monthLabel.innerHTML =
+        '<span class="ml-year">' + m[1] + '</span>' +
+        '<span class="ml-month">' + m[2] + '월</span>';
+    }
+    monthLabel.dataset.gxStyled = txt;
+  }
+  if (monthLabel) {
+    styleMonthLabel();
+    new MutationObserver(styleMonthLabel).observe(
+      monthLabel, { characterData: true, childList: true, subtree: true }
+    );
+  }
+
+  // ── 3) 일정 "+N" pill ─────────────────────────────────────
+  const MAX_VISIBLE = 2;
+  function enhanceEventOverflow() {
+    document.querySelectorAll('.day-cell .events').forEach(box => {
+      const events  = box.querySelectorAll(':scope > .event:not(.event-more)');
+      const existing = box.querySelector(':scope > .event-more');
+      const hidden  = events.length > MAX_VISIBLE ? events.length - MAX_VISIBLE : 0;
+      const need    = hidden > 0 ? '+' + hidden : '';
+      const current = existing ? (existing.textContent || '') : '';
+      if (current === need) return; // 변화 없음 → mutation 도 없음 → 루프 차단
+      if (existing) existing.remove();
+      if (need) {
+        const more = document.createElement('div');
+        more.className = 'event event-more';
+        more.textContent = need;
+        box.appendChild(more);
+      }
+    });
+  }
+  const cal = document.getElementById('calendar');
+  if (cal) {
+    let scheduled = false;
+    const obs = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        enhanceEventOverflow();
+      });
+    });
+    obs.observe(cal, { childList: true, subtree: true });
+    enhanceEventOverflow();
   }
 })();
 </script>
