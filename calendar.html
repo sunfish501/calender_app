@@ -354,6 +354,20 @@
     user-select: none;
     pointer-events: none;
   }
+  /* 닫는 따옴표 (입력값 끝, 🎲 추천 버튼 왼쪽). 좌측 따옴표와 대칭. */
+  .motto-quote-close {
+    position: absolute;
+    right: 110px;
+    top: 50%;
+    transform: translateY(-42%);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 2.4em;
+    line-height: 1;
+    color: var(--today-accent);
+    opacity: 0.45;
+    user-select: none;
+    pointer-events: none;
+  }
   .motto-input {
     flex: 1;
     border: none;
@@ -2372,6 +2386,38 @@
     font-family: inherit;
     transition: top 0.2s ease, left 0.2s ease, opacity 0.15s ease;
   }
+  /* 프로필 설정 - 프로필 사진 row preview (둥근 작은 아바타) */
+  .ps-pic-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background: #e5e5ea;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95em;
+    flex-shrink: 0;
+  }
+  .ps-pic-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 사용자 프로필 아바타 — viewport 우측 상단에 강제 고정.
+     (auth-ui.js 가 inline style 로 fixed 를 설정하지만, 어떤 transform 이나
+      다른 CSS 가 깰 수 없도록 한 번 더 못박음.) */
+  #sb-profile-wrap {
+    position: fixed !important;
+    top: 10px !important;
+    right: 14px !important;
+    z-index: 9500 !important;
+  }
+
   /* exploring 모드일 때 "잘하셨어요" 작은 hint */
   .tut-explore-hint {
     display: none;
@@ -2460,8 +2506,9 @@
     border-radius: 10px;
     font-size: 0.82em;
     color: var(--text);
-    line-height: 1.5;
+    line-height: 1.55;
     word-break: keep-all;
+    white-space: pre-line;  /* \n 줄바꿈 지원 (단축키 안내 2줄) */
   }
   .tut-extra::before { content: '💡  '; opacity: 0.9; }
   .tut-extra.hidden { display: none; }
@@ -2911,6 +2958,7 @@
         <input id="motto-input" type="text" class="motto-input"
                placeholder="이달의 교훈 / 나의 모토 — 클릭해서 적어보세요"
                maxlength="120">
+        <span class="motto-quote-close" aria-hidden="true">&rdquo;</span>
         <button id="random-motto-btn" class="random-motto-btn" title="랜덤 교훈 추천받기">🎲 추천</button>
       </div>
       <div class="school-quote-bar" id="school-quote-bar"></div>
@@ -3235,6 +3283,15 @@
 
       <!-- Step 0: 설정 목록 -->
       <div class="ps-step active" id="ps-step0">
+        <div class="ps-setting-row" id="ps-row-picture">
+          <span class="ps-set-icon ps-pic-icon" id="ps-pic-preview">👤</span>
+          <div class="ps-set-info">
+            <span class="ps-set-label">프로필 사진</span>
+            <span class="ps-set-val unset" id="ps-val-picture">미설정</span>
+          </div>
+          <span class="ps-set-arrow">›</span>
+        </div>
+        <input type="file" id="ps-pic-input" accept="image/*" style="display:none;">
         <div class="ps-setting-row" id="ps-row-type">
           <span class="ps-set-icon">👤</span>
           <div class="ps-set-info">
@@ -4070,6 +4127,17 @@
     window.SupabaseSync?.pushAll(events);
     if (typeof scheduleOwnedSharesRepublish === 'function') scheduleOwnedSharesRepublish();
   }
+
+  // 튜토리얼 / 외부 데모 코드용 — IIFE 내부의 핵심 함수 노출.
+  // 데모 일정 / 테마를 inject 한 뒤 __CAL.render() 로 화면 갱신 가능.
+  window.__CAL = {
+    get events()  { return events;  },
+    get themes()  { return themes;  },
+    setEvents(next) { events = next; saveEvents(); },
+    setThemes(next) { themes = next; saveThemes(); },
+    saveEvents,
+    render: () => { try { render(); renderSidebar?.(); } catch (e) {} },
+  };
 
   function getNotified() {
     try {
@@ -8458,8 +8526,127 @@ create policy "user_backups_policy" on public.user_backups
     }
   }
 
+  // ── 프로필 사진 관리 ────────────────────────────────────────────────
+  // localStorage 에 base64 data URL 로 저장 — 외부 의존성 없음.
+  // 아바타 (#sb-profile-btn) 가 다시 그려져도 짧은 폴링 + 즉시-적용으로 sync.
+  const PROFILE_PIC_KEY = 'calendar-profile-picture-v1';
+  function getProfilePic() { return localStorage.getItem(PROFILE_PIC_KEY) || ''; }
+  function setProfilePic(dataUrl) {
+    if (dataUrl) localStorage.setItem(PROFILE_PIC_KEY, dataUrl);
+    else         localStorage.removeItem(PROFILE_PIC_KEY);
+    applyPicToTopAvatar();
+    renderPictureRow();
+  }
+  function applyPicToTopAvatar() {
+    const btn = document.getElementById('sb-profile-btn');
+    if (!btn) return;
+    const pic = getProfilePic();
+    if (pic) {
+      btn.style.background = '#eee';
+      btn.innerHTML = '<img src="' + pic + '" alt="" style="width:100%;height:100%;object-fit:cover;">';
+    }
+  }
+  // sb-profile-btn 이 auth-ui.js 에 의해 비동기로 만들어지거나 다시 그려질 수 있음.
+  // 페이지 로드 직후 짧게 폴링 + MutationObserver 로 따라잡기.
+  (function watchTopAvatar() {
+    let tries = 0;
+    const t = () => {
+      applyPicToTopAvatar();
+      tries++;
+      if (tries < 30) setTimeout(t, 400);
+    };
+    setTimeout(t, 600);
+  })();
+
+  function renderPictureRow() {
+    const preview = document.getElementById('ps-pic-preview');
+    const val     = document.getElementById('ps-val-picture');
+    if (!preview) return;
+    const pic = getProfilePic();
+    if (pic) {
+      preview.textContent = '';
+      preview.innerHTML = '<img src="' + pic + '" alt="">';
+      if (val) { val.textContent = '설정됨'; val.classList.remove('unset'); }
+    } else {
+      preview.innerHTML = '';
+      preview.textContent = '👤';
+      if (val) { val.textContent = '미설정'; val.classList.add('unset'); }
+    }
+  }
+
+  // 큰 이미지를 256px 정사각형 캔버스로 다운스케일 → localStorage 용량 절약
+  function downscaleImage(dataUrl, target) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(1, target / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * ratio));
+        const h = Math.max(1, Math.round(img.height * ratio));
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const g = c.getContext('2d');
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(img, 0, 0, w, h);
+        try { resolve(c.toDataURL('image/jpeg', 0.86)); }
+        catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+  function bindPictureRow() {
+    const row   = document.getElementById('ps-row-picture');
+    const input = document.getElementById('ps-pic-input');
+    if (!row || !input || row.dataset.bound === '1') return;
+    row.dataset.bound = '1';
+    row.onclick = () => {
+      if (getProfilePic()) {
+        // 이미 있는 경우 — 변경 / 제거 선택
+        const choice = confirm('프로필 사진을 변경할까요?\n[확인] 새로 선택   [취소] 그대로');
+        if (!choice) return;
+      }
+      input.click();
+    };
+    // 우클릭으로 빠른 제거
+    row.oncontextmenu = (e) => {
+      e.preventDefault();
+      if (!getProfilePic()) return;
+      if (confirm('프로필 사진을 제거할까요?')) setProfilePic('');
+    };
+    input.onchange = async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('이미지 파일만 선택할 수 있어요.');
+        input.value = ''; return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('파일 크기는 5MB 이하만 가능합니다.');
+        input.value = ''; return;
+      }
+      try {
+        const raw = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload  = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+        const small = await downscaleImage(raw, 256);
+        setProfilePic(small);
+      } catch (err) {
+        console.warn('profile pic read failed:', err);
+        alert('이미지를 불러올 수 없습니다.');
+      } finally {
+        input.value = '';
+      }
+    };
+  }
+
   // step 0 설정 목록 업데이트
   function renderStep0() {
+    bindPictureRow();
+    renderPictureRow();
     const TYPE_LABELS = { middle: '중학생', high: '고등학생', university: '대학(원)생', none: '해당 없음' };
     const typeVal = document.getElementById('ps-val-type');
     const schoolVal = document.getElementById('ps-val-school');
@@ -8692,6 +8879,8 @@ create policy "user_backups_policy" on public.user_backups
       title: '캘린더 사용법을 안내해드릴게요',
       desc:  '각 단계에서 강조된 부분만 클릭할 수 있어요. ' +
              '직접 눌러보면서 따라오시면 됩니다. ESC 키 또는 ✕ 로 언제든 종료.',
+      extra: '튜토리얼 동안에는 이해를 돕기 위해 예시 일정 / 테마가 잠시 추가됩니다. ' +
+             '튜토리얼이 끝나면 자동으로 정리돼요.',
     },
     {
       target: '.palette-current',
@@ -8704,23 +8893,56 @@ create policy "user_backups_policy" on public.user_backups
       exploreHint: '마음에 드는 색을 골라보세요. 끝나면 [다음 →] 으로 진행!',
     },
     {
-      target: '#theme-mgr-btn',
-      title: '테마 관리',
-      desc:  '학교 · 학원 · 친구 같은 카테고리 테마를 만들고 색을 지정할 ' +
-             '수 있어요. 한 일정에 여러 테마를 동시에 붙일 수도 있습니다.',
-      extra: '초대 링크를 만들면 친구와 같은 테마의 일정을 실시간 공유할 수 있어요.',
+      target: '#theme-modal-backdrop .modal',
+      interact: ['#theme-modal-backdrop .modal'],
+      // step 진입 시 자동으로 테마 관리 모달을 엶 → 사용자가 직접
+      // 더하기 / 색 바꿈 / 삭제 등을 시연. 끝나면 자동으로 닫음.
+      onStart: () => {
+        const btn = document.getElementById('theme-mgr-btn');
+        if (btn) btn.click();
+      },
+      onEnd: () => {
+        const close = document.getElementById('theme-close-btn');
+        const modal = document.getElementById('theme-modal-backdrop');
+        if (modal && modal.classList.contains('active')) {
+          if (close) close.click();
+          else modal.classList.remove('active');
+        }
+      },
+      title: '테마 관리 — 직접 만들어보세요',
+      desc:  '카테고리 테마를 만들고 색을 지정할 수 있어요. ' +
+             '아래 [+ 테마 추가] 를 눌러 시험 삼아 만들어보세요. ' +
+             '초대 링크로 친구와 공유도 가능합니다.',
+      exploreHint: '[+ 테마 추가] 로 만들어보고, 끝나면 [다음 →]',
     },
     {
-      target: '#day-tpl-mgr-btn',
-      title: '위젯 설정',
-      desc:  '순공시간 · 한 줄 일기 · 공부 과목 체크리스트 같은 일별 입력 ' +
-             '위젯을 만들 수 있어요. 적용할 날짜 범위도 지정할 수 있습니다.',
+      target: '#day-tpl-modal-backdrop .modal',
+      interact: ['#day-tpl-modal-backdrop .modal'],
+      onStart: () => {
+        const btn = document.getElementById('day-tpl-mgr-btn');
+        if (btn) btn.click();
+      },
+      onEnd: () => {
+        const close = document.getElementById('day-tpl-close-btn');
+        const modal = document.getElementById('day-tpl-modal-backdrop');
+        if (modal && modal.classList.contains('active')) {
+          if (close) close.click();
+          else modal.classList.remove('active');
+        }
+      },
+      title: '위젯 설정 — 일별 입력 위젯',
+      desc:  '순공시간 · 한 줄 일기 · 공부 과목 체크리스트 같은 ' +
+             '입력 위젯을 만들어보세요. [+ 새 템플릿] 으로 시작합니다.',
+      exploreHint: '[+ 새 템플릿] 으로 만들어보고, 끝나면 [다음 →]',
     },
     {
       target: '.nav-controls',
+      // 월 라벨을 누르면 date-picker-popup 이 열리는데 그 위치까지 클릭 가능 영역으로.
+      interact: ['.nav-controls', '#date-picker'],
       title: '월 이동',
       desc:  '월 라벨을 클릭하면 연 · 월 picker, 양옆 화살표로 한 달씩 ' +
-             '이동, [오늘] 버튼으로 즉시 오늘로.',
+             '이동, [오늘] 버튼으로 즉시 오늘로 갑니다. 직접 한 번 눌러보세요.',
+      exploreHint: '여기서 자유롭게 월을 이동해보세요. 끝나면 [다음 →]',
     },
     {
       target: '.sb-seg',
@@ -8743,24 +8965,38 @@ create policy "user_backups_policy" on public.user_backups
     {
       target: '#sb-school-sec .sb-school-nm',
       requireTarget: true,
+      // 학교명 클릭 → school-info-backdrop 모달이 열림 → 그 안에서 자유롭게 둘러보기.
+      interact: ['#sb-school-sec', '#school-info-backdrop.active', '#school-info-backdrop .school-info-modal'],
+      onEnd: () => {
+        const back = document.getElementById('school-info-backdrop');
+        if (back && back.classList.contains('active')) back.classList.remove('active');
+      },
       title: '학교 정보 카드',
       desc:  '"내 학교" 영역에서 학교 이름을 클릭하면 교훈 · 주소 · 전화 · ' +
-             '홈페이지 등 정보 카드가 떠요.',
+             '홈페이지 등 정보 카드가 떠요. 한 번 눌러서 학교 정보를 확인해 보세요.',
       extra: 'NEIS open API 로 항상 최신 정보를 가져오니까 주소가 정확합니다.',
+      exploreHint: '학교 이름을 누르면 카드가 떠요. 다 보고 [다음 →]',
     },
     {
       target: '.day-cell.today, .day-cell:not(.empty)',
+      // 날짜 셀 클릭 → day-action-menu 가 떠서 일정 추가 / 별표 / 동그라미 선택.
+      interact: ['.day-cell', '#day-action-menu', '#modal-backdrop.active'],
+      onEnd: () => {
+        const menu = document.getElementById('day-action-menu');
+        if (menu) menu.style.display = 'none';
+      },
       title: '날짜 클릭으로 일정 추가',
-      desc:  '날짜를 한 번 클릭하면 액션 메뉴가 떠요. 거기서 일정 추가, ' +
-             '별표, 동그라미, 위젯 입력 중 골라서 사용합니다.',
+      desc:  '날짜를 한 번 클릭하면 액션 메뉴가 떠요. ' +
+             '거기서 [일정 추가] 를 눌러 시험 삼아 일정을 하나 만들어보세요.',
+      exploreHint: '날짜를 누르고 액션을 골라보세요. 끝나면 [다음 →]',
     },
     {
       target: null,
       title: '빠른 단축키',
       desc:  '마우스 커서를 날짜 위에 올린 상태에서 키보드를 사용하면 ' +
              '더 빠르게 작업할 수 있어요.',
-      extra: '⌨  1 키 → 별표 토글 (1~3개 누적)    ' +
-             '⌫  Backspace → 별표 / 동그라미 / 선택된 일정 삭제',
+      extra: '⌨  1 키 → 별표 토글 (1~3개 누적)\n' +
+             '⌫  Backspace → 별표 / 동그라미 삭제 (해당 마크 위에 마우스 올린 채)',
     },
     {
       target: null,
@@ -8837,6 +9073,13 @@ create policy "user_backups_policy" on public.user_backups
     setBox(maskR, x + w, y,     Math.max(0, W - (x + w)), h);
     setBox(spot,  x,     y,     w,                       h);
     return { x, y, w, h, W, H };
+  }
+  // 툴팁이 spotlight 와 시각적으로 겹치는지 체크 → 겹치면 재배치
+  function tooltipOverlapsRect(spotRect) {
+    const tt = tooltip.getBoundingClientRect();
+    if (!tt.width || !tt.height) return false;
+    return !(tt.right < spotRect.left || tt.left > spotRect.right ||
+             tt.bottom < spotRect.top || tt.top > spotRect.bottom);
   }
   // 강조 영역 주위 4면을 어둡게 가림 + 툴팁 배치 (step 시작 시 사용)
   function applySpotlight(rect) {
@@ -8939,11 +9182,25 @@ create policy "user_backups_policy" on public.user_backups
         l = Math.min(l, x.left); t = Math.min(t, x.top);
         r = Math.max(r, x.right); b = Math.max(b, x.bottom);
       }
-      updateSpotlightBox({ left: l, top: t, right: r, bottom: b,
-                            width: r - l, height: b - t });
+      const newRect = { left: l, top: t, right: r, bottom: b,
+                        width: r - l, height: b - t };
+      updateSpotlightBox(newRect);
+      // 확장된 spotlight 가 툴팁을 가리면 툴팁을 재배치 (palette popup 케이스).
+      // applySpotlight 가 위치 계산 로직을 갖고 있으므로 그대로 호출 (위치만 재계산).
+      const PAD = 6;
+      const padded = { left: l - PAD, top: t - PAD, right: r + PAD, bottom: b + PAD,
+                       width: (r - l) + 2*PAD, height: (b - t) + 2*PAD };
+      if (tooltipOverlapsRect(padded)) {
+        applySpotlight(newRect);
+      }
     };
     recompute();
     explorePollHandle = setInterval(recompute, 180);
+  }
+
+  function runStepHook(s, key) {
+    if (!s || !s[key]) return;
+    try { s[key](); } catch (e) { console.warn('[tutorial] ' + key + ' hook failed:', e); }
   }
 
   function tutShow(idx) {
@@ -8954,41 +9211,119 @@ create policy "user_backups_policy" on public.user_backups
     }
     if (idx >= TUTORIAL_STEPS.length) { tutClose(); return; }
     if (idx < 0) idx = 0;
+    // 이전 step 의 onEnd 호출 (예: 테마 관리 모달 닫기)
+    if (lastShownStep && lastShownStep !== TUTORIAL_STEPS[idx]) {
+      runStepHook(lastShownStep, 'onEnd');
+    }
     tutIdx = idx;
     const s = TUTORIAL_STEPS[idx];
     lastShownStep = s;
     // 매 step 시작 시 exploring 모드 해제 (마스크 복귀) + 폴링 정지
     coach.classList.remove('exploring');
     stopExplorePoll();
+    // 이번 step 의 onStart 호출 (예: 테마 관리 모달 열기)
+    runStepHook(s, 'onStart');
     tutRenderText(s);
 
     const rect = computeRect(s);
     if (rect) {
-      // 스크롤로 화면 안에 들어오도록
+      // 즉시 위치로 스크롤 (smooth 는 측정 타이밍 문제 + spotlight 가 한 박자
+      // 늦게 따라가 오해의 위치에 그려짐 → 본 사용자가 보고한 "위치 안 맞음").
       if (rect.scrollEl && typeof rect.scrollEl.scrollIntoView === 'function') {
-        try { rect.scrollEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-        catch { rect.scrollEl.scrollIntoView(); }
+        try { rect.scrollEl.scrollIntoView({ block: 'center', behavior: 'instant' }); }
+        catch (e) {
+          try { rect.scrollEl.scrollIntoView({ block: 'center' }); } catch {}
+        }
       }
-      // 스크롤 애니메이션 후 재측정
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+      // layout 안정화 후 재측정 — instant 스크롤은 동기적이지만, 어떤 ResizeObserver
+      // 나 layout shift 가 다음 frame 에 일어날 수 있어 한 프레임 + setTimeout 으로 보강.
+      requestAnimationFrame(() => {
         const fresh = computeRect(s);
         if (fresh) applySpotlight(fresh); else applyCentered();
-      }));
+        // 한 번 더 safety net (특히 폰트 / 이미지 로드로 layout 이 변하는 경우)
+        setTimeout(() => {
+          if (lastShownStep !== s || !coach.classList.contains('active')) return;
+          const r2 = computeRect(s);
+          if (r2) applySpotlight(r2);
+        }, 120);
+      });
     } else {
       applyCentered();
     }
   }
+  // ── 데모 일정 / 테마 inject (튜토리얼 시작 시) ───────────────
+  // _demo 플래그가 박힌 항목만 restore 시 제거 — 사용자가 튜토리얼 도중
+  // 실제로 추가한 본인 일정/테마는 보존됨.
+  function injectDemoData() {
+    if (!window.__CAL) return;
+    const themes = window.__CAL.themes.slice();
+    const need = [
+      { id: '_demo_school',  name: '학교',   color: '#5094d4', image: null, _demo: true },
+      { id: '_demo_club',    name: '동아리', color: '#e88060', image: null, _demo: true },
+      { id: '_demo_friends', name: '친구',   color: '#7c6bc4', image: null, _demo: true },
+      { id: '_demo_study',   name: '공부',   color: '#4caf84', image: null, _demo: true },
+    ];
+    for (const t of need) {
+      if (!themes.find(x => x.id === t.id)) themes.push(t);
+    }
+    const today = new Date();
+    const Y = today.getFullYear(), M = today.getMonth(), D = today.getDate();
+    const dk = (y, m, d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    // 이번 달 안에서 today 전후로 흩뿌림 — 다양한 테마 / 멀티 테마 섞기
+    const lastDay = new Date(Y, M + 1, 0).getDate();
+    const pick = (offset) => Math.max(1, Math.min(lastDay, D + offset));
+    const demoEv = {
+      [dk(Y, M, pick(-7))]:  [{ t: '수학 시험',   th: '_demo_school',  _demo: true }],
+      [dk(Y, M, pick(-4))]:  [{ t: '동아리 모임', th: '_demo_club',    _demo: true }],
+      [dk(Y, M, pick(-1))]:  [{ t: '친구 생일 🎂', th: '_demo_friends', _demo: true }],
+      [dk(Y, M, pick( 0))]:  [{ t: '오늘 — 공부 시작!', th: '_demo_study', _demo: true }],
+      [dk(Y, M, pick( 3))]:  [
+        { t: '국어 발표',  th: '_demo_school', _demo: true },
+        { t: '저녁 약속',  th: '_demo_friends', _demo: true },
+      ],
+      [dk(Y, M, pick( 7))]:  [{ t: '동아리 공연', th: ['_demo_club', '_demo_school'], _demo: true }],
+      [dk(Y, M, pick(10))]:  [{ t: '시험 끝!',     th: '_demo_school', _demo: true }],
+    };
+    const events = { ...window.__CAL.events };
+    for (const k in demoEv) {
+      const exist = Array.isArray(events[k]) ? events[k] : [];
+      events[k] = exist.concat(demoEv[k]);
+    }
+    window.__CAL.setThemes(themes);
+    window.__CAL.setEvents(events);
+    window.__CAL.render();
+  }
+  function restoreFromDemo() {
+    if (!window.__CAL) return;
+    const themes = (window.__CAL.themes || []).filter(t => !t._demo);
+    const events = {};
+    for (const k of Object.keys(window.__CAL.events || {})) {
+      const arr = window.__CAL.events[k];
+      if (!Array.isArray(arr)) continue;
+      const kept = arr.filter(e => !(typeof e === 'object' && e && e._demo));
+      if (kept.length) events[k] = kept;
+    }
+    window.__CAL.setThemes(themes);
+    window.__CAL.setEvents(events);
+    window.__CAL.render();
+  }
+
   function tutOpen() {
     coach.setAttribute('aria-hidden', 'false');
     coach.classList.add('active');
+    try { injectDemoData(); } catch (e) { console.warn('[tutorial] demo inject failed:', e); }
     tutShow(0);
   }
   function tutClose() {
+    // 닫히기 직전 마지막 step 의 onEnd (모달 열려있으면 닫기 등)
+    if (lastShownStep) runStepHook(lastShownStep, 'onEnd');
     coach.classList.remove('active');
     coach.classList.remove('exploring');
     coach.setAttribute('aria-hidden', 'true');
     stopExplorePoll();
     lastShownStep = null;
+    // _demo 표시 항목만 제거 — 사용자가 도중에 진짜로 추가한 일정/테마는 보존.
+    try { restoreFromDemo(); } catch (e) { console.warn('[tutorial] demo restore failed:', e); }
   }
   function tutNext() {
     // 다음 visible step
