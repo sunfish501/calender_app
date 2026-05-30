@@ -130,18 +130,19 @@
     gap: 12px;
     align-items: flex-start;
   }
-  /* ── 사이드바 ── */
+  /* ── 사이드바 (정리: 폭 확장 + 일관 spacing + hairline) ── */
   .sidebar {
-    width: 162px;
+    width: 184px;
     flex-shrink: 0;
     background: var(--cell-bg);
-    border: 0.5px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 9px 12px;
+    border: 1px solid #ecedef;
+    border-radius: 12px;
+    padding: 12px 12px 14px;
     position: sticky;
-    top: 20px;
+    top: 14px;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1px 2px rgba(60,64,67,0.04);
   }
   /* 탭 (세그먼트 컨트롤) */
   .sb-seg {
@@ -177,23 +178,27 @@
   }
   /* 섹션 헤더 */
   .sb-section-label {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    color: #999;
-    margin-bottom: 3px;
+    letter-spacing: 0.6px;
+    color: #80868b;
+    text-transform: uppercase;
+    margin-bottom: 5px;
     padding: 0 2px;
   }
   /* 테마 필터 항목 */
   .sidebar-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 7px 2px;
-    font-size: 0.82em;
+    gap: 9px;
+    padding: 6px 2px;
+    font-size: 0.84em;
     cursor: pointer;
     user-select: none;
+    border-radius: 6px;
+    transition: background 0.12s;
   }
+  .sidebar-item:hover { background: rgba(0,0,0,0.025); }
   .sidebar-item input[type="checkbox"] {
     accent-color: var(--today-accent);
     cursor: pointer;
@@ -222,25 +227,28 @@
     color: #aaa;
     margin-left: 1px;
   }
-  /* 구분선 */
+  /* 구분선 (얇은 hairline) */
   .sb-divider {
-    height: 0.5px;
-    background: var(--border);
-    margin: 10px 0 8px;
+    height: 1px;
+    background: #f0f0f3;
+    margin: 14px -12px 12px;
   }
   /* 보기 옵션 토글 행 */
   .sb-option-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 7px 2px;
+    padding: 8px 2px;
     gap: 6px;
+    border-radius: 6px;
+    transition: background 0.12s;
   }
+  .sb-option-row:hover { background: rgba(0,0,0,0.025); }
   .sb-opt-lhs {
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-size: 0.82em;
+    gap: 9px;
+    font-size: 0.84em;
     color: var(--text);
     flex: 1;
     min-width: 0;
@@ -406,16 +414,18 @@
     min-width: 36px;
   }
 
+  /* 갤럭시 캘린더 풍 미니멀: 격자선 제거, 셀은 미묘한 hairline 만 */
   .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1px;
+    gap: 0;
+    background: var(--cell-bg);
+    border: none;
+    border-radius: 10px;
+    padding: 0;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 2px rgba(60,64,67,0.05), 0 1px 6px rgba(60,64,67,0.08);
   }
 
   /* 연속 보기 가로 배치: 3개월이 화면 너비에 균등 분할되어 한 눈에 보임 (스크롤 없음).
@@ -495,26 +505,34 @@
   }
 
   .day-name {
-    font-size: 0.9em;
-    font-weight: 600;
+    font-size: 0.78em;
+    font-weight: 500;
+    letter-spacing: 0.04em;
     text-align: center;
-    padding: 10px 0;
-    color: var(--text-light);
-    background: var(--day-header-bg);
+    padding: 14px 0 10px;
+    color: #5f6368;
+    background: var(--cell-bg);
+    border-bottom: 1px solid #f0f0f3;
   }
 
-  .day-name.sun { color: #d33; }
-  .day-name.sat { color: #36c; }
+  .day-name.sun { color: #d93025; }
+  .day-name.sat { color: #1a73e8; }
 
   .day-cell {
-    min-height: 110px;
-    padding: 6px 8px;
+    min-height: 112px;
+    padding: 8px 6px 4px;
     background: var(--cell-bg);
     cursor: pointer;
     position: relative;
     overflow: visible;
-    transition: background 0.1s;
+    transition: background 0.12s;
+    border-right: 1px solid #f5f5f7;
+    border-bottom: 1px solid #f5f5f7;
   }
+  /* 일요일 칸은 우측 라인 제거 (좌측 가장자리 시작) */
+  .day-cell:nth-child(7n+1) { border-left: none; }
+  /* 토요일 칸은 우측 라인 제거 (마지막 열) */
+  .day-cell:nth-child(7n) { border-right: none; }
 
   .star {
     position: absolute;
@@ -546,38 +564,39 @@
   .star-trio-1 { font-size: 2.2em; transform: translate(15%, -80%) rotate(15deg); }
   .star-trio-2 { font-size: 2.2em; transform: translate(5%, -5%) rotate(-6deg); }
 
-  .day-cell:hover { background: var(--cell-hover); }
+  .day-cell:hover { background: #fafbfc; }
 
-  .day-cell.empty { background: var(--cell-empty); cursor: default; }
-  .day-cell.empty:hover { background: var(--cell-empty); }
+  .day-cell.empty { background: var(--cell-bg); cursor: default; }
+  .day-cell.empty:hover { background: var(--cell-bg); }
 
-  .day-cell.today {
-    background: var(--today-bg);
-  }
-
+  /* 오늘 표시 — 배경 강조 대신 숫자만 동그라미로 (갤럭시 스타일) */
+  .day-cell.today { background: var(--cell-bg); }
   .day-cell.today .day-number {
     color: #ffffff;
     background: var(--today-accent);
     border-radius: 50%;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9em;
+    font-size: 0.82em;
+    font-weight: 600;
+    line-height: 1;
   }
 
   .day-number {
-    font-size: 0.95em;
+    font-size: 0.88em;
     font-weight: 500;
     margin-bottom: 4px;
-    color: #222;
+    color: #202124;
     position: relative;
     display: inline-block;
+    line-height: 1.4;
   }
 
-  .day-cell.sun .day-number { color: #d33; }
-  .day-cell.sat .day-number { color: #36c; }
+  .day-cell.sun .day-number { color: #d93025; }
+  .day-cell.sat .day-number { color: #1a73e8; }
 
   .lunar {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
@@ -589,16 +608,16 @@
   }
   .lunar.leap { color: #c0392b; }
 
-  .day-cell.holiday .day-number { color: #d33; }
+  .day-cell.holiday .day-number { color: #d93025; }
   .day-cell.holiday.today .day-number {
     color: #fff;
-    background: #d33;
+    background: #d93025;
   }
   .holiday-name {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
-    font-size: 0.7em;
-    color: #d33;
-    margin-top: -1px;
+    font-size: 0.68em;
+    color: #d93025;
+    margin-top: -2px;
     margin-bottom: 3px;
     line-height: 1.15;
     font-weight: 500;
@@ -606,55 +625,59 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .holiday-name.minor { color: #888; font-weight: 400; }
+  .holiday-name.minor { color: #9aa0a6; font-weight: 400; }
 
+  /* 일정 — 갤럭시 캘린더 풍의 가로 컬러 막대 */
   .events {
-    font-family: 'Gamja Flower', 'Nanum Pen Script', cursive;
-    font-size: 1.1em;
-    line-height: 1.2;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    font-size: 0.74em;
+    line-height: 1.3;
+    margin-top: 2px;
   }
 
   .event {
-    background: #fff4c4;
-    padding: 2px 6px;
+    background: #ffe4a8;
+    padding: 1px 6px;
     margin-bottom: 2px;
-    border-radius: 4px;
-    border-left: 3px solid #f0c040;
+    border-radius: 3px;
+    border-left: none;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     cursor: pointer;
-    color: #4a3a10;
+    color: #5a4410;
+    font-weight: 500;
     transition: filter 0.1s;
+    min-height: 16px;
   }
   .event span {
     flex: 1;
     word-break: keep-all;
-    overflow-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+  .event:hover { filter: brightness(0.94); }
 
-  .event:hover { filter: brightness(0.92); }
+  .event.c0 { background: #fff4c4; color: #6b4f10; }
+  .event.c1 { background: #fde0e0; color: #8b1d1d; }
+  .event.c2 { background: #d9e8ff; color: #1a4096; }
+  .event.c3 { background: #d8efd0; color: #1f5a1a; }
+  .event.c4 { background: #e8dbff; color: #4a1a8b; }
+  .event.c5 { background: #ffe1cc; color: #8b3a10; }
 
-  .event.c0 { background: #fff4c4; border-left-color: #f0c040; color: #6b4f10; }
-  .event.c1 { background: #ffdada; border-left-color: #e57373; color: #6b1a1a; }
-  .event.c2 { background: #dceeff; border-left-color: #5b9bd5; color: #1a3a6b; }
-  .event.c3 { background: #d9f0d4; border-left-color: #6bbf59; color: #1f5a1a; }
-  .event.c4 { background: #ead9ff; border-left-color: #a78bd5; color: #3a1a6b; }
-  .event.c5 { background: #ffe1cc; border-left-color: #f0a060; color: #6b3a10; }
-
-  /* 멀티 테마 일정: 좌측 색띠가 여러 색으로 분할 */
+  /* 멀티 테마: 얇은 좌측 색띠 분할 */
   .event.multi {
     position: relative;
-    border-left: none;
     padding-left: 9px;
   }
   .event.multi::before {
     content: '';
     position: absolute;
     left: 0; top: 0; bottom: 0;
-    width: 6px;
-    border-radius: 3px 0 0 3px;
+    width: 4px;
     background: var(--multi-stripe, #ccc);
+    border-radius: 3px 0 0 3px;
   }
 
   .event .del-btn {
@@ -1359,22 +1382,19 @@
   .palette-current:hover { border-color: #666; }
   .palette-popup {
     display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 6px;
+    position: fixed; /* viewport 기준 — 헤더 안 위치 어디든 잘림 없이 표시 */
+    margin: 0;
     background: #fff;
-    border: 1px solid #d0d0d5;
-    border-radius: 10px;
-    padding: 8px 10px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    z-index: 300;
-    gap: 6px;
+    border: 1px solid #e0e0e3;
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+    z-index: 350;
+    gap: 8px;
     flex-wrap: wrap;
-    width: 180px;
+    width: 200px;
     justify-content: center;
   }
-  .palette-bar:hover .palette-popup,
   .palette-popup.pinned { display: flex; }
   .palette-dot {
     width: 28px; height: 28px;
@@ -2003,30 +2023,39 @@
     opacity: 0.75; cursor: default;
     display: none;
   }
-  /* 사이드바 학교 정보 */
+  /* 사이드바 학교 정보 — 깔끔하게 정리 */
   .sb-school-sec {
-    border-top: 0.5px solid var(--border); padding-top: 10px; margin-top: 4px;
+    border-top: 1px solid #f0f0f3;
+    padding-top: 12px;
+    margin-top: 6px;
   }
   .sb-school-row {
-    display: flex; align-items: center; gap: 7px; padding: 3px 2px 1px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 2px 2px;
   }
   .sb-school-av {
-    width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.65em; font-weight: 800; color: #fff;
+    font-size: 0.62em; font-weight: 700; color: #fff;
+    letter-spacing: 0.5px;
   }
   .sb-school-nm {
-    flex: 1; min-width: 0; font-size: 0.8em; font-weight: 600;
-    color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+    font-size: 0.82em; font-weight: 600;
+    color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    line-height: 1.25;
   }
   .sb-school-ch {
-    font-size: 0.68em; color: var(--today-accent); cursor: pointer;
-    background: none; border: none; padding: 0; font-family: inherit; flex-shrink: 0;
+    font-size: 0.7em; color: var(--today-accent); cursor: pointer;
+    background: none; border: none; padding: 0;
+    font-family: inherit; flex-shrink: 0; font-weight: 500;
   }
   .sb-school-ch:hover { text-decoration: underline; }
   .sb-school-mot {
-    font-size: 0.72em; color: var(--text-light);
-    padding: 2px 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 0.72em; color: #5f6368;
+    padding: 4px 2px 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
   /* ── 백업 모달 ── */
@@ -2908,12 +2937,8 @@
     dot.className = 'palette-current';
     dot.style.background = cur.dot;
     dot.title = cur.name;
-    dot.onclick = (e) => {
-      e.stopPropagation();
-      const pp = bar.querySelector('.palette-popup');
-      if (pp) pp.classList.toggle('pinned');
-    };
     bar.appendChild(dot);
+
     const popup = document.createElement('div');
     popup.className = 'palette-popup';
     const label = document.createElement('div');
@@ -2929,10 +2954,36 @@
       popup.appendChild(d);
     });
     bar.appendChild(popup);
-    document.addEventListener('click', () => {
-      const pp = bar.querySelector('.palette-popup');
-      if (pp) pp.classList.remove('pinned');
-    }, { once: false });
+
+    function positionPopup() {
+      // viewport 인식: 트리거 동그라미 바로 아래, 그러나 좌/우/하단을 벗어나면 보정
+      const rect = dot.getBoundingClientRect();
+      const popupW = 200, popupH = popup.offsetHeight || 100;
+      const margin = 8;
+      let left = rect.left + rect.width / 2 - popupW / 2;
+      let top = rect.bottom + 6;
+      if (left < margin) left = margin;
+      if (left + popupW + margin > window.innerWidth)  left = window.innerWidth  - popupW - margin;
+      if (top  + popupH + margin > window.innerHeight) top  = rect.top - popupH - 6;
+      popup.style.left = left + 'px';
+      popup.style.top  = top  + 'px';
+    }
+    dot.onclick = (e) => {
+      e.stopPropagation();
+      const wasOpen = popup.classList.contains('pinned');
+      popup.classList.toggle('pinned');
+      if (!wasOpen) positionPopup();
+    };
+    // 외부 클릭 시 닫기 (한 번만 바인딩하여 누적 방지)
+    if (!window.__paletteOutsideBound) {
+      window.__paletteOutsideBound = true;
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.palette-popup.pinned').forEach(p => p.classList.remove('pinned'));
+      });
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.palette-popup.pinned').forEach(p => p.classList.remove('pinned'));
+      });
+    }
   }
   renderPalette();
   applyPreset(currentPreset);
