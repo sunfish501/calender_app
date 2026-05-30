@@ -7583,6 +7583,33 @@ create policy "user_backups_policy" on public.user_backups
     ],
   };
 
+  // ── 학교별 로고 이미지 매핑 ────────────────────────────────────────────────
+  // 이름 일치하면 "KD" 같은 약자 텍스트 대신 이미지를 표시.
+  // 추가 학교는 여기에 한 줄만 등록하면 됨.
+  const SCHOOL_LOGOS = {
+    '한국디지털미디어고등학교': 'assets/schools/kdmh.svg',
+  };
+  // 학교 아바타 (sb-school-av / ps-school-avatar / ps-m-avatar 공용) 렌더링.
+  // 로고가 있으면 흰 배경 + 이미지, 없으면 학교색 + 약자 텍스트로 폴백.
+  function applySchoolAvatar(av, s) {
+    if (!av) return;
+    const logo = s && SCHOOL_LOGOS[s.name];
+    if (logo) {
+      av.style.background       = '#ffffff';
+      av.style.backgroundImage  = "url('" + logo + "')";
+      av.style.backgroundSize   = '78%';
+      av.style.backgroundRepeat = 'no-repeat';
+      av.style.backgroundPosition = 'center';
+      av.style.color            = 'transparent';
+      av.textContent            = '';
+    } else {
+      av.style.backgroundImage  = '';
+      av.style.background       = (s && s.color) || '#003087';
+      av.style.color            = '#fff';
+      av.textContent            = ((s && (s.abbr || s.name)) || '').slice(0, 2);
+    }
+  }
+
   // ── 프로필 조회 / 저장 ─────────────────────────────────────────────────────
   function getProfile() {
     try { return JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || 'null'); }
@@ -7628,8 +7655,7 @@ create policy "user_backups_policy" on public.user_backups
 
     const av = document.createElement('div');
     av.className = 'sb-school-av';
-    av.style.background = s.color || '#003087';
-    av.textContent = (s.abbr || s.name).slice(0, 2);
+    applySchoolAvatar(av, s);
     row.appendChild(av);
 
     const nm = document.createElement('span');
@@ -7850,8 +7876,7 @@ create policy "user_backups_policy" on public.user_backups
         item.className = 'ps-school-item';
         const av = document.createElement('div');
         av.className = 'ps-school-avatar';
-        av.style.background = s.color || '#003087';
-        av.textContent = (s.abbr || s.name).slice(0, 2);
+        applySchoolAvatar(av, s);
         const info = document.createElement('div');
         info.className = 'ps-school-info';
         info.innerHTML = `<div class="pssi-name">${s.name}</div>` +
@@ -7891,13 +7916,14 @@ create policy "user_backups_policy" on public.user_backups
     const qt = document.getElementById('ps-m-quote');
     if (!av) return;
     if (s) {
-      av.style.background = s.color || '#003087';
-      av.textContent = (s.abbr || s.name).slice(0, 2);
+      applySchoolAvatar(av, s);
       if (nm) nm.textContent = s.name;
       if (mo) mo.textContent = s.motto || '';
       if (qt) qt.textContent = s.quote || (s.motto ? '' : '달력 앱과 함께 멋진 하루를 시작해요!');
     } else {
+      av.style.backgroundImage = '';
       av.style.background = '#2874e0';
+      av.style.color = '#fff';
       av.textContent = '📅';
       if (nm) nm.textContent = '달력 앱';
       if (mo) mo.textContent = '';

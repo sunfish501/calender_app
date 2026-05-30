@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 한국디지털미디어고등학교 (디미고) 로고 — 핑크 @ 스타일.
+     사용자가 제공한 이미지에 기반한 SVG 근사. 정확도가 필요하면
+     이 파일을 실제 로고 SVG/PNG 로 교체만 하면 됨. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="한국디지털미디어고등학교 로고">
+  <!-- 외부 핑크 C: 우측에 약 60° 간격 -->
+  <path d="M 81 32 A 36 36 0 1 0 81 68"
+        fill="none" stroke="#E91E75" stroke-width="11.5" stroke-linecap="butt"/>
+  <!-- 내부 핑크 C: 우측에 작은 간격 -->
+  <path d="M 65 41 A 16 16 0 1 0 65 59"
+        fill="none" stroke="#E91E75" stroke-width="8" stroke-linecap="butt"/>
+  <!-- 중앙 핑크 도트 -->
+  <circle cx="50" cy="50" r="5" fill="#E91E75"/>
+</svg>
