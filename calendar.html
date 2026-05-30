@@ -2429,22 +2429,22 @@
   }
 
   /* 사용자 프로필 아바타 — viewport 우측 상단에 무조건 고정.
-     스크롤 / 연속 보기 / 모토 (🎲 추천) / 어떤 transform 이 있어도 절대로
-     움직이지 않게 못박음. z-index 는 튜토리얼 (9000~9002) 보다도 높게
-     해서 항상 위에서 보임. */
+     html body #sb-profile-wrap 로 최대 specificity, 모든 inset 속성 +
+     transform / margin 까지 !important 로 못박음. 아래 JS belt-and-
+     suspenders 가 inline cssText 덮어쓰기 / 이후 위치 변경을 즉시 원복. */
+  html body #sb-profile-wrap,
   #sb-profile-wrap {
     position: fixed !important;
     top: 12px !important;
     right: 16px !important;
     left: auto !important;
     bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
     z-index: 10000 !important;
     pointer-events: auto !important;
-    /* 일부 브라우저에서 부모의 contain 이나 transform 으로 인해 fixed 가
-       깨지는 경우를 막기 위해 will-change 로 새로운 stacking 컨텍스트 보장. */
     will-change: transform;
   }
-  /* 다크 모드 / 색상 테마 변경 시에도 어색하지 않게 그림자 살짝 */
   #sb-profile-btn {
     box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
   }
@@ -9504,6 +9504,55 @@ create policy "user_backups_policy" on public.user_backups
     obs.observe(cal, { childList: true, subtree: true });
     enhanceEventOverflow();
   }
+
+  // ── 프로필 아바타 위치 강제 고정 (JS belt-and-suspenders) ──
+  // auth-ui.js 가 inline cssText 로 position/top/right 를 set 하는데,
+  // CSS !important 가 항상 이깁니다. 다만 사용자가 "여전히 움직인다" 고
+  // 보고했으므로 정말 어떤 일이 있어도 못 움직이도록 inline 에도
+  // setProperty('important') 로 박고, 어떤 코드가 cssText 를 다시
+  // 덮어쓰면 MutationObserver 가 즉시 원복합니다.
+  function pinProfileAvatar() {
+    const w = document.getElementById('sb-profile-wrap');
+    if (!w) return false;
+    const set = (k, v) => {
+      try { w.style.setProperty(k, v, 'important'); } catch (e) {}
+    };
+    set('position', 'fixed');
+    set('top',      '12px');
+    set('right',    '16px');
+    set('left',     'auto');
+    set('bottom',   'auto');
+    set('transform', 'none');
+    set('margin',   '0');
+    set('z-index',  '10000');
+    return true;
+  }
+  // 페이지 로드 후 sb-profile-wrap 이 만들어질 때까지 폴링하다 한 번 박고,
+  // 박은 뒤엔 MutationObserver 로 attribute 변경 감시.
+  (function ensurePinned() {
+    let tries = 0;
+    const interval = setInterval(() => {
+      tries++;
+      if (pinProfileAvatar()) {
+        clearInterval(interval);
+        const w = document.getElementById('sb-profile-wrap');
+        if (!w) return;
+        // 누가 style 을 다시 덮어쓰면 그 즉시 다시 박음 (루프 방지: 우리가
+        // setProperty 로 박는 도중에 mutation 이 발생해도 이미 같은 값이면
+        // 다시 set 해도 동일하므로 무한루프 없음).
+        let pinning = false;
+        const mo = new MutationObserver(() => {
+          if (pinning) return;
+          pinning = true;
+          pinProfileAvatar();
+          requestAnimationFrame(() => { pinning = false; });
+        });
+        mo.observe(w, { attributes: true, attributeFilter: ['style'] });
+      } else if (tries >= 50) {
+        clearInterval(interval);
+      }
+    }, 200);
+  })();
 })();
 </script>
 </body>
