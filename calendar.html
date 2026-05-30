@@ -2141,36 +2141,38 @@
         hover 와 충돌하는 일부 속성만 !important 사용.)
      ════════════════════════════════════════════════════════════════ */
 
-  body {
-    background: #fafafa;
-  }
+  /* body { background } 은 원본의 var(--bg) 가 그대로 적용되도록 override 제거.
+     → 팔레트 변경 시 자연스럽게 전체 화면 색이 따라간다. */
 
-  /* ── 상단 header (테마 관리 / 위젯 설정) ── */
+  /* ── 상단 header (색 / 테마 관리 / 위젯 설정) — 좌측 상단 정렬 ──
+     기존: justify-content: flex-end (우측) → 우측 상단 user-avatar 와
+     충돌해 침범당함. 좌측으로 옮겨 충돌 제거. */
   .container > header {
     margin-bottom: 6px;
     padding: 2px 2px 6px;
   }
   .controls {
-    justify-content: flex-end;
+    justify-content: flex-start;
     width: 100%;
     gap: 6px;
+    padding-right: 56px;     /* 우측의 fixed avatar(40px+여백) 영역 회피 */
   }
   #theme-mgr-btn,
   #day-tpl-mgr-btn {
     padding: 7px 14px;
     border-radius: 999px;
-    background: #ffffff;
-    border: 1px solid #ececef;
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     font-size: 0.84em;
-    color: #444;
+    color: var(--text-light);
     font-weight: 500;
   }
   #theme-mgr-btn:hover,
   #day-tpl-mgr-btn:hover {
-    background: #f4f4f6;
-    border-color: #d6d6db;
-    color: #1a1a1a;
+    background: var(--cell-hover);
+    border-color: var(--border);
+    color: var(--text);
   }
 
   /* ── 모토 영역: 박스 라인 제거 + 더 공기감 있게 ── */
@@ -2200,7 +2202,7 @@
     font-size: 28px !important;
     font-weight: 700 !important;
     letter-spacing: -0.018em !important;
-    color: #161616 !important;
+    color: var(--text) !important;
     text-align: center !important;
     min-width: 0 !important;
     margin: 0 8px !important;
@@ -2215,7 +2217,7 @@
   .nav-controls h2#month-label .ml-year {
     font-size: 0.46em;
     font-weight: 500;
-    color: #9a9aa0;
+    color: var(--text-light);
     margin-right: 8px;
     vertical-align: 0.45em;
     letter-spacing: 0;
@@ -2226,34 +2228,34 @@
   .nav-controls .nav-btn {
     width: 38px; height: 38px;
     border-radius: 50% !important;
-    border: 1px solid #ececef !important;
-    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    background: var(--cell-bg) !important;
     padding: 0 !important;
     font-size: 16px !important;
-    color: #555 !important;
+    color: var(--text-light) !important;
     display: inline-flex !important;
     align-items: center; justify-content: center;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     min-width: 0 !important;
   }
   .nav-controls .nav-btn:hover {
-    background: #f4f4f6 !important;
-    color: #1a1a1a !important;
-    border-color: #d6d6db !important;
+    background: var(--cell-hover) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
   }
   #today-btn {
     padding: 8px 18px;
     border-radius: 999px;
-    background: #ffffff;
-    border: 1px solid #ececef;
-    color: #1a1a1a;
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
     font-weight: 600;
     margin-left: 6px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
   #today-btn:hover {
-    background: #f4f4f6;
-    border-color: #d6d6db;
+    background: var(--cell-hover);
+    border-color: var(--border);
   }
 
   /* ── 팁 카드 ── */
@@ -2261,12 +2263,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #f1f1f3;
+    /* rgba 오버레이는 어떤 팔레트의 --bg 위에서도 자연스러운 음영 효과 */
+    background: rgba(0,0,0,0.045);
     border-radius: 14px;
     padding: 11px 14px 11px 14px;
     margin: 4px 2px 16px;
     font-size: 14px;
-    color: #232323;
+    color: var(--text);
     font-weight: 500;
   }
   .gx-tip-card.hidden { display: none; }
@@ -2274,17 +2277,17 @@
     font-size: 17px; flex-shrink: 0; line-height: 1;
   }
   .gx-tip-card .gx-tip-text {
-    flex: 1; line-height: 1.45; font-weight: 400; color: #2a2a2c;
+    flex: 1; line-height: 1.45; font-weight: 400; color: var(--text);
   }
-  .gx-tip-card .gx-tip-text b { font-weight: 600; color: #1a1a1a; margin-right: 2px; }
+  .gx-tip-card .gx-tip-text b { font-weight: 600; color: var(--text); margin-right: 2px; }
   .gx-tip-card .gx-tip-close {
     background: transparent; border: none; padding: 0;
-    cursor: pointer; color: #8a8a8e; font-size: 13px;
+    cursor: pointer; color: var(--text-light); font-size: 13px;
     width: 26px; height: 26px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
     flex-shrink: 0; font-weight: 600;
   }
-  .gx-tip-card .gx-tip-close:hover { background: rgba(0,0,0,0.06); color: #1a1a1a; }
+  .gx-tip-card .gx-tip-close:hover { background: rgba(0,0,0,0.06); color: var(--text); }
 
   /* ── 캘린더 grid: 외곽선 / 그림자 제거, 셀은 hairline 없이 padding only ── */
   .calendar {
@@ -2297,13 +2300,14 @@
   .day-name {
     background: transparent !important;
     border: none !important;
-    color: #9a9aa0 !important;
+    color: var(--text-light) !important;
     font-size: 12px !important;
     font-weight: 500 !important;
     letter-spacing: 0.06em !important;
     padding: 6px 0 14px !important;
     text-transform: none;
   }
+  /* sun/sat/holiday 는 의미 고정색 (팔레트와 무관) */
   .day-name.sun { color: #e44a4a !important; }
   .day-name.sat { color: #4a83e4 !important; }
 
@@ -2317,12 +2321,12 @@
   }
   .day-cell:hover { background: rgba(0,0,0,0.025) !important; }
   .day-cell.empty:hover { background: transparent !important; }
-  .day-cell.empty .day-number { color: #d4d4da !important; }
+  .day-cell.empty .day-number { color: var(--text-light) !important; opacity: 0.5; }
 
   .day-number {
     font-size: 14px !important;
     font-weight: 500 !important;
-    color: #1a1a1a !important;
+    color: var(--text) !important;
     margin-bottom: 6px !important;
     width: 26px !important;
     height: 26px !important;
@@ -2339,7 +2343,7 @@
 
   .day-cell.today { background: transparent !important; }
   .day-cell.today .day-number {
-    background: #2874e0 !important;
+    background: var(--today-accent) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     width: 26px !important; height: 26px !important;
@@ -2352,9 +2356,9 @@
 
   /* 음력 / 공휴일 텍스트 더 옅게 */
   .lunar {
-    color: #b5b5bb !important;
+    color: var(--text-light) !important;
     font-size: 0.62em !important;
-    opacity: 0.92;
+    opacity: 0.7;
     margin-top: 0 !important;
   }
   .holiday-name {
@@ -2364,7 +2368,7 @@
     line-height: 1.2 !important;
     margin: 0 0 3px !important;
   }
-  .holiday-name.minor { color: #b8b8be !important; }
+  .holiday-name.minor { color: var(--text-light) !important; opacity: 0.6; }
 
   /* ── 이벤트: 파스텔 pill ── */
   .events {
@@ -2402,8 +2406,8 @@
   .event.c5 { background: #ffe1cc !important; color: #944418 !important; }
   /* 초과 일정 라벨 (JS 가 자동 삽입) */
   .event.event-more {
-    background: #eeeef1 !important;
-    color: #6e6e74 !important;
+    background: rgba(0,0,0,0.06) !important;
+    color: var(--text-light) !important;
     font-weight: 600 !important;
     cursor: default;
     justify-content: center !important;
@@ -2418,15 +2422,15 @@
   .calendar.continuous-horizontal { background: transparent !important; }
   .calendar.continuous-horizontal .month-col {
     background: var(--cell-bg);
-    border: 1px solid #ececef !important;
+    border: 1px solid var(--border) !important;
     border-radius: 16px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
   .calendar.continuous-horizontal .month-col-title {
     background: transparent !important;
-    border-bottom: 1px solid #f0f0f3 !important;
+    border-bottom: 1px solid var(--border) !important;
     font-weight: 700 !important;
-    color: #1a1a1a !important;
+    color: var(--text) !important;
     padding: 12px 14px !important;
     font-size: 1em !important;
   }
@@ -2436,9 +2440,10 @@
     padding: 0 !important;
   }
 
-  /* 사이드바도 배경 톤 맞춤 */
+  /* 사이드바도 팔레트 따라가도록 */
   .sidebar {
-    background: #ffffff !important;
+    background: var(--cell-bg) !important;
+    border-color: var(--border) !important;
   }
 
   /* 사이드바 학교명: 클릭 가능 hint */
@@ -2450,8 +2455,8 @@
 
   /* ── 학교 정보 모달 (school info card) ── */
   .school-info-modal {
-    background: #ffffff;
-    border: 1px solid #ececef;
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
     border-radius: 18px;
     padding: 22px 24px 24px;
     min-width: 360px;
@@ -2481,14 +2486,14 @@
   .si-meta h3 {
     font-size: 1.1em;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text);
     margin: 0 0 3px;
     line-height: 1.3;
     word-break: keep-all;
   }
   .si-type {
     font-size: 0.78em;
-    color: #80868b;
+    color: var(--text-light);
     font-weight: 500;
   }
   .si-close {
@@ -2496,7 +2501,7 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    color: #8a8a8e;
+    color: var(--text-light);
     width: 32px; height: 32px;
     border-radius: 50%;
     font-size: 14px;
@@ -2505,7 +2510,7 @@
     display: inline-flex;
     align-items: center; justify-content: center;
   }
-  .si-close:hover { background: #f4f4f6; color: #1a1a1a; }
+  .si-close:hover { background: var(--cell-hover); color: var(--text); }
 
   .si-body {
     display: flex;
@@ -2516,7 +2521,7 @@
     display: flex;
     gap: 12px;
     padding: 11px 14px;
-    background: #f7f7f9;
+    background: rgba(0,0,0,0.035);
     border-radius: 12px;
     font-size: 0.92em;
     line-height: 1.5;
@@ -2524,19 +2529,19 @@
   .si-row .si-label {
     flex-shrink: 0;
     width: 72px;
-    color: #80868b;
+    color: var(--text-light);
     font-weight: 500;
   }
   .si-row .si-value {
     flex: 1;
-    color: #1a1a1a;
+    color: var(--text);
     word-break: break-all;
   }
   .si-row.hidden { display: none; }
   .si-quote-row {
-    background: linear-gradient(135deg, #f7f7f9 0%, #fafafc 100%);
+    background: rgba(0,0,0,0.025);
     font-style: italic;
-    color: #4a4a52;
+    color: var(--text);
     padding: 12px 16px;
   }
   .si-quote-row::before {
