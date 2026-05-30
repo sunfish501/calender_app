@@ -86,6 +86,16 @@
   }
 
   // ── Supabase 클라우드 백업 ──────────────────────────────────────────────────
+  // 테이블이 아직 안 만들어진 경우를 폭넓게 감지한다.
+  //   42P01      : Postgres "relation does not exist"
+  //   PGRST205   : PostgREST "Could not find the table ... in the schema cache"
+  // (이전엔 42P01 만 봐서, PostgREST 스키마 캐시 오류는 못 잡고 원문이 그대로 노출됐다.)
+  function isTableMissing(error) {
+    const blob = [error?.message, error?.details, error?.hint, error?.code]
+      .filter(Boolean).join(' ');
+    return /42P01|PGRST205|does not exist|schema cache|could not find the table/i.test(blob);
+  }
+
   async function backupToCloud(label) {
     if (!window.sb) throw new Error('Supabase 클라이언트 없음');
     const user = window.SupabaseAuth?.getUser();
@@ -97,8 +107,7 @@
       label:       label || new Date().toLocaleDateString('ko-KR'),
     });
     if (error) {
-      if (/42P01|does not exist/i.test((error.message || '') + (error.details || '')))
-        throw new Error('TABLE_MISSING');
+      if (isTableMissing(error)) throw new Error('TABLE_MISSING');
       throw error;
     }
     setConfig({ lastBackup: Date.now(), lastBackupType: 'cloud' });
@@ -126,7 +135,7 @@
       .order('created_at', { ascending: false })
       .limit(10);
     if (error) {
-      if (/42P01/i.test(error.message || '')) return null; // table missing
+      if (isTableMissing(error)) return null; // table missing
       return [];
     }
     return data || [];
