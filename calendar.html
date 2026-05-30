@@ -2341,9 +2341,11 @@
   }
 
   /* 사용자가 강조 영역을 클릭한 직후 — "직접 사용해보기" 모드.
-     마스크가 사라져 popup/menu 까지 자유롭게 사용 가능. tooltip 만 남음. */
-  .tut-coach.exploring .tut-mask     { opacity: 0; pointer-events: none; }
-  .tut-coach.exploring .tut-spotlight { opacity: 0.55; animation-duration: 2.6s; }
+     시각적으로는 화면이 밝아지지만 마스크의 pointer-events 는 여전히
+     auto (clicks 차단). spotlight 영역만 클릭 가능 → step.interact 에
+     선언된 selector 들이 spotlight 안으로 들어오게 JS 가 동적으로 확장. */
+  .tut-coach.exploring .tut-mask     { background: transparent; }
+  .tut-coach.exploring .tut-spotlight { opacity: 0.7; }
 
   /* 강조 대상이 없는 step (welcome / shortcuts / done) → 화면 전체 dim */
   .tut-coach.no-spot .tut-mask-top {
@@ -8693,9 +8695,13 @@ create policy "user_backups_policy" on public.user_backups
     },
     {
       target: '.palette-current',
+      // 클릭 후 popup 이 열리면 spotlight 가 popup 까지 자동 확장 →
+      // 그 안의 색 동그라미들도 클릭 가능.
+      interact: ['.palette-current', '.palette-popup.pinned'],
       title: '색상 테마 변경',
-      desc:  '왼쪽 위 작은 색 동그라미를 누르면 캘린더 전체 색상이 ' +
-             '바뀝니다. 기본 · 피치 · 하늘 · 레몬 · 로즈 중 골라보세요.',
+      desc:  '왼쪽 위 작은 색 동그라미를 누르고, 마음에 드는 색을 ' +
+             '선택해 보세요. 캘린더 전체가 즉시 그 색으로 바뀝니다.',
+      exploreHint: '마음에 드는 색을 골라보세요. 끝나면 [다음 →] 으로 진행!',
     },
     {
       target: '#theme-mgr-btn',
@@ -8815,10 +8821,9 @@ create policy "user_backups_policy" on public.user_backups
     el.style.width  = width  + 'px';
     el.style.height = height + 'px';
   }
-  // 강조 영역 주위 4면을 어둡게 가림 + 툴팁 배치
-  function applySpotlight(rect) {
+  // spotlight + masks 위치 (tooltip 제외) — polling 에서 jitter 없이 호출 가능
+  function updateSpotlightBox(rect) {
     coach.classList.remove('no-spot');
-    tooltip.classList.remove('pos-center');
     const PAD = 6;
     const x = Math.max(0, rect.left - PAD);
     const y = Math.max(0, rect.top - PAD);
@@ -8831,6 +8836,13 @@ create policy "user_backups_policy" on public.user_backups
     setBox(maskL, 0,     y,     x,                       h);
     setBox(maskR, x + w, y,     Math.max(0, W - (x + w)), h);
     setBox(spot,  x,     y,     w,                       h);
+    return { x, y, w, h, W, H };
+  }
+  // 강조 영역 주위 4면을 어둡게 가림 + 툴팁 배치 (step 시작 시 사용)
+  function applySpotlight(rect) {
+    tooltip.classList.remove('pos-center');
+    const box = updateSpotlightBox(rect);
+    const { x, y, w, h, W, H } = box;
 
     // 툴팁 위치: 아래쪽 우선, 공간 없으면 위쪽, 둘 다 안 되면 중앙
     // 일단 표시해 사이즈를 측정
@@ -8878,6 +8890,12 @@ create policy "user_backups_policy" on public.user_backups
     const extra = document.getElementById('tut-extra');
     if (s.extra) { extra.textContent = s.extra; extra.classList.remove('hidden'); }
     else         { extra.classList.add('hidden'); }
+    // exploreHint (step 별 맞춤) — 없으면 기본 안내
+    const hintEl = document.querySelector('.tut-explore-hint');
+    if (hintEl) {
+      hintEl.textContent = s.exploreHint
+        || '잘하셨어요! 화면을 자유롭게 사용해본 뒤 [다음 →] 으로 진행하세요.';
+    }
 
     // 진행률 표시 (스킵 step 제외한 인덱스 / 보이는 step 총 개수)
     const visibleSteps = TUTORIAL_STEPS.filter(stepIsVisible);
@@ -8895,6 +8913,39 @@ create policy "user_backups_policy" on public.user_backups
     if (!s.requireTarget) return true;
     return !!document.querySelector(s.target);
   }
+  // ── exploring 폴링 ─────────────────────────────────────────────
+  // step.interact 에 선언된 selector 들의 합집합 bbox 로 spotlight 를
+  // 200ms 마다 재계산. palette 처럼 클릭 후 popup 이 추가로 열리는
+  // UI 에서 popup 까지 spotlight 가 자연스럽게 확장되도록.
+  let explorePollHandle = null;
+  function stopExplorePoll() {
+    if (explorePollHandle) { clearInterval(explorePollHandle); explorePollHandle = null; }
+  }
+  function startExplorePoll(step) {
+    stopExplorePoll();
+    if (!step || !step.interact || !step.interact.length) return;
+    const recompute = () => {
+      if (!coach.classList.contains('exploring')) { stopExplorePoll(); return; }
+      const els = step.interact
+        .flatMap(sel => Array.from(document.querySelectorAll(sel)))
+        .filter(e => {
+          const r = e.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        });
+      if (!els.length) return;
+      let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+      for (const e of els) {
+        const x = e.getBoundingClientRect();
+        l = Math.min(l, x.left); t = Math.min(t, x.top);
+        r = Math.max(r, x.right); b = Math.max(b, x.bottom);
+      }
+      updateSpotlightBox({ left: l, top: t, right: r, bottom: b,
+                            width: r - l, height: b - t });
+    };
+    recompute();
+    explorePollHandle = setInterval(recompute, 180);
+  }
+
   function tutShow(idx) {
     // skip-step 보정: 현재 위치에서 다음 visible step 찾기
     while (idx >= 0 && idx < TUTORIAL_STEPS.length &&
@@ -8906,8 +8957,9 @@ create policy "user_backups_policy" on public.user_backups
     tutIdx = idx;
     const s = TUTORIAL_STEPS[idx];
     lastShownStep = s;
-    // 매 step 시작 시 exploring 모드 해제 (마스크 복귀)
+    // 매 step 시작 시 exploring 모드 해제 (마스크 복귀) + 폴링 정지
     coach.classList.remove('exploring');
+    stopExplorePoll();
     tutRenderText(s);
 
     const rect = computeRect(s);
@@ -8933,7 +8985,9 @@ create policy "user_backups_policy" on public.user_backups
   }
   function tutClose() {
     coach.classList.remove('active');
+    coach.classList.remove('exploring');
     coach.setAttribute('aria-hidden', 'true');
+    stopExplorePoll();
     lastShownStep = null;
   }
   function tutNext() {
@@ -8985,6 +9039,9 @@ create policy "user_backups_policy" on public.user_backups
     if (e.clientX >= sx && e.clientX <= sx + sw &&
         e.clientY >= sy && e.clientY <= sy + sh) {
       coach.classList.add('exploring');
+      // step 에 interact 가 있으면 spotlight 를 동적으로 확장
+      // (예: palette popup 이 열렸을 때 그 범위까지 클릭 가능 영역으로)
+      if (lastShownStep) startExplorePoll(lastShownStep);
     }
   }, true);
 
