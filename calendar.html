@@ -8,6 +8,8 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <!-- Open Graph / SNS 공유 미리보기 -->
 <meta property="og:type"        content="website">
 <meta property="og:title"       content="달력 앱">
@@ -95,27 +97,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Gamja+Flower&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f5f7;
-    --cell-bg: #ffffff;
-    --cell-hover: #f7f7fa;
-    --cell-empty: #fafafc;
-    --today-bg: #eef5ff;
-    --today-accent: #2874e0;
-    --nav-bg: #ffffff;
-    --border: #e5e5ea;
-    --day-header-bg: #fafafc;
-    --text: #222;
-    --text-light: #555;
+    /* 코지 다이어리 토큰 — 크림/오프화이트 배경 + 화이트 카드 */
+    --bg: #F2F5EC;             /* 앱 바탕 (세이지 기본) */
+    --cell-bg: #FFFFFF;        /* 카드/셀 (항상 흰색) */
+    --cell-hover: #F7F5F0;
+    --cell-empty: #FAF7F2;
+    --today-bg: #E5EFDD;       /* 강조 연한 칠 = --accent-bg */
+    --today-accent: #6E8E5E;   /* 강조색 (사용자 선택, 전역 전파) */
+    --today-accent-ink: #4E6A40;
+    --nav-bg: #FFFFFF;
+    --border: #EFEAE1;         /* 헤어라인 (회색 1px 박스 X) */
+    --day-header-bg: #FAF7F2;
+    --text: #3B342C;           /* 잉크 톤 (코지 갈색-회색) */
+    --text-light: #8C8377;
+    --text-faint: #B7AEA1;
+    /* 의미 고정색 (테마 무관) */
+    --sun-red: #D9614E;
+    --sat-blue: #5A86D6;
+    /* 그림자 — 따뜻하고 옅은 2단계 */
+    --shadow-card:  0 1px 3px rgba(70,52,34,0.06);
+    --shadow-float: 0 6px 20px rgba(70,52,34,0.12);
+    --shadow-pop:   0 12px 36px rgba(70,52,34,0.18);
+    /* 라운드 */
+    --r-chip: 10px;
+    --r-input: 12px;
+    --r-cell: 16px;
+    --r-card: 18px;
+    --r-modal: 24px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
     background: var(--bg);
     min-height: 100vh;
     padding: 14px 14px;
     color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.45s ease;
   }
 
   /* container 폭 제한 해제 — 사용자 보고: 큰 화면에서 좌우 여백이 너무 크다.
@@ -761,7 +781,7 @@
   .modal input[type="text"]:focus,
   .modal input[type="date"]:focus {
     outline: none;
-    border-color: #2874e0;
+    border-color: var(--today-accent);
   }
 
   .modal-buttons {
@@ -772,14 +792,14 @@
     align-items: center;
   }
   .modal-buttons button.primary {
-    background: #2874e0;
+    background: var(--today-accent);
     color: #fff;
-    border-color: #2874e0;
+    border-color: var(--today-accent);
     font-weight: 500;
   }
   .modal-buttons button.primary:hover {
-    background: #1f5fbb;
-    border-color: #1f5fbb;
+    background: var(--today-accent);
+    border-color: var(--today-accent);
   }
 
   /* 테마 다중선택 체크리스트 */
@@ -803,8 +823,8 @@
   }
   .theme-chip:hover { border-color: #999; }
   .theme-chip.active {
-    border-color: var(--chip-color, #2874e0);
-    background: var(--chip-bg, #eef5ff);
+    border-color: var(--chip-color, var(--today-accent));
+    background: var(--chip-bg, var(--today-bg));
     font-weight: 500;
   }
   .theme-chip .chip-dot {
@@ -895,7 +915,7 @@
   .notif {
     background: #ffffff;
     border: 1px solid #d0d0d5;
-    border-left: 4px solid #2874e0;
+    border-left: 4px solid var(--today-accent);
     border-radius: 8px;
     padding: 12px 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -981,7 +1001,7 @@
     border: 1px solid #d0d0d5; border-radius: 4px;
     padding: 4px 8px; flex: 1; min-width: 0;
   }
-  .theme-name-input:focus { outline: none; border-color: #2874e0; }
+  .theme-name-input:focus { outline: none; border-color: var(--today-accent); }
   .theme-color-input {
     width: 30px; height: 26px;
     border: none; border-radius: 4px;
@@ -1008,9 +1028,9 @@
     flex-shrink: 0;
   }
   .theme-icon-btn:hover {
-    background: #eef5ff;
-    border-color: #2874e0;
-    color: #2874e0;
+    background: var(--today-bg);
+    border-color: var(--today-accent);
+    color: var(--today-accent);
   }
   .theme-icon-btn:disabled {
     opacity: 0.4; cursor: not-allowed;
@@ -1029,10 +1049,10 @@
   }
   .theme-share-btn {
     padding: 4px 9px;
-    border: 1px solid #2874e0;
+    border: 1px solid var(--today-accent);
     border-radius: 6px;
-    background: #eef5ff;
-    color: #2874e0;
+    background: var(--today-bg);
+    color: var(--today-accent);
     cursor: pointer;
     font-family: inherit;
     font-size: 0.8em;
@@ -1041,7 +1061,7 @@
     transition: all 0.12s;
     flex-shrink: 0;
   }
-  .theme-share-btn:hover { background: #deeaff; border-color: #1f5fbb; }
+  .theme-share-btn:hover { background: #deeaff; border-color: var(--today-accent); }
   .theme-share-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .theme-preview-img {
     width: 22px; height: 22px;
@@ -1096,7 +1116,7 @@
     transition: left 0.15s;
   }
   .day-tpl-card.enabled .tc-toggle {
-    background: #2874e0;
+    background: var(--today-accent);
   }
   .day-tpl-card.enabled .tc-toggle::after {
     left: 18px;
@@ -1131,8 +1151,8 @@
   .day-tpl-field-head .fh-type {
     font-size: 0.72em;
     padding: 2px 7px;
-    background: #eef5ff;
-    color: #2874e0;
+    background: var(--today-bg);
+    color: var(--today-accent);
     border-radius: 10px;
     font-weight: 600;
   }
@@ -1204,7 +1224,7 @@
     background: #fff;
   }
   .day-tpl-scope-wd .wd.on {
-    background: #2874e0; color: #fff; border-color: #2874e0;
+    background: var(--today-accent); color: #fff; border-color: var(--today-accent);
     font-weight: 600;
   }
   .day-tpl-scope-days {
@@ -1215,7 +1235,7 @@
     border-radius: 4px;
   }
   .day-tpl-scope-days .dchip {
-    background: #eef5ff; color: #2874e0;
+    background: var(--today-bg); color: var(--today-accent);
     border-radius: 10px; padding: 2px 8px;
     font-size: 0.78em; cursor: pointer;
   }
@@ -1264,8 +1284,8 @@
     display: flex; gap: 3px; flex-wrap: wrap;
   }
   .day-widget-tags .tag-chip {
-    background: #eef5ff;
-    color: #2874e0;
+    background: var(--today-bg);
+    color: var(--today-accent);
     padding: 1px 6px;
     border-radius: 8px;
     font-size: 0.9em;
@@ -1299,8 +1319,8 @@
     color: transparent;
   }
   .day-widget-check .ck-item.on .ck-box {
-    background: #2874e0;
-    border-color: #2874e0;
+    background: var(--today-accent);
+    border-color: var(--today-accent);
     color: #fff;
   }
   .day-widget-check .ck-item.on .ck-box::after { content: '✓'; }
@@ -1308,7 +1328,7 @@
   /* 위젯 인라인 편집 */
   .day-widget-edit {
     width: 100%;
-    border: 1px solid #2874e0;
+    border: 1px solid var(--today-accent);
     border-radius: 3px;
     padding: 1px 4px;
     font: inherit;
@@ -1477,7 +1497,7 @@
   /* 주간 시간표 뷰 */
   .wk { background: var(--cell-bg); padding: 2px 4px; min-height: 32px; font-size: 0.82em; display: flex; align-items: center; justify-content: center; text-align: center; word-break: keep-all; cursor: pointer; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); user-select: none; position: relative; }
   /* 셀 디자인 모드: 셀 클릭하면 디자인 패널 열림 */
-  .wk.design-edit { outline: 2px dashed #2874e0; outline-offset: -2px; }
+  .wk.design-edit { outline: 2px dashed var(--today-accent); outline-offset: -2px; }
   .design-panel {
     position: fixed;
     background: #ffffff;
@@ -1526,7 +1546,7 @@
     font-size: 0.85em;
   }
   .design-panel .dp-toggle.active {
-    background: #2874e0; color: #fff; border-color: #2874e0;
+    background: var(--today-accent); color: #fff; border-color: var(--today-accent);
   }
   .design-panel .dp-buttons {
     display: flex; gap: 6px; margin-top: 10px;
@@ -1542,8 +1562,8 @@
     background: #fafafc;
   }
   .design-panel-target button.active {
-    background: #eef5ff; border-color: #2874e0;
-    color: #2874e0; font-weight: 600;
+    background: var(--today-bg); border-color: var(--today-accent);
+    color: var(--today-accent); font-weight: 600;
   }
   .wk:hover { background: var(--cell-hover); }
   .wk.today-col { background: var(--today-bg); }
@@ -1859,12 +1879,12 @@
   }
   .login-choice button:hover { background: #f5f5f7; border-color: #b0b0b8; }
   .login-choice button.primary {
-    background: #2874e0;
+    background: var(--today-accent);
     color: #ffffff;
-    border-color: #2874e0;
+    border-color: var(--today-accent);
     font-weight: 500;
   }
-  .login-choice button.primary:hover { background: #1f5fbb; border-color: #1f5fbb; }
+  .login-choice button.primary:hover { background: var(--today-accent); border-color: var(--today-accent); }
   .login-form { display: none; margin-top: 18px; }
   .login-form.active { display: block; }
   .login-form label {
@@ -1884,7 +1904,7 @@
     background: #ffffff;
     color: #222;
   }
-  .login-form input:focus { outline: none; border-color: #2874e0; }
+  .login-form input:focus { outline: none; border-color: var(--today-accent); }
   .login-form-buttons { display: flex; gap: 8px; margin-top: 16px; }
   .login-form-buttons button {
     flex: 1;
@@ -1897,7 +1917,7 @@
     font-size: 0.95em;
   }
   .login-form-buttons button.primary {
-    background: #2874e0; color: #fff; border-color: #2874e0; font-weight: 500;
+    background: var(--today-accent); color: #fff; border-color: var(--today-accent); font-weight: 500;
   }
   .login-error {
     color: #d44; font-size: 0.85em; margin-top: 8px; min-height: 1em;
@@ -1907,7 +1927,7 @@
     background: none; border: none; color: #888;
     font-size: 0.85em; cursor: pointer; font-family: inherit;
   }
-  .login-back:hover { color: #2874e0; }
+  .login-back:hover { color: var(--today-accent); }
 
   /* ── 프로필 설정 모달 ── */
   /* 설정 목록 행 */
@@ -1977,14 +1997,14 @@
     font-family: inherit;
   }
   .ps-type-btn:hover {
-    border-color: #2874e0; background: #eef5ff;
+    border-color: var(--today-accent); background: var(--today-bg);
   }
   .ps-type-btn.ps-selected {
-    border-color: #2874e0;
-    background: #eef5ff;
+    border-color: var(--today-accent);
+    background: var(--today-bg);
     box-shadow: 0 0 0 3px rgba(40,116,224,0.15);
   }
-  .ps-type-btn.ps-selected .ps-tl { color: #2874e0; }
+  .ps-type-btn.ps-selected .ps-tl { color: var(--today-accent); }
   .ps-type-btn .ps-ti { font-size: 1.7em; }
   .ps-type-btn .ps-tl { font-size: 0.9em; font-weight: 600; color: #222; transition: color 0.14s; }
   .ps-type-btn .ps-ts { font-size: 0.72em; color: #888; }
@@ -1994,7 +2014,7 @@
     border: 1px solid #d0d0d5; border-radius: 8px;
     font-size: 0.95em; font-family: inherit; box-sizing: border-box;
   }
-  .ps-search-input:focus { outline: none; border-color: #2874e0; }
+  .ps-search-input:focus { outline: none; border-color: var(--today-accent); }
   .ps-school-list {
     margin-top: 8px; max-height: 220px; overflow-y: auto;
     border: 1px solid #e5e5ea; border-radius: 8px;
@@ -2025,30 +2045,30 @@
     margin: 0 auto 12px;
   }
   .ps-motto-school { font-size: 1.05em; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
-  .ps-motto-text   { font-size: 0.9em; font-weight: 600; color: #2874e0; margin-bottom: 10px; }
+  .ps-motto-text   { font-size: 0.9em; font-weight: 600; color: var(--today-accent); margin-bottom: 10px; }
   .ps-motto-quote  {
     font-family: 'Gamja Flower', cursive;
     font-size: 1em; color: #555; line-height: 1.6;
     background: #f5f7fa; border-radius: 8px; padding: 10px 14px;
-    border-left: 3px solid #2874e0; text-align: left;
+    border-left: 3px solid var(--today-accent); text-align: left;
     word-break: keep-all;
   }
   .ps-finish-btn {
     width: 100%; padding: 12px; margin-top: 18px;
-    background: #2874e0; color: #fff; border: none; border-radius: 8px;
+    background: var(--today-accent); color: #fff; border: none; border-radius: 8px;
     font-size: 1em; font-weight: 600; cursor: pointer; font-family: inherit;
     transition: background 0.15s;
   }
-  .ps-finish-btn:hover { background: #1f5fbb; }
+  .ps-finish-btn:hover { background: var(--today-accent); }
   .ps-skip { display: block; text-align: center; margin-top: 10px;
     font-size: 0.82em; color: #888; cursor: pointer; background: none; border: none; font-family: inherit; }
-  .ps-skip:hover { color: #2874e0; }
+  .ps-skip:hover { color: var(--today-accent); }
   .ps-back-btn {
     background: none; border: none; color: #888; cursor: pointer;
     font-size: 0.85em; font-family: inherit; padding: 0;
     margin-bottom: 10px; display: flex; align-items: center; gap: 4px;
   }
-  .ps-back-btn:hover { color: #2874e0; }
+  .ps-back-btn:hover { color: var(--today-accent); }
   /* 학교 교훈 배너 (달력 위) */
   .school-quote-bar {
     text-align: center; font-size: 0.8em; color: var(--text-light);
@@ -2137,8 +2157,8 @@
   }
   .bk-btn:hover { background: var(--cell-hover); border-color: #b0b0b8; }
   .bk-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .bk-btn-primary { background: #2874e0 !important; color: #fff !important; border-color: #2874e0 !important; }
-  .bk-btn-primary:hover { background: #1f5fbb !important; border-color: #1f5fbb !important; }
+  .bk-btn-primary { background: var(--today-accent) !important; color: #fff !important; border-color: var(--today-accent) !important; }
+  .bk-btn-primary:hover { background: var(--today-accent) !important; border-color: var(--today-accent) !important; }
   .bk-btn-danger { color: #c33 !important; border-color: #f0c0c0 !important; }
   .bk-btn-danger:hover { background: #fdf2f2 !important; }
   /* 메시지 */
@@ -2871,6 +2891,178 @@
     padding: 6px 14px 0;
     font-size: 0.78em;
   }
+
+  /* ════════════════════════════════════════════════════════════
+     COZY DIARY — 컴포넌트 키트 & floating tab bar
+     ════════════════════════════════════════════════════════════ */
+
+  /* 하단 떠 있는 알약 바 */
+  .cozy-tabbar {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cell-bg);
+    border-radius: 999px;
+    box-shadow: var(--shadow-pop);
+    padding: 7px 10px;
+    z-index: 80;
+    border: 1px solid var(--border);
+  }
+  .cozy-tabbar .cz-div {
+    width: 1px;
+    height: 26px;
+    background: var(--border);
+    margin: 0 3px;
+  }
+  .cozy-tabbar .cz-seg {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .cozy-tabbar .cz-tool,
+  .cozy-tabbar .cz-view {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--text-light);
+    font-family: inherit;
+    transition: background 0.18s, color 0.18s, transform 0.1s;
+  }
+  .cozy-tabbar .cz-view { padding: 7px 14px; }
+  .cozy-tabbar .cz-tool { padding: 5px 10px; }
+  .cozy-tabbar .cz-tool .cz-tl,
+  .cozy-tabbar .cz-view .cz-tl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .cozy-tabbar .cz-tool:hover,
+  .cozy-tabbar .cz-view:hover { color: var(--text); }
+  .cozy-tabbar .cz-tool:active,
+  .cozy-tabbar .cz-view:active { transform: scale(0.94); }
+  .cozy-tabbar .cz-view.active {
+    background: var(--today-bg);
+    color: var(--today-accent-ink, var(--today-accent));
+  }
+  .cozy-tabbar svg { display: block; }
+
+  /* 꾸미기 팝업 */
+  .cz-deco-pop {
+    position: fixed;
+    left: 50%;
+    bottom: 90px;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--cell-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-pop);
+    padding: 8px;
+    z-index: 81;
+    width: 220px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
+  }
+  .cz-deco-pop.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  .cz-deco-pop .cz-deco-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 12px 13px;
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .cz-deco-pop .cz-deco-item:hover { background: var(--today-bg); }
+  .cz-deco-pop .cz-deco-ic {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--today-bg);
+    color: var(--today-accent-ink, var(--today-accent));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* 하단 바 공간 확보 — 본문 padding 추가 */
+  body { padding-bottom: 96px; }
+
+  /* ── COZY 의미 고정색 (sun/sat/holiday) 톤 통일 ── */
+  .day-cell.sun  .day-number,
+  .day-name.sun  { color: var(--sun-red) !important; }
+  .day-cell.sat  .day-number,
+  .day-name.sat  { color: var(--sat-blue) !important; }
+  .day-cell.holiday .day-number { color: var(--sun-red) !important; }
+  .day-cell.holiday.today .day-number {
+    background: var(--sun-red) !important;
+    color: #fff !important;
+  }
+  .holiday-name { color: var(--sun-red) !important; }
+
+  /* ── 모토 = '오늘의 한마디' 손글씨 톤 유지(범위 좁힘) ── */
+  /* 다른 모든 텍스트는 Pretendard. 모토 입력만 손글씨. */
+  .motto-input {
+    font-family: 'Gamja Flower', 'Nanum Pen Script', Pretendard, sans-serif !important;
+  }
+  .motto-input::placeholder {
+    font-family: 'Pretendard Variable', Pretendard, sans-serif !important;
+  }
+
+  /* ── 모달 라운드 통일 ── */
+  .modal,
+  .school-info-modal {
+    border-radius: var(--r-modal) !important;
+    box-shadow: var(--shadow-pop) !important;
+  }
+
+  /* ── 인풋 포커스 링 = 강조색 ── */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline-color: var(--today-accent);
+  }
+
+  /* ── 다크 모드 보정 ── */
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+  [data-theme="dark"] .event.c0 { background: #4a3d20 !important; color: #f0d57a !important; }
+  [data-theme="dark"] .event.c1 { background: #4d2a2a !important; color: #f0a8a8 !important; }
+  [data-theme="dark"] .event.c2 { background: #2a3c5c !important; color: #b0c8f0 !important; }
+  [data-theme="dark"] .event.c3 { background: #2c4a30 !important; color: #b0d8a8 !important; }
+  [data-theme="dark"] .event.c4 { background: #3a2c5c !important; color: #c8b0f0 !important; }
+  [data-theme="dark"] .event.c5 { background: #4d3520 !important; color: #f0c0a0 !important; }
+  [data-theme="dark"] .gx-tip-btn,
+  [data-theme="dark"] .gx-tip-card { background: rgba(255,255,255,0.06); }
+  [data-theme="dark"] .tut-extra { background: rgba(255,255,255,0.08); }
+  [data-theme="dark"] .si-row { background: rgba(255,255,255,0.05); }
+
+  /* ── 헤더 텍스트 fade-out 카드 라인 제거 ── */
+  .modal { background: var(--cell-bg) !important; border: 1px solid var(--border) !important; }
 </style>
 </head>
 <body>
@@ -2911,8 +3103,8 @@
   <header>
     <div class="controls">
       <div class="palette-bar" id="palette-bar"></div>
-      <button id="theme-mgr-btn">테마 관리</button>
-      <button id="day-tpl-mgr-btn">위젯 설정</button>
+      <button id="theme-mgr-btn">카테고리 관리</button>
+      <button id="day-tpl-mgr-btn">일일 기록 설정</button>
       <input type="file" id="import-file" class="hidden-input" accept=".json">
     </div>
   </header>
@@ -2931,7 +3123,7 @@
       <!-- 일정 모드 전용 영역 -->
       <div id="sb-main">
         <!-- 테마 필터 -->
-        <div class="sb-section-label">테마 필터</div>
+        <div class="sb-section-label">카테고리 필터</div>
         <div id="sidebar-items"></div>
 
         <!-- 구분선 -->
@@ -2990,7 +3182,7 @@
       <div class="motto-area" id="motto-area" data-build="latest">
         <span class="motto-quote-icon" aria-hidden="true">&ldquo;</span>
         <input id="motto-input" type="text" class="motto-input"
-               placeholder="이달의 교훈 / 나의 모토 — 클릭해서 적어보세요"
+               placeholder="오늘의 한마디 — 클릭해서 적어보세요"
                maxlength="120">
         <span class="motto-quote-close" aria-hidden="true">&rdquo;</span>
         <button id="random-motto-btn" class="random-motto-btn" title="랜덤 교훈 추천받기">🎲 추천</button>
@@ -3117,7 +3309,7 @@
         <span class="si-value" id="si-address"></span>
       </div>
       <div class="si-row" id="si-category-row">
-        <span class="si-label">구분</span>
+        <span class="si-label">유형</span>
         <span class="si-value" id="si-category"></span>
       </div>
       <div class="si-row" id="si-tel-row">
@@ -3138,7 +3330,7 @@
 <!-- 일별 위젯 입력 모달 -->
 <div class="modal-backdrop" id="day-widget-input-backdrop">
   <div class="modal" style="min-width:360px;max-width:88vw;max-height:88vh;overflow-y:auto;">
-    <h3 id="day-widget-input-title">📊 위젯 입력</h3>
+    <h3 id="day-widget-input-title">📝 오늘 기록</h3>
     <div id="day-widget-input-body" style="margin-top:14px;"></div>
     <div class="modal-buttons" style="margin-top:18px;">
       <button id="day-widget-input-close" class="primary">완료</button>
@@ -3150,7 +3342,7 @@
 <div class="modal-backdrop" id="day-tpl-modal-backdrop">
   <div class="modal" style="min-width:520px;max-width:92vw;">
     <h3 style="display:flex;align-items:center;justify-content:space-between;">
-      <span>일별 위젯 템플릿</span>
+      <span>일일 기록 템플릿</span>
       <span style="font-size:0.6em;color:#888;font-weight:400;">날짜에 표시할 위젯을 만들고 적용 범위를 정하세요</span>
     </h3>
     <div id="day-tpl-list" class="day-tpl-list"></div>
@@ -3193,10 +3385,10 @@
 <!-- Theme Manager Modal -->
 <div class="modal-backdrop" id="theme-modal-backdrop">
   <div class="modal" style="min-width:380px;">
-    <h3>테마 관리</h3>
+    <h3>카테고리 관리</h3>
     <div class="theme-modal-body" id="theme-modal-body"></div>
     <div class="modal-buttons">
-      <button id="theme-add-btn">+ 테마 추가</button>
+      <button id="theme-add-btn">+ 카테고리 추가</button>
       <button id="theme-import-btn">📥 초대 링크로 가져오기</button>
       <button id="theme-close-btn">닫기</button>
     </div>
@@ -3737,18 +3929,24 @@
   try { memos = JSON.parse(localStorage.getItem(MEMO_KEY) || '{}'); } catch (e) { memos = {}; }
   function saveMemos() { localStorage.setItem(MEMO_KEY, JSON.stringify(memos)); }
 
-  // ─── 색상 테마 프리셋 ─────────────────────────────────────
+  // ─── 앱 색상 프리셋 (코지 다이어리 톤) ─────────────────────────
+  // 라이트 6 + 다크 1 + 기본 1. 각 프리셋은 강조색(accent) + 배경(bg) +
+  // 헤어라인(border) 만 바꾸고, 카드는 항상 흰색.
   const COLOR_PRESETS = [
-    { id: 'default', name: '기본',     dot: '#c0c0c5', bg:'#f5f5f7', cell:'#ffffff', hover:'#f7f7fa', empty:'#fafafc', today:'#eef5ff', accent:'#2874e0', nav:'#ffffff', border:'#e5e5ea', dayHdr:'#fafafc', text:'#222', textL:'#555' },
-    { id: 'lavender', name: '라벤더',   dot: '#b8a9e0', bg:'#f0edf8', cell:'#faf8ff', hover:'#f0edfa', empty:'#f4f2fa', today:'#ece5ff', accent:'#7c6bc4', nav:'#f8f6ff', border:'#ddd6f0', dayHdr:'#f4f1fc', text:'#2d2640', textL:'#6b6080' },
-    { id: 'mint',     name: '민트',     dot: '#7ecba4', bg:'#edf5f0', cell:'#f8fffa', hover:'#eef8f2', empty:'#f2f8f4', today:'#e2f5e9', accent:'#4caf84', nav:'#f5fff8', border:'#c8e0d0', dayHdr:'#f0f8f3', text:'#1c3328', textL:'#507060' },
-    { id: 'peach',    name: '피치',     dot: '#f0a888', bg:'#fdf0ec', cell:'#fff8f5', hover:'#fdf0ec', empty:'#faf4f0', today:'#fde8e0', accent:'#e88060', nav:'#fff6f2', border:'#ecd0c4', dayHdr:'#faf2ee', text:'#3d2820', textL:'#806050' },
-    { id: 'sky',      name: '하늘',     dot: '#7eb8e0', bg:'#ecf3fd', cell:'#f5f9ff', hover:'#edf4ff', empty:'#f0f5fc', today:'#e0edff', accent:'#5094d4', nav:'#f5f9ff', border:'#c4d8f0', dayHdr:'#eff4fc', text:'#1c2838', textL:'#506878' },
-    { id: 'lemon',    name: '레몬',     dot: '#e0c850', bg:'#fdf8e8', cell:'#fffef2', hover:'#fdf8e8', empty:'#faf8f0', today:'#fff5d0', accent:'#c8a020', nav:'#fffdf0', border:'#e0d8b8', dayHdr:'#faf8f0', text:'#383020', textL:'#787050' },
-    { id: 'rose',     name: '로즈',     dot: '#e088a0', bg:'#fceef2', cell:'#fff5f8', hover:'#fceef4', empty:'#faf2f5', today:'#ffe8f0', accent:'#d4607a', nav:'#fff2f6', border:'#ecc8d4', dayHdr:'#faf0f4', text:'#38202a', textL:'#805060' }
+    { id: 'sage',    name: '세이지',  dot:'#6E8E5E', accent:'#6E8E5E', accentInk:'#4E6A40', bg:'#F2F5EC', today:'#E5EFDD', cell:'#FFFFFF', hover:'#F7F5F0', empty:'#FAF7F2', nav:'#FFFFFF', border:'#EFEAE1', dayHdr:'#FAF7F2', text:'#3B342C', textL:'#8C8377' },
+    { id: 'lavender',name: '라벤더',  dot:'#8B7BC0', accent:'#8B7BC0', accentInk:'#62548F', bg:'#F4F1FA', today:'#EAE4F5', cell:'#FFFFFF', hover:'#F6F2FB', empty:'#F8F4FC', nav:'#FFFFFF', border:'#EDE6F1', dayHdr:'#F6F2FB', text:'#2D2640', textL:'#6B6080' },
+    { id: 'rose',    name: '로즈',    dot:'#CF7088', accent:'#CF7088', accentInk:'#A24E64', bg:'#FBF1F4', today:'#F7E3EA', cell:'#FFFFFF', hover:'#FBF1F4', empty:'#FCF5F7', nav:'#FFFFFF', border:'#F0E0E6', dayHdr:'#FBF1F4', text:'#38202A', textL:'#805060' },
+    { id: 'peach',   name: '피치',    dot:'#D8835A', accent:'#D8835A', accentInk:'#AC5C36', bg:'#FCF3ED', today:'#FAE3D6', cell:'#FFFFFF', hover:'#FCF3ED', empty:'#FCF7F2', nav:'#FFFFFF', border:'#F0DFD2', dayHdr:'#FCF3ED', text:'#3D2820', textL:'#806050' },
+    { id: 'butter',  name: '버터',    dot:'#C99A2E', accent:'#C99A2E', accentInk:'#8E6C14', bg:'#F9F4E4', today:'#F4EAC6', cell:'#FFFFFF', hover:'#F9F4E4', empty:'#FCF8E9', nav:'#FFFFFF', border:'#EDE4C8', dayHdr:'#F9F4E4', text:'#383020', textL:'#787050' },
+    { id: 'sky',     name: '스카이',  dot:'#5A86C4', accent:'#5A86C4', accentInk:'#3E6298', bg:'#EFF4FB', today:'#E2EBF7', cell:'#FFFFFF', hover:'#EFF4FB', empty:'#F4F8FC', nav:'#FFFFFF', border:'#DDE5F0', dayHdr:'#EFF4FB', text:'#1C2838', textL:'#506878' },
+    { id: 'charcoal',name: '차콜',    dot:'#C9A878', accent:'#C9A878', accentInk:'#E2C795', bg:'#211D17', today:'#3A3024', cell:'#2C2720', hover:'#322C24', empty:'#2A241D', nav:'#2C2720', border:'#3B352D', dayHdr:'#2A241D', text:'#ECE5D9', textL:'#A89E8E', dark:true },
   ];
   const PALETTE_KEY = 'calendar-color-preset-v1';
-  let currentPreset = localStorage.getItem(PALETTE_KEY) || 'default';
+  // 옛 id (default/mint/lemon) 마이그레이션 → sage
+  const PRESET_ALIAS = { default: 'sage', mint: 'sage', lemon: 'butter' };
+  let _stored = localStorage.getItem(PALETTE_KEY) || 'sage';
+  let currentPreset = PRESET_ALIAS[_stored] || _stored;
+  if (!COLOR_PRESETS.find(p => p.id === currentPreset)) currentPreset = 'sage';
 
   function applyPreset(id) {
     const p = COLOR_PRESETS.find(x => x.id === id);
@@ -3762,11 +3960,14 @@
     r.setProperty('--cell-empty', p.empty);
     r.setProperty('--today-bg', p.today);
     r.setProperty('--today-accent', p.accent);
+    if (p.accentInk) r.setProperty('--today-accent-ink', p.accentInk);
     r.setProperty('--nav-bg', p.nav);
     r.setProperty('--border', p.border);
     r.setProperty('--day-header-bg', p.dayHdr);
     r.setProperty('--text', p.text);
     r.setProperty('--text-light', p.textL);
+    // 다크 마크 (CSS 가 다크 전용 톤 조정 가능)
+    document.documentElement.dataset.theme = p.dark ? 'dark' : 'light';
     renderPalette();
   }
 
@@ -3784,7 +3985,7 @@
     popup.className = 'palette-popup';
     const label = document.createElement('div');
     label.className = 'palette-label';
-    label.textContent = '색상 테마';
+    label.textContent = '앱 색상';
     popup.appendChild(label);
     COLOR_PRESETS.forEach(p => {
       const d = document.createElement('div');
@@ -4897,11 +5098,11 @@
           div.style.cssText = 'padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f3;font-size:0.9em;';
           div.innerHTML = `<b>${s.SCHUL_NM}</b> <small style="color:#888;">${s.ORG_RDNMA || s.LCTN_SC_NM || ''}</small>`;
           div.onmouseenter = () => div.style.background = '#f0f0f3';
-          div.onmouseleave = () => div.style.background = neisSelectedSchoolData === s ? '#eef5ff' : '';
+          div.onmouseleave = () => div.style.background = neisSelectedSchoolData === s ? 'var(--today-bg)' : '';
           div.onclick = () => {
             neisSelectedSchoolData = s;
             neisResultsEl.querySelectorAll('div').forEach(d => d.style.background = '');
-            div.style.background = '#eef5ff';
+            div.style.background = 'var(--today-bg)';
             neisStatusEl.textContent = `선택: ${s.SCHUL_NM} (${s.SCHUL_KND_SC_NM})`;
             neisSaveBtn.disabled = false;
           };
@@ -5047,7 +5248,7 @@
         </div>
         <div class="dp-buttons">
           <button class="dp-reset">초기화</button>
-          <button class="dp-close primary" style="background:#2874e0;color:#fff;border-color:#2874e0;">닫기</button>
+          <button class="dp-close primary" style="background:var(--today-accent);color:#fff;border-color:var(--today-accent);">닫기</button>
         </div>
       `;
       panel.querySelectorAll('.design-panel-target button').forEach(b => {
@@ -5581,7 +5782,7 @@
     const titleEl  = document.getElementById('day-widget-input-title');
     const body     = document.getElementById('day-widget-input-body');
 
-    titleEl.textContent = '📊 위젯 입력 — ' + dk;
+    titleEl.textContent = '📝 오늘 기록 — ' + dk;
     body.innerHTML = '';
 
     if (tpls.length === 0) {
@@ -5589,8 +5790,8 @@
         '<div style="text-align:center;color:#888;padding:20px 0;">' +
           '이 날짜에 적용된 위젯 템플릿이 없어요.<br>' +
           '<button id="dwi-goto" style="margin-top:14px;padding:8px 18px;' +
-            'background:#2874e0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">' +
-            '위젯 설정 열기</button>' +
+            'background:var(--today-accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">' +
+            '일일 기록 설정 열기</button>' +
         '</div>';
       backdrop.classList.add('active');
       document.getElementById('dwi-goto').onclick = () => { closeDayWidgetModal(); openDayTplManager(); };
@@ -6150,7 +6351,7 @@
     // 구독 테마는 편집 시 추가 불가 (원본 사용자가 관리)
     const editable = themes.filter(t => t.share_role !== 'subscriber');
     if (editable.length === 0) {
-      box.innerHTML = '<div class="theme-checklist-empty">테마가 없습니다. "테마 관리"에서 추가하세요.</div>';
+      box.innerHTML = '<div class="theme-checklist-empty">카테고리가 없습니다. "카테고리 관리"에서 추가하세요.</div>';
       return;
     }
     editable.forEach(th => {
@@ -6235,7 +6436,7 @@
     // 위젯 입력
     const widgetItem = document.createElement('div');
     widgetItem.className = 'dam-item';
-    widgetItem.innerHTML = '<span class="dam-icon">📊</span><span>위젯 입력</span>';
+    widgetItem.innerHTML = '<span class="dam-icon">📊</span><span>오늘 기록</span>';
     widgetItem.onclick = () => { hideDayActionMenu(); openDayWidgetModal(dk); };
     dayActionMenuEl.appendChild(widgetItem);
 
@@ -6486,7 +6687,7 @@
         const badge = document.createElement('span');
         badge.style.cssText = 'font-size:11px;padding:3px 8px;border-radius:10px;margin-left:4px;white-space:nowrap;font-weight:500;';
         if (isOwner) {
-          badge.style.background = '#eef5ff'; badge.style.color = '#2874e0';
+          badge.style.background = 'var(--today-bg)'; badge.style.color = 'var(--today-accent)';
           badge.textContent = `🔗 ${th.share_code}`;
           badge.title = `이 테마는 공유 중입니다.\n수정하면 구독자에게 자동 반영됩니다.`;
         } else {
@@ -7190,7 +7391,7 @@ create policy "sub_delete" on public.theme_subscribers
           <ul class="gc-list">
             <li><span class="gc-list-bullet">·</span>일정 <b>${evCount}개</b>가 함께 추가됩니다</li>
             <li><span class="gc-list-bullet">·</span>원본 사용자의 수정이 자동으로 반영됩니다</li>
-            <li><span class="gc-list-bullet">·</span>언제든 테마 관리에서 구독을 해지할 수 있습니다</li>
+            <li><span class="gc-list-bullet">·</span>언제든 카테고리 관리에서 구독을 해지할 수 있습니다</li>
           </ul>
         </div>
         <div class="gc-card-actions">
@@ -8822,7 +9023,7 @@ create policy "user_backups_policy" on public.user_backups
       if (qt) qt.textContent = s.quote || (s.motto ? '' : '달력 앱과 함께 멋진 하루를 시작해요!');
     } else {
       av.style.backgroundImage = '';
-      av.style.background = '#2874e0';
+      av.style.background = 'var(--today-accent)';
       av.style.color = '#fff';
       av.textContent = '📅';
       if (nm) nm.textContent = '달력 앱';
@@ -8954,7 +9155,7 @@ create policy "user_backups_policy" on public.user_backups
       // 클릭 후 popup 이 열리면 spotlight 가 popup 까지 자동 확장 →
       // 그 안의 색 동그라미들도 클릭 가능.
       interact: ['.palette-current', '.palette-popup.pinned'],
-      title: '색상 테마 변경',
+      title: '앱 색상 변경',
       desc:  '왼쪽 위 작은 색 동그라미를 누르고, 마음에 드는 색을 ' +
              '선택해 보세요. 캘린더 전체가 즉시 그 색으로 바뀝니다.',
       exploreHint: '마음에 드는 색을 골라보세요. 끝나면 [다음 →] 으로 진행!',
@@ -8976,11 +9177,11 @@ create policy "user_backups_policy" on public.user_backups
           else modal.classList.remove('active');
         }
       },
-      title: '테마 관리 — 직접 만들어보세요',
+      title: '카테고리 관리 — 직접 만들어보세요',
       desc:  '카테고리 테마를 만들고 색을 지정할 수 있어요. ' +
              '아래 [+ 테마 추가] 를 눌러 시험 삼아 만들어보세요. ' +
              '초대 링크로 친구와 공유도 가능합니다.',
-      exploreHint: '[+ 테마 추가] 로 만들어보고, 끝나면 [다음 →]',
+      exploreHint: '[+ 카테고리 추가] 로 만들어보고, 끝나면 [다음 →]',
     },
     {
       target: '#day-tpl-modal-backdrop .modal',
@@ -8997,7 +9198,7 @@ create policy "user_backups_policy" on public.user_backups
           else modal.classList.remove('active');
         }
       },
-      title: '위젯 설정 — 일별 입력 위젯',
+      title: '일일 기록 설정',
       desc:  '순공시간 · 한 줄 일기 · 공부 과목 체크리스트 같은 ' +
              '입력 위젯을 만들어보세요. [+ 새 템플릿] 으로 시작합니다.',
       exploreHint: '[+ 새 템플릿] 으로 만들어보고, 끝나면 [다음 →]',
@@ -9018,7 +9219,7 @@ create policy "user_backups_policy" on public.user_backups
     },
     {
       target: '#sidebar-items',
-      title: '테마 필터',
+      title: '카테고리 필터',
       desc:  '체크박스로 보고 싶은 테마만 켜고 끌 수 있어요. ' +
              '공휴일 숨기기, 특정 학원만 보기 등 자유롭게.',
     },
@@ -9553,6 +9754,153 @@ create policy "user_backups_policy" on public.user_backups
       }
     }, 200);
   })();
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     코지 다이어리 하단 floating tab bar
+     [꾸미기] | 월간 · 주간 · 시간표 | [프로필]
+     - 월간/주간 : viewMode='events' + .continuous-horizontal 토글
+     - 시간표    : viewMode='timetable'
+     - 꾸미기    : 팝업 (카테고리 관리 / 일일 기록 설정)
+     - 프로필    : 우측 상단 #sb-profile-btn 클릭 위임
+     ═══════════════════════════════════════════════════════════════ -->
+<nav class="cozy-tabbar" id="cozy-tabbar" aria-label="뷰어 바">
+  <button class="cz-tool" id="cz-tab-deco" type="button" aria-label="꾸미기">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z"/><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z"/></svg>
+    <span class="cz-tl">꾸미기</span>
+  </button>
+  <span class="cz-div"></span>
+  <div class="cz-seg" role="tablist">
+    <button class="cz-view active" id="cz-tab-month" type="button" role="tab" aria-label="월간">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+      <span class="cz-tl">월간</span>
+    </button>
+    <button class="cz-view" id="cz-tab-week" type="button" role="tab" aria-label="주간">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M9 4v17M15 4v17"/></svg>
+      <span class="cz-tl">주간</span>
+    </button>
+    <button class="cz-view" id="cz-tab-tt" type="button" role="tab" aria-label="시간표">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 10h18M3 15h18M10 4v17"/></svg>
+      <span class="cz-tl">시간표</span>
+    </button>
+  </div>
+  <span class="cz-div"></span>
+  <button class="cz-tool" id="cz-tab-profile" type="button" aria-label="프로필">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
+    <span class="cz-tl">프로필</span>
+  </button>
+</nav>
+
+<!-- 꾸미기 팝업 -->
+<div class="cz-deco-pop" id="cz-deco-pop" role="menu" aria-label="꾸미기 메뉴">
+  <button class="cz-deco-item" data-act="cat" type="button">
+    <span class="cz-deco-ic">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 11.5 3H18a3 3 0 0 1 3 3v6.5L12.5 21a2 2 0 0 1-2.8 0l-6.7-6.7a2 2 0 0 1 0-2.8Z"/><circle cx="15.5" cy="8.5" r="1.2"/></svg>
+    </span>
+    <span>카테고리 관리</span>
+  </button>
+  <button class="cz-deco-item" data-act="daily" type="button">
+    <span class="cz-deco-ic">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+    </span>
+    <span>일일 기록 설정</span>
+  </button>
+</div>
+
+<script>
+/* ────────────────────────────────────────────────────────────────
+   코지 탭바 — 기존 기능(setViewMode / 모달 트리거)에 위임. 자체 상태 없음.
+   ──────────────────────────────────────────────────────────────── */
+(function cozyTabbarInit() {
+  const bar       = document.getElementById('cozy-tabbar');
+  const tMonth    = document.getElementById('cz-tab-month');
+  const tWeek     = document.getElementById('cz-tab-week');
+  const tTT       = document.getElementById('cz-tab-tt');
+  const tDeco     = document.getElementById('cz-tab-deco');
+  const tProf     = document.getElementById('cz-tab-profile');
+  const pop       = document.getElementById('cz-deco-pop');
+  if (!bar || !tMonth) return;
+
+  function setActive(btn) {
+    [tMonth, tWeek, tTT].forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
+  function setContinuous(on) {
+    // 사이드바 토글 동기화
+    const tg = document.getElementById('toggle-continuous');
+    if (tg && tg.checked !== on) {
+      tg.checked = on;
+      tg.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  tMonth.addEventListener('click', () => {
+    setActive(tMonth);
+    if (window.setViewMode) window.setViewMode('events');
+    else document.getElementById('seg-events')?.click();
+    setContinuous(false);
+  });
+  tWeek.addEventListener('click', () => {
+    setActive(tWeek);
+    if (window.setViewMode) window.setViewMode('events');
+    else document.getElementById('seg-events')?.click();
+    setContinuous(true);
+  });
+  tTT.addEventListener('click', () => {
+    setActive(tTT);
+    if (window.setViewMode) window.setViewMode('timetable');
+    else document.getElementById('seg-timetable')?.click();
+  });
+
+  // 꾸미기 팝업
+  let popOpen = false;
+  function openPop()  { popOpen = true;  pop.classList.add('show'); }
+  function closePop() { popOpen = false; pop.classList.remove('show'); }
+  tDeco.addEventListener('click', (e) => { e.stopPropagation(); popOpen ? closePop() : openPop(); });
+  document.addEventListener('click', (e) => {
+    if (popOpen && !e.target.closest('#cz-deco-pop') && !e.target.closest('#cz-tab-deco')) closePop();
+  });
+  pop.querySelectorAll('.cz-deco-item').forEach(b => {
+    b.addEventListener('click', () => {
+      const act = b.dataset.act;
+      closePop();
+      if (act === 'cat')   document.getElementById('theme-mgr-btn')?.click();
+      if (act === 'daily') document.getElementById('day-tpl-mgr-btn')?.click();
+    });
+  });
+
+  // 프로필 — 우측 상단 #sb-profile-btn 위임
+  tProf.addEventListener('click', () => {
+    const btn = document.getElementById('sb-profile-btn');
+    if (btn) btn.click();
+  });
+
+  // 사이드바 세그먼트 / 연속 보기 토글 변화 → 탭바 동기화
+  function syncFromState() {
+    const segEv = document.getElementById('seg-events');
+    const segTT = document.getElementById('seg-timetable');
+    const cont  = document.getElementById('toggle-continuous');
+    if (segTT && segTT.classList.contains('active')) { setActive(tTT); return; }
+    if (cont && cont.checked) { setActive(tWeek); return; }
+    setActive(tMonth);
+  }
+  const segEvBtn = document.getElementById('seg-events');
+  const segTTBtn = document.getElementById('seg-timetable');
+  segEvBtn?.addEventListener('click', () => requestAnimationFrame(syncFromState));
+  segTTBtn?.addEventListener('click', () => requestAnimationFrame(syncFromState));
+  document.getElementById('toggle-continuous')?.addEventListener('change', syncFromState);
+  // 초기 동기화 (약간 지연)
+  setTimeout(syncFromState, 300);
+
+  // setViewMode 글로벌 노출 (재호출 안전)
+  if (!window.setViewMode) {
+    // calendar IIFE 안의 setViewMode 가 noop. 위임용 fallback.
+    window.setViewMode = (mode) => {
+      const b = document.getElementById(mode === 'timetable' ? 'seg-timetable' : 'seg-events');
+      if (b) b.click();
+    };
+  }
 })();
 </script>
 </body>
