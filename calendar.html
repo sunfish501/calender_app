@@ -7900,7 +7900,10 @@ create policy "sub_delete" on public.theme_subscribers
   }
 
   // Export / Import
-  document.getElementById('export-btn').onclick = () => {
+  // 헤더에서 버튼이 제거된 후에도 파일 input 은 남아 있어 import 는 계속 동작한다.
+  // getElementById(...).onclick 를 null 에 걸면 이후 스크립트 전체가 정지해
+  // render() 조차 못 돌아 화면이 비어 보이는 회귀가 있었다 — optional chaining 으로 방어.
+  document.getElementById('export-btn')?.addEventListener('click', () => {
     const data = JSON.stringify(events, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -7910,11 +7913,11 @@ create policy "sub_delete" on public.theme_subscribers
     a.click();
     URL.revokeObjectURL(url);
     showInAppNotif('내보내기 완료', 'JSON 파일로 저장되었어요.');
-  };
+  });
 
-  document.getElementById('import-btn').onclick = () => {
-    document.getElementById('import-file').click();
-  };
+  document.getElementById('import-btn')?.addEventListener('click', () => {
+    document.getElementById('import-file')?.click();
+  });
 
   document.getElementById('import-file').onchange = (e) => {
     const file = e.target.files[0];
